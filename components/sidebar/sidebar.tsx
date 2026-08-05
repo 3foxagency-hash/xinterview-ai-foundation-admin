@@ -16,21 +16,6 @@ interface SidebarProps {
 
 export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
   const middleRef = React.useRef<HTMLElement>(null);
-  const [overflowing, setOverflowing] = React.useState(false);
-
-  // Measure whether the middle nav block fits. If not, switch to top-aligned scroll.
-  React.useEffect(() => {
-    const el = middleRef.current;
-    if (!el) return;
-    const check = () => {
-      const fits = el.scrollHeight <= el.clientHeight;
-      setOverflowing(!fits);
-    };
-    check();
-    const ro = new ResizeObserver(check);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, [expanded]);
 
   return (
     <aside
@@ -75,28 +60,27 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
         </button>
       </div>
 
-      {/* ── MIDDLE ZONE (primary nav, vertically centered with overflow fallback) ── */}
+      {/* ── MIDDLE ZONE (primary nav) ──
+          Top-aligned. Centring this block left ~170px of dead space between
+          the last primary item and the bottom group on a normal screen. */}
       <nav
         ref={middleRef}
         aria-label="Main navigation"
-        className={cn(
-          'flex min-h-0 flex-1 flex-col overflow-y-auto px-3',
-          overflowing ? 'justify-start' : 'justify-center'
-        )}
+        className="flex min-h-0 flex-1 flex-col overflow-y-auto px-3 pt-1"
       >
-        <div className={cn('flex flex-col gap-2 py-2', overflowing ? '' : 'my-auto')}>
+        <div className="flex flex-col gap-4 pb-2">
           {primaryNavGroups.map((group, gi) => (
             <div key={group.label} className="flex flex-col gap-1">
               {/* Group label: text in expanded, 1px divider in rail */}
               {expanded ? (
-                <span className="px-3 pb-1 pt-2 text-caption uppercase tracking-wider text-muted">
+                <span className="px-3 pb-1 text-caption font-medium uppercase tracking-wider text-muted">
                   {group.label}
                 </span>
               ) : (
                 gi > 0 && <div className="mx-2 my-1 h-px bg-border" />
               )}
 
-              <div className="flex flex-col gap-1">
+              <div className="flex flex-col gap-0.5">
                 {group.items.map((item) => (
                   <NavItem
                     key={item.href}
@@ -111,8 +95,10 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
         </div>
       </nav>
 
-      {/* ── BOTTOM ZONE ── */}
-      <div className="flex shrink-0 flex-col gap-1 px-3 pb-4">
+      {/* ── BOTTOM ZONE ──
+          Separated from the scrolling nav by a rule so the two groups read as
+          distinct even when the nav list is long enough to reach it. */}
+      <div className="mt-2 flex shrink-0 flex-col gap-0.5 border-t border-border px-3 pb-3 pt-3">
         {bottomNavItems.map((item) => (
           <NavItem
             key={item.href}

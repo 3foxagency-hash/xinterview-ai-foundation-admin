@@ -17,12 +17,17 @@ export function getPasswordChecks(value: string): { label: string; passed: boole
 
 export type StrengthLevel = 0 | 1 | 2 | 3 | 4;
 
+/**
+ * Strength mirrors the zod policy in lib/validation/auth.ts: every check must
+ * pass before a password reads as "Strong". Anything short of all five is at
+ * most "Good", so the meter can never contradict the submit-time error.
+ */
 export function getPasswordStrength(value: string): StrengthLevel {
   if (!value) return 0;
   const passed = passwordChecks.filter((c) => c.test(value)).length;
   if (passed <= 1) return 1;
   if (passed === 2) return 2;
-  if (passed === 3) return 3;
+  if (passed < passwordChecks.length) return 3;
   return 4;
 }
 

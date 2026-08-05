@@ -25,6 +25,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import {
   getAiEvaluation,
   saveAiEvaluation,
@@ -220,7 +221,7 @@ function FactorCard({
 
 export default function EvaluationPage() {
   const { job } = useWizard();
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getAiEvaluation,
     saveAiEvaluation,
     'evaluation_factors_updated'
@@ -634,6 +635,7 @@ export default function EvaluationPage() {
           </div>
         </SettingsSection>
       )}
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

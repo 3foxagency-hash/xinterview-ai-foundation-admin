@@ -133,6 +133,7 @@ export type FormSettingsInput = z.infer<typeof formSettingsSchema>;
 
 // ─── Customisation — Thank you page ───
 export const thankYouPageSchema = z.object({
+  title: z.string().max(50, 'Title must be 50 characters or fewer').default('Interview Complete'),
   completionMessage: z.string().default(''),
   redirectEnabled: z.boolean().default(false),
   redirectUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),

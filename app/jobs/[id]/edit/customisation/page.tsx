@@ -1,9 +1,11 @@
 import { redirect } from 'next/navigation';
 
-export default function CustomisationIndexPage({
+// Next 15 passes `params` as a Promise, so it must be awaited.
+export default async function CustomisationIndexPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  redirect(`/jobs/${params.id}/edit/customisation/branding`);
+  const { id } = await params;
+  redirect(`/jobs/${id}/edit/customisation/branding`);
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import {
   ChevronsUpDown,
@@ -56,9 +57,9 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
 
   const menuItems = React.useMemo(
     () => [
-      { id: 'account', label: 'Account', icon: CircleCheck, href: '/dashboard/account' },
-      { id: 'billing', label: 'Billing', icon: CreditCard, href: '/dashboard/billing' },
-      { id: 'organizations', label: 'Organizations', icon: Building2, href: '/dashboard/organizations' },
+      { id: 'account', label: 'Account', icon: CircleCheck, href: '/settings/profile' },
+      { id: 'billing', label: 'Billing', icon: CreditCard, href: '/settings/billing' },
+      { id: 'organizations', label: 'Organizations', icon: Building2, href: '/settings/general' },
     ],
     []
   );
@@ -258,11 +259,12 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
           {menuItems.map((mi, i) => {
             const Icon = mi.icon;
             return (
-              <a
+              <Link
                 key={mi.id}
                 href={mi.href}
                 ref={(el) => { itemRefs.current[i + 1] = el; }}
                 role="menuitem"
+                onClick={() => setOpen(false)}
                 className={cn(
                   'flex h-9 items-center gap-2.5 rounded-md px-2 text-body-sm text-bodyText',
                   'hover:bg-card-hover',
@@ -271,7 +273,7 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
               >
                 <Icon size={20} strokeWidth={1.5} className="shrink-0 text-muted" />
                 <span>{mi.label}</span>
-              </a>
+              </Link>
             );
           })}
 

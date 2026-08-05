@@ -5,11 +5,13 @@ import { Info, GitBranch } from 'lucide-react';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { features } from '@/lib/constants/features';
 
+/** Mirrors the default pipeline in the live product. */
 const DEFAULT_STAGES = [
-  { name: 'Applied', description: 'Candidate has been invited or has started the interview.' },
+  { name: 'Invited', description: 'Candidate has been invited to the interview.' },
   { name: 'In progress', description: 'Candidate is completing their interview.' },
-  { name: 'Completed', description: 'Candidate has finished the interview.' },
-  { name: 'Reviewed', description: 'A team member has reviewed the candidate.' },
+  { name: 'Review', description: 'Interview is complete and awaiting review.' },
+  { name: 'Shortlisted', description: 'Candidate has been shortlisted.' },
+  { name: 'Live interview', description: 'Candidate has moved to a live interview.' },
   { name: 'Hired', description: 'Candidate has been hired.' },
   { name: 'Rejected', description: 'Candidate has been rejected.' },
 ];

@@ -7,6 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getThankYouPage, saveThankYouPage } from '@/lib/api/jobs';
 import type { ThankYouPageInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -21,7 +22,7 @@ function extractDomain(url: string): string {
 }
 
 export default function ThankYouPageSection() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getThankYouPage,
     saveThankYouPage
   );
@@ -34,6 +35,25 @@ export default function ThankYouPageSection() {
         title="Thank you page"
         description="What candidates see after completing their interview."
       >
+        <div className="border-b border-border p-4">
+          <Label
+            htmlFor="thank-you-title"
+            className="mb-2 block text-body-sm font-semibold text-heading"
+          >
+            Title
+          </Label>
+          <Input
+            id="thank-you-title"
+            value={data.title ?? ''}
+            onChange={(e) => update({ title: e.target.value } as Partial<ThankYouPageInput>)}
+            maxLength={50}
+            placeholder="Interview Complete"
+          />
+          <p className="mt-1.5 text-body-sm text-muted">
+            The heading candidates see on the completion screen.
+          </p>
+        </div>
+
         <div className="border-b border-border p-4">
           <Label className="mb-2 block text-body-sm font-semibold text-heading">Completion message</Label>
           <RichTextEditor
@@ -94,6 +114,7 @@ export default function ThankYouPageSection() {
           </>
         )}
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

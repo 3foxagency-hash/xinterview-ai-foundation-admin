@@ -7,6 +7,7 @@ import { SettingsSection } from '@/components/settings/settings-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getScoringLabels, saveScoringLabels } from '@/lib/api/jobs';
 import type { ScoringLabelsInput, ScoringBand } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
@@ -33,7 +34,7 @@ function findOverlap(bands: ScoringBand[]): string | null {
 }
 
 export default function ScoringLabelsPage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getScoringLabels,
     saveScoringLabels,
     'scoring_labels_updated'
@@ -213,6 +214,7 @@ export default function ScoringLabelsPage() {
           </div>
         )}
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

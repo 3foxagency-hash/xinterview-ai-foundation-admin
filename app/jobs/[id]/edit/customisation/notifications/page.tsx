@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getNotifications, saveNotifications, getPlanInfo } from '@/lib/api/jobs';
 import type { NotificationsInput, ChannelSettings } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -17,7 +18,7 @@ import { track } from '@/lib/utils/analytics';
 type ChannelKey = 'email' | 'sms';
 
 export default function NotificationsPage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getNotifications,
     saveNotifications,
     'notifications_updated'
@@ -67,7 +68,7 @@ export default function NotificationsPage() {
               {!enabled && (
                 <>
                   SMS is not included in your plan.{' '}
-                  <a href="/dashboard/settings/billing" className="font-medium text-primary hover:underline">
+                  <a href="/settings/billing" className="font-medium text-primary hover:underline">
                     Upgrade to enable SMS
                   </a>
                 </>
@@ -158,6 +159,7 @@ export default function NotificationsPage() {
         plan?.smsEnabled ?? false,
         smsCreditExhausted
       )}
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

@@ -24,6 +24,7 @@ import {
   SelectItem,
 } from '@/components/ui/select';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getBranding, saveBranding } from '@/lib/api/jobs';
 import type { BrandingInput } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
@@ -111,7 +112,7 @@ function MiniThemePreview({ theme }: { theme: 'light' | 'dark' | 'auto' }) {
 }
 
 export default function BrandingPage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getBranding,
     saveBranding,
     'branding_updated'
@@ -396,6 +397,7 @@ export default function BrandingPage() {
           }
         />
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

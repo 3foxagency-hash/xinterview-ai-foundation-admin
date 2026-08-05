@@ -6,11 +6,12 @@ import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Input } from '@/components/ui/input';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getSocialPreview, saveSocialPreview } from '@/lib/api/jobs';
 import type { SocialPreviewInput } from '@/lib/validation/job';
 
 export default function SocialPreviewPage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getSocialPreview,
     saveSocialPreview
   );
@@ -82,6 +83,7 @@ export default function SocialPreviewPage() {
           </div>
         </div>
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

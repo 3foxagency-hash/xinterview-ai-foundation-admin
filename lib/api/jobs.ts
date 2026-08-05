@@ -539,6 +539,7 @@ export async function getThankYouPage(jobId: string): Promise<ThankYouPageInput>
   await delay(300);
   const data = getCustom(jobId);
   return (data.thankYouPage as ThankYouPageInput) ?? {
+    title: 'Interview Complete',
     completionMessage: 'Thank you for completing your interview. We\'ll be in touch soon.',
     redirectEnabled: false,
     redirectUrl: '',

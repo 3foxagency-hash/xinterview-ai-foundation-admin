@@ -22,17 +22,21 @@ import { login, type ApiError } from '@/lib/api/auth';
 export default function LoginPage() {
   const router = useRouter();
   const [authError, setAuthError] = React.useState<string | null>(null);
-  const [rememberMe, setRememberMe] = React.useState(true);
   const [rateLimitSeconds, setRateLimitSeconds] = React.useState(0);
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '', remember: true },
   });
+
+  // Drive the checkbox from form state so the submitted value is always in sync.
+  const rememberMe = watch('remember');
 
   React.useEffect(() => {
     if (rateLimitSeconds <= 0) return;
@@ -132,7 +136,7 @@ export default function LoginPage() {
             id="remember"
             label="Remember me"
             checked={rememberMe}
-            onCheckedChange={setRememberMe}
+            onCheckedChange={(v) => setValue('remember', v)}
           />
           <a
             href="/forgot-password"

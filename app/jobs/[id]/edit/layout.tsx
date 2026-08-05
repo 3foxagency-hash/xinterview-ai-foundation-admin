@@ -36,8 +36,11 @@ function EditShell({ children }: { children: React.ReactNode }) {
           jobId={jobId}
         />
         <TopBar />
-        <main className="flex-1 overflow-y-auto pb-28 md:pb-12">
-          <div className="mx-auto w-full max-w-[1040px] px-4 py-6 md:px-8 md:py-8">
+        {/* min-h-0 lets a step opt into filling the viewport (Customisation
+            does, so its two columns can scroll independently) while normal
+            steps still scroll the page as a whole. */}
+        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-28 md:pb-12">
+          <div className="mx-auto flex w-full min-h-0 max-w-[1040px] flex-1 flex-col px-4 py-6 md:px-8 md:py-8">
             {children}
           </div>
         </main>

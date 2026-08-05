@@ -29,7 +29,6 @@ import { inviteRowSchema } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 
 type InviteRow = {
   id: string;
@@ -43,6 +42,8 @@ function genRowId() {
   return `row_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const MAX_BULK_ROWS = 50;
+
 type Readiness = {
   jobDetailsReady: boolean;
   questionCount: number;
@@ -54,7 +55,7 @@ export default function InvitePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
-  const { job } = useWizard();
+  const { job, loading: jobLoading } = useWizard();
   const [readiness, setReadiness] = React.useState<Readiness | null>(null);
   const [plan, setPlan] = React.useState<{ candidateLimit: number; candidatesUsed: number } | null>(null);
   const [rows, setRows] = React.useState<InviteRow[]>([
@@ -73,7 +74,12 @@ export default function InvitePage() {
     getPlanInfo().then((p) => setPlan({ candidateLimit: p.candidateLimit, candidatesUsed: p.candidatesUsed })).catch(() => {});
   }, [jobId]);
 
-  const candidateUrl = job?.candidateUrl ?? '';
+  // Falls back to the deterministic public URL so a direct page load still
+  // shows something useful while the job record is loading (or if it can't be
+  // fetched at all).
+  const candidateUrl =
+    job?.candidateUrl ?? (jobId ? `https://xinterview.ai/interview/${jobId}` : '');
+  const linkReady = !!candidateUrl && !jobLoading;
   const candidatesRemaining = plan ? plan.candidateLimit - plan.candidatesUsed : 0;
   const planLimitReached = plan ? plan.candidatesUsed >= plan.candidateLimit : false;
 
@@ -87,6 +93,9 @@ export default function InvitePage() {
     return result.success;
   });
   const validCount = validRows.length;
+  const hasAnyInput = rows.some(
+    (r) => r.firstName.trim() || r.lastName.trim() || r.email.trim()
+  );
 
   const updateRow = (id: string, field: keyof InviteRow, value: string) => {
     setRows((prev) =>
@@ -157,7 +166,7 @@ export default function InvitePage() {
       const text = await file.text();
       const lines = text.split('\n').filter((l) => l.trim());
       const parsed: { firstName: string; lastName: string; email: string }[] = [];
-      for (let i = 1; i < lines.length && parsed.length < 50; i++) {
+      for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map((c) => c.trim());
         if (cols.length >= 3) {
           parsed.push({ firstName: cols[0], lastName: cols[1], email: cols[2] });
@@ -167,8 +176,12 @@ export default function InvitePage() {
         toast.error('No valid rows found in the file');
         return;
       }
-      if (parsed.length > 50) {
-        toast.error('Maximum 50 candidates per upload');
+      // Previously the parse loop stopped at 50, so this check could never fire
+      // and extra rows were dropped silently.
+      if (parsed.length > MAX_BULK_ROWS) {
+        toast.error(
+          `This file has ${parsed.length} candidates. The maximum is ${MAX_BULK_ROWS} per upload.`
+        );
         return;
       }
       const result = await bulkInvite(jobId, parsed);
@@ -207,7 +220,8 @@ export default function InvitePage() {
 
   const readinessItems = readiness
     ? [
-        { label: 'Job details', ready: readiness.jobDetailsReady, link: '/jobs/new/setup' },
+        // Links back to THIS job, not the new-job wizard.
+        { label: 'Job details', ready: readiness.jobDetailsReady, link: jobId ? `/jobs/${jobId}/edit/questions` : '' },
         { label: `${readiness.questionCount} question${readiness.questionCount !== 1 ? 's' : ''} added`, ready: readiness.questionCount > 0, link: jobId ? `/jobs/${jobId}/edit/questions` : '' },
         {
           label:
@@ -218,7 +232,11 @@ export default function InvitePage() {
           link: jobId ? `/jobs/${jobId}/edit/teams` : '',
         },
         {
-          label: 'Branding not customised — candidates will see the default experience',
+          // Label has to track `ready`, otherwise a customised job still reads
+          // "Branding not customised" next to a green tick.
+          label: readiness.brandingReady
+            ? 'Branding customised'
+            : 'Branding not customised — candidates will see the default experience',
           ready: readiness.brandingReady,
           link: jobId ? `/jobs/${jobId}/edit/customisation` : '',
         },
@@ -285,28 +303,41 @@ export default function InvitePage() {
         <div className="flex flex-col gap-2 sm:flex-row">
           <Input
             readOnly
-            value={candidateUrl}
-            className="h-10 flex-1 font-mono text-body-sm"
+            value={linkReady ? candidateUrl : ''}
+            placeholder={linkReady ? undefined : 'Loading link…'}
+            className="h-10 min-w-0 flex-1 font-mono text-body-sm"
             aria-label="Interview link"
+            onFocus={(e) => e.currentTarget.select()}
           />
-          <div className="flex gap-2">
+          <div className="flex shrink-0 gap-2">
             <button
               type="button"
               onClick={handleCopy}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              disabled={!linkReady}
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
             >
               {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            <a
-              href={candidateUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
-            >
-              <ExternalLink size={14} />
-              Preview
-            </a>
+            {linkReady ? (
+              <a
+                href={candidateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              >
+                <ExternalLink size={14} />
+                Preview
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md border border-border-strong px-4 text-button text-muted opacity-50"
+              >
+                <ExternalLink size={14} />
+                Preview
+              </span>
+            )}
           </div>
         </div>
       </SectionCard>
@@ -318,6 +349,15 @@ export default function InvitePage() {
         statusDot={validCount > 0 ? 'success' : 'indigo'}
         statusTooltip={validCount > 0 ? `${validCount} valid invite${validCount > 1 ? 's' : ''}` : 'No valid invites yet'}
       >
+        {/* Column headers — the inputs are placeholder-only, which disappears
+            once a row is filled in. */}
+        <div className="mb-2 hidden gap-2 sm:flex">
+          <span className="flex-1 text-caption font-medium text-muted">First name</span>
+          <span className="flex-1 text-caption font-medium text-muted">Last name</span>
+          <span className="flex-[1.5] text-caption font-medium text-muted">Email address</span>
+          <span className="w-10 shrink-0" aria-hidden />
+        </div>
+
         <div className="space-y-3">
           {rows.map((row, index) => (
             <div key={row.id}>
@@ -327,9 +367,10 @@ export default function InvitePage() {
                     value={row.firstName}
                     onChange={(e) => updateRow(row.id, 'firstName', e.target.value)}
                     placeholder="First name"
-                    className="h-10"
+                    className={cn('h-10', row.error && 'border-error')}
                     aria-label={`Row ${index + 1} first name`}
                     aria-invalid={!!row.error}
+                    aria-describedby={row.error ? `${row.id}-error` : undefined}
                   />
                 </div>
                 <div className="flex-1">
@@ -337,8 +378,10 @@ export default function InvitePage() {
                     value={row.lastName}
                     onChange={(e) => updateRow(row.id, 'lastName', e.target.value)}
                     placeholder="Last name"
-                    className="h-10"
+                    className={cn('h-10', row.error && 'border-error')}
                     aria-label={`Row ${index + 1} last name`}
+                    aria-invalid={!!row.error}
+                    aria-describedby={row.error ? `${row.id}-error` : undefined}
                   />
                 </div>
                 <div className="flex-[1.5]">
@@ -347,8 +390,10 @@ export default function InvitePage() {
                     onChange={(e) => updateRow(row.id, 'email', e.target.value)}
                     placeholder="Email address"
                     type="email"
-                    className="h-10"
+                    className={cn('h-10', row.error && 'border-error')}
                     aria-label={`Row ${index + 1} email`}
+                    aria-invalid={!!row.error}
+                    aria-describedby={row.error ? `${row.id}-error` : undefined}
                   />
                 </div>
                 <button
@@ -362,7 +407,7 @@ export default function InvitePage() {
                 </button>
               </div>
               {row.error && (
-                <p role="alert" className="mt-1 text-body-sm text-error">
+                <p id={`${row.id}-error`} role="alert" className="mt-1 text-body-sm text-error">
                   {row.error}
                 </p>
               )}
@@ -377,18 +422,27 @@ export default function InvitePage() {
           <Plus size={14} />
           Add another
         </button>
-        <div className="mt-4">
+        <div className="mt-4 flex items-center gap-3">
+          {/* Stays enabled while rows are only partly filled — handleSendInvites
+              validates and surfaces per-row errors. Disabling it here left the
+              user with a dead button and no explanation of what was wrong. */}
           <button
             type="button"
             onClick={handleSendInvites}
-            disabled={validCount === 0 || sending}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
+            disabled={!hasAnyInput || sending}
+            aria-busy={sending}
+            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
           >
             {sending && (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
             )}
-            Send {validCount > 0 && `${validCount} `}invite{validCount !== 1 ? 's' : ''}
+            {sending
+              ? 'Sending…'
+              : `Send ${validCount > 0 ? `${validCount} ` : ''}invite${validCount !== 1 ? 's' : ''}`}
           </button>
+          {!hasAnyInput && (
+            <span className="text-body-sm text-muted">Add a candidate to send an invite.</span>
+          )}
         </div>
       </SectionCard>
 
@@ -405,7 +459,7 @@ export default function InvitePage() {
               You&apos;ve reached your plan&apos;s candidate limit ({plan?.candidatesUsed}/{plan?.candidateLimit}).
             </p>
             <a
-              href="/dashboard/settings/billing"
+              href="/settings/billing"
               className="mt-2 inline-block text-body-sm font-medium text-primary hover:underline"
             >
               Upgrade your plan →
@@ -413,8 +467,14 @@ export default function InvitePage() {
           </div>
         ) : (
           <>
+            {/* The effective cap is whichever is lower: the per-upload limit or
+                the seats left on the plan. */}
             <p className="mb-4 text-body-sm text-muted">
-              Upload a .csv or .xlsx file with up to 50 candidates. {candidatesRemaining} slots remaining.
+              Upload a .csv or .xlsx file with up to{' '}
+              {Math.min(MAX_BULK_ROWS, candidatesRemaining)} candidates.{' '}
+              <span className={cn(candidatesRemaining <= 10 && 'font-medium text-warning')}>
+                {candidatesRemaining} slot{candidatesRemaining === 1 ? '' : 's'} remaining on your plan.
+              </span>
             </p>
 
             {bulkLoading ? (

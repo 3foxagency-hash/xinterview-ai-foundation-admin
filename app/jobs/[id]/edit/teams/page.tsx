@@ -276,7 +276,7 @@ export default function TeamsPage() {
                             {!plan?.emailNotifications && (
                               <span className="text-caption text-muted">
                                 <a
-                                  href="/dashboard/settings/billing"
+                                  href="/settings/billing"
                                   className="text-primary hover:underline"
                                 >
                                   Upgrade to enable
@@ -344,7 +344,7 @@ export default function TeamsPage() {
                     {!plan?.emailNotifications && (
                       <p className="mt-1.5 text-caption text-muted">
                         <a
-                          href="/dashboard/settings/billing"
+                          href="/settings/billing"
                           className="text-primary hover:underline"
                         >
                           Upgrade to enable
@@ -400,7 +400,7 @@ export default function TeamsPage() {
               <p className="text-body-sm text-muted">
                 No members found. Add people in{' '}
                 <a
-                  href="/dashboard/settings/team"
+                  href="/settings/team"
                   className="text-primary hover:underline"
                 >
                   Settings → Team members

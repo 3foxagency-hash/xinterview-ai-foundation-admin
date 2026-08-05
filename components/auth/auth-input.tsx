@@ -19,11 +19,13 @@ export interface AuthInputProps
   description?: string;
   error?: string;
   leadingIcon?: React.ReactNode;
+  /** Control pinned inside the right edge of the input row (e.g. password reveal) */
+  trailingControl?: React.ReactNode;
 }
 
 const AuthInput = React.forwardRef<HTMLInputElement, AuthInputProps>(
   (
-    { className, label, description, error, leadingIcon, id, disabled, ...props },
+    { className, label, description, error, leadingIcon, trailingControl, id, disabled, ...props },
     ref
   ) => {
     const generatedId = React.useId();
@@ -70,6 +72,11 @@ const AuthInput = React.forwardRef<HTMLInputElement, AuthInputProps>(
             )}
             {...props}
           />
+          {trailingControl && (
+            <span className="absolute right-2 top-1/2 -translate-y-1/2">
+              {trailingControl}
+            </span>
+          )}
         </div>
         {error && (
           <div

@@ -199,7 +199,7 @@ export default function TeamPage() {
             {seatsFull && (
               <p className="mt-1 text-body-sm text-error">
                 You've used all your seats.{' '}
-                <a href="/dashboard/settings/billing" className="underline hover:no-underline">
+                <a href="/settings/billing" className="underline hover:no-underline">
                   Upgrade your plan
                 </a>
               </p>

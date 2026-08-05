@@ -156,17 +156,19 @@ export function CustomisationSubNav({ jobId, sectionErrors }: CustomisationSubNa
 
   return (
     <>
-      {/* Desktop sub-nav — fixed width sidebar */}
+      {/* Desktop sub-nav. Stretches to the full height of the row (no
+          self-start) so it never ends up shorter than the section content
+          beside it, and scrolls internally when the list outgrows the row. */}
       <aside
-        className="sticky top-0 hidden h-screen w-[280px] shrink-0 overflow-y-auto border-r border-border bg-surface px-3 py-6 md:block"
+        className="hidden w-[260px] shrink-0 flex-col overflow-y-auto rounded-lg border border-border bg-surface px-3 py-5 lg:flex"
         aria-label="Customisation sections"
       >
         <div className="px-3">
-          <h2 className="text-h2 text-heading">Customisation</h2>
+          <h2 className="text-h3 text-heading">Customisation</h2>
           <p className="mt-1 text-body-sm text-muted">Personalise the candidate experience</p>
         </div>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-5 space-y-5">
           {SECTIONS.map((section) => (
             <div key={section.id}>
               <p className="mb-3 px-3 text-caption font-medium uppercase tracking-wider text-muted">
@@ -192,9 +194,10 @@ export function CustomisationSubNav({ jobId, sectionErrors }: CustomisationSubNa
         </div>
       </aside>
 
-      {/* Mobile/tablet: horizontal scrolling tab strip */}
+      {/* Mobile/tablet: horizontal scrolling tab strip. lg: matches the sidebar
+          breakpoint so exactly one of the two is always visible. */}
       <div
-        className="flex items-center gap-2 overflow-x-auto border-b border-border bg-surface px-4 py-3 md:hidden"
+        className="mb-6 flex items-center gap-2 overflow-x-auto rounded-lg border border-border bg-surface px-3 py-2 lg:hidden"
         aria-label="Customisation sections"
       >
         {SECTIONS.flatMap((section) => section.items).map((item) => {

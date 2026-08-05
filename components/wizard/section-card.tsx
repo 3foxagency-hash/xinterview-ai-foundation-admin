@@ -69,8 +69,9 @@ export function SectionCard({
         {headerAction && <div className="shrink-0">{headerAction}</div>}
       </div>
 
-      {/* Body */}
-      <div className="px-6">{children}</div>
+      {/* Body — needs its own bottom padding when there is no footer, otherwise
+          the last element sits flush against the card border. */}
+      <div className={cn('px-6', footer ? 'pb-0' : 'pb-6')}>{children}</div>
 
       {/* Footer */}
       {footer && (

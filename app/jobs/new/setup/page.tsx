@@ -24,17 +24,13 @@ import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
 import { HeroBanner } from '@/components/wizard/hero-banner';
 import { SectionCard } from '@/components/wizard/section-card';
-import { WizardInput, WizardSelect } from '@/components/wizard/wizard-input';
+import { WizardInput } from '@/components/wizard/wizard-input';
+import { WizardCombobox } from '@/components/wizard/wizard-combobox';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
-import { createJob, getPreviousJobTitles, generateJobDescription } from '@/lib/api/jobs';
+import { createJob, generateJobDescription } from '@/lib/api/jobs';
 import { track } from '@/lib/utils/analytics';
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from '@/components/ui/select';
+import { timezones, getDefaultTimezone } from '@/lib/constants/timezones';
+import { availableLanguages, DEFAULT_LANGUAGE } from '@/lib/constants/languages';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { format as formatDate, isPast, isToday } from 'date-fns';
@@ -66,7 +62,7 @@ const FORMAT_CARDS: FormatCard[] = [
     icon: Bot,
     locked: true,
     lockReason: 'Available on the Growth plan.',
-    lockLink: { label: 'Upgrade in Billing', href: '/dashboard/settings/billing' },
+    lockLink: { label: 'Upgrade in Billing', href: '/settings/billing' },
   },
   {
     id: 'ai_voice',
@@ -75,7 +71,7 @@ const FORMAT_CARDS: FormatCard[] = [
     icon: Mic,
     locked: true,
     lockReason: 'Available on the Growth plan.',
-    lockLink: { label: 'Upgrade in Billing', href: '/dashboard/settings/billing' },
+    lockLink: { label: 'Upgrade in Billing', href: '/settings/billing' },
   },
   {
     id: 'ai_phone',
@@ -84,36 +80,13 @@ const FORMAT_CARDS: FormatCard[] = [
     icon: Phone,
     locked: true,
     lockReason: 'Connect a phone system first.',
-    lockLink: { label: 'Go to Integrations', href: '/dashboard/settings/integrations' },
+    lockLink: { label: 'Go to Integrations', href: '/settings/integrations' },
   },
 ];
 
-const TIMEZONES = [
-  'UTC', 'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Madrid',
-  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
-  'America/Sao_Paulo', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Shanghai', 'Asia/Tokyo',
-  'Asia/Singapore', 'Australia/Sydney', 'Pacific/Auckland',
-];
+const TIMEZONE_OPTIONS = timezones.map((tz) => ({ value: tz.key, label: tz.label }));
 
-const LANGUAGES = [
-  'English (UK)', 'English (US)', 'English (Australia)', 'English (India)',
-  'Spanish (Spain)', 'Spanish (Latin America)', 'French (France)', 'French (Canada)',
-  'German', 'Italian', 'Portuguese (Portugal)', 'Portuguese (Brazil)',
-  'Dutch', 'Swedish', 'Norwegian', 'Danish', 'Finnish',
-  'Polish', 'Czech', 'Romanian', 'Hungarian', 'Greek',
-  'Turkish', 'Arabic', 'Hebrew', 'Russian', 'Ukrainian',
-  'Hindi', 'Bengali', 'Tamil', 'Telugu', 'Marathi',
-  'Mandarin Chinese', 'Cantonese', 'Japanese', 'Korean',
-  'Thai', 'Vietnamese', 'Indonesian', 'Malay', 'Filipino',
-];
-
-function getBrowserTimezone() {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-  } catch {
-    return 'UTC';
-  }
-}
+const LANGUAGE_OPTIONS = availableLanguages.map((l) => ({ value: l.lang, label: l.text }));
 
 function FormatCardView({
   card,
@@ -231,10 +204,9 @@ export default function SetupPage() {
   const [subStep, setSubStep] = React.useState<'format' | 'details'>('format');
   const [format, setFormat] = React.useState<InterviewFormat>('ai_video');
   const [submitting, setSubmitting] = React.useState(false);
-  const [prevTitles, setPrevTitles] = React.useState<string[]>([]);
-  const [titleFocused, setTitleFocused] = React.useState(false);
   const [generatingDesc, setGeneratingDesc] = React.useState(false);
   const [deadlineDate, setDeadlineDate] = React.useState<Date | undefined>();
+  const [deadlineOpen, setDeadlineOpen] = React.useState(false);
 
   const {
     register,
@@ -247,16 +219,12 @@ export default function SetupPage() {
     defaultValues: {
       format: 'ai_video',
       title: '',
-      timezone: getBrowserTimezone(),
+      timezone: getDefaultTimezone(),
       applicationDeadline: '',
-      interviewLanguage: 'English (UK)',
+      interviewLanguage: DEFAULT_LANGUAGE,
       description: '',
     },
   });
-
-  React.useEffect(() => {
-    getPreviousJobTitles().then(setPrevTitles).catch(() => {});
-  }, []);
 
   React.useEffect(() => {
     setValue('format', format);
@@ -264,6 +232,7 @@ export default function SetupPage() {
 
   const titleValue = watch('title');
   const languageValue = watch('interviewLanguage');
+  const timezoneValue = watch('timezone');
 
   const onFormatContinue = () => {
     track('interview_format_selected', { format });
@@ -274,7 +243,10 @@ export default function SetupPage() {
     if (!titleValue || titleValue.length < 2) return;
     setGeneratingDesc(true);
     try {
-      const desc = await generateJobDescription(titleValue, languageValue);
+      // The API expects a human-readable language name, not the BCP-47 code.
+      const languageName =
+        availableLanguages.find((l) => l.lang === languageValue)?.text ?? languageValue;
+      const desc = await generateJobDescription(titleValue, languageName);
       setValue('description', desc);
       markDirty();
       track('description_ai_generated', { title: titleValue });
@@ -371,67 +343,40 @@ export default function SetupPage() {
           }
         >
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            {/* Job position with autocomplete */}
-            <div className="relative">
-              <WizardInput
-                label="Job position"
-                required
-                icon={Briefcase}
-                {...register('title')}
-                onFocus={() => setTitleFocused(true)}
-                onBlur={() => {
-                  setTitleFocused(false);
-                  markDirty();
-                }}
-                placeholder="e.g. Senior Frontend Engineer"
-                error={errors.title?.message}
-                autoComplete="off"
-              />
-              {titleFocused && prevTitles.length > 0 && (
-                <div className="absolute z-30 mt-1 w-full rounded-md border border-border bg-surface shadow-lg">
-                  {prevTitles.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => {
-                        setValue('title', t);
-                        setTitleFocused(false);
-                        markDirty();
-                      }}
-                      className="block w-full px-4 py-2 text-left text-body text-bodyText transition-colors hover:bg-card-hover focus-visible:bg-card-hover focus-visible:outline-none"
-                    >
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Job position — free text. Roles are unbounded, so there is no
+                fixed list to pick from. */}
+            <WizardInput
+              label="Job position"
+              required
+              icon={Briefcase}
+              {...register('title')}
+              onBlur={() => markDirty()}
+              placeholder="e.g. Senior Frontend Engineer"
+              error={errors.title?.message}
+              autoComplete="off"
+            />
 
             {/* Timezone */}
-            <WizardSelect
+            <WizardCombobox
               label="Timezone"
               required
               icon={Clock}
-              value={getBrowserTimezone()}
-              onValueChange={(v) => {
-                setValue('timezone', v);
+              options={TIMEZONE_OPTIONS}
+              value={timezoneValue}
+              onChange={(v) => {
+                setValue('timezone', v, { shouldValidate: true });
                 markDirty();
               }}
+              searchPlaceholder="Search timezones…"
               error={errors.timezone?.message}
-            >
-              {TIMEZONES.map((tz) => (
-                <SelectItem key={tz} value={tz}>
-                  {tz}
-                </SelectItem>
-              ))}
-            </WizardSelect>
+            />
 
             {/* Application deadline */}
             <div>
               <label className="mb-2 block text-body-sm font-semibold text-heading">
                 Application deadline <span className="ml-0.5 text-error">*</span>
               </label>
-              <Popover>
+              <Popover open={deadlineOpen} onOpenChange={setDeadlineOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
@@ -453,8 +398,13 @@ export default function SetupPage() {
                     onSelect={(d) => {
                       if (d && !isPast(d)) {
                         setDeadlineDate(d);
-                        setValue('applicationDeadline', formatDate(d, 'yyyy-MM-dd'));
+                        setValue('applicationDeadline', formatDate(d, 'yyyy-MM-dd'), {
+                          shouldValidate: true,
+                        });
                         markDirty();
+                        // Close on pick — otherwise the calendar stays open and
+                        // you have to click elsewhere to dismiss it.
+                        setDeadlineOpen(false);
                       }
                     }}
                     disabled={(d) => isPast(d) && !isToday(d)}
@@ -472,23 +422,19 @@ export default function SetupPage() {
             </div>
 
             {/* Interview language */}
-            <WizardSelect
+            <WizardCombobox
               label="Interview language"
               required
               icon={Globe}
-              value="English (UK)"
-              onValueChange={(v) => {
-                setValue('interviewLanguage', v);
+              options={LANGUAGE_OPTIONS}
+              value={languageValue}
+              onChange={(v) => {
+                setValue('interviewLanguage', v, { shouldValidate: true });
                 markDirty();
               }}
+              searchPlaceholder="Search languages…"
               error={errors.interviewLanguage?.message}
-            >
-              {LANGUAGES.map((lang) => (
-                <SelectItem key={lang} value={lang}>
-                  {lang}
-                </SelectItem>
-              ))}
-            </WizardSelect>
+            />
           </div>
 
           {/* Job description */}

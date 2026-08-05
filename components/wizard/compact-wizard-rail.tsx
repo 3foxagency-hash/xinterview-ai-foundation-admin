@@ -37,9 +37,11 @@ export function CompactWizardRail({
     }
   };
 
+  // lg: matches WizardRail's breakpoint — xl: left a 1024–1280px gap where the
+  // rail was collapsed but the compact version never rendered.
   return (
     <aside
-      className="sticky top-0 hidden h-screen w-[88px] shrink-0 flex-col items-center border-r border-border bg-surface px-2 py-4 xl:flex"
+      className="sticky top-0 hidden h-screen w-[88px] shrink-0 flex-col items-center border-r border-border bg-surface px-2 py-4 lg:flex"
       aria-label="Wizard navigation (compact)"
     >
       <button

@@ -16,12 +16,23 @@ function pickRandom<T>(arr: T[]): T {
 
 export function VideoPanel() {
   const videoRef = React.useRef<HTMLVideoElement>(null);
-  const [src, setSrc] = React.useState(() => pickRandom(VIDEOS));
+  // Server and client must agree on the first render, so the random pick is
+  // deferred to an effect. Rendering VIDEOS[0] on both sides keeps hydration
+  // clean; the shuffle happens immediately after mount.
+  const [src, setSrc] = React.useState(VIDEOS[0]);
   const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => {
+    setSrc(pickRandom(VIDEOS));
+  }, []);
 
   const handleEnded = () => {
     setReady(false);
-    setSrc(pickRandom(VIDEOS));
+    // Avoid replaying the same clip back-to-back.
+    setSrc((current) => {
+      const others = VIDEOS.filter((v) => v !== current);
+      return others.length ? pickRandom(others) : current;
+    });
   };
 
   React.useEffect(() => {
@@ -101,8 +112,11 @@ export function VideoPanel() {
         </p>
         <p className="mt-1 text-[13px] text-white/50">
           Get started with a free 7 day trial.{' '}
+          {/* Placeholder destination — kept out of the tab order so the first
+              Tab on the page lands in the sign-in form, not the promo panel. */}
           <a
             href="#"
+            tabIndex={-1}
             className="text-white/70 underline underline-offset-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/50 rounded"
           >
             View all paid plans here.

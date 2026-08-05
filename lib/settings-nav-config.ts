@@ -31,7 +31,7 @@ export type SettingsNavGroup = {
   items: SettingsNavItem[];
 };
 
-const BASE = '/dashboard/settings';
+const BASE = '/settings';
 
 export const settingsNavGroups: SettingsNavGroup[] = [
   {

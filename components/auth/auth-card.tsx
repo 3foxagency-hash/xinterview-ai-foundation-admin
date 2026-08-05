@@ -17,7 +17,7 @@ export function AuthCard({
   className,
 }: AuthCardProps) {
   return (
-    <div className={cn('w-full max-w-[420px]', className)}>
+    <div className={cn('w-full', className)}>
       <div className="mb-8">
         <h1 className="text-[28px] font-bold leading-tight tracking-tight text-heading">
           {heading}

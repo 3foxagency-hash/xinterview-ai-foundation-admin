@@ -7,13 +7,14 @@ import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getWelcomePage, saveWelcomePage } from '@/lib/api/jobs';
 import type { WelcomePageInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
 import { track } from '@/lib/utils/analytics';
 
 export default function WelcomePageSection() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getWelcomePage,
     saveWelcomePage,
     'welcome_page_updated'
@@ -160,6 +161,7 @@ export default function WelcomePageSection() {
           </>
         )}
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

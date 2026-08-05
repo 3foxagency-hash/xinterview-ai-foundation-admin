@@ -15,10 +15,13 @@ interface NavItemProps {
 
 export function NavItem({ item, expanded, showTooltip }: NavItemProps) {
   const pathname = usePathname();
-  const isActive =
-    item.href === '/dashboard'
-      ? pathname === '/dashboard'
-      : pathname === item.href || pathname.startsWith(item.href + '/');
+  // Overview and Jobs match exactly: both have deeper routes that belong to
+  // other nav entries (the job wizard lives under /jobs/new and /jobs/[id],
+  // which is reached via "Create New Job", not the Jobs list).
+  const exactOnly = item.href === '/dashboard' || item.href === '/jobs';
+  const isActive = exactOnly
+    ? pathname === item.href
+    : pathname === item.href || pathname.startsWith(item.href + '/');
   const Icon = item.icon;
 
   const link = (
@@ -32,13 +35,12 @@ export function NavItem({ item, expanded, showTooltip }: NavItemProps) {
         expanded
           ? 'h-9 w-full gap-2.5 px-3'
           : 'h-10 w-10 justify-center',
-        // Stripe pattern:
-        // Active  → no background, just indigo text + icon
-        // Hover   → very subtle gray background, text stays body color (no hue shift)
-        // Default → body-color text, no background
+        // Active  → tinted pill + indigo text, matching the settings sub-nav so
+        //           the two navigation levels read the same way.
+        // Hover   → subtle grey wash, no hue shift.
         isActive
-          ? 'text-primary'
-          : 'text-bodyText hover:bg-muted-bg'
+          ? 'bg-active-menu-bg text-primary'
+          : 'text-bodyText hover:bg-muted-bg hover:text-heading'
       )}
     >
       <Icon

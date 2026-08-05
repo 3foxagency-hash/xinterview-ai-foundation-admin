@@ -14,6 +14,7 @@ import { SettingsInput } from '@/components/settings/settings-input';
 import { SettingsSelect } from '@/components/settings/settings-select';
 import { SegmentedControl } from '@/components/settings/segmented-control';
 import { LogoUpload } from '@/components/settings/logo-upload';
+import { GeneralSkeleton } from '@/components/settings/general-skeleton';
 import { DeleteCompanyDialog } from '@/components/settings/delete-company-dialog';
 import { RadioCardGroup } from '@/components/auth/radio-card-group';
 import {
@@ -58,6 +59,7 @@ export default function GeneralSettingsPage() {
   const [currentUser, setCurrentUser] = React.useState<CurrentUser | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saveLoading, setSaveLoading] = React.useState(false);
+  const [justSaved, setJustSaved] = React.useState(false);
   const [logoUrl, setLogoUrl] = React.useState<string | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
   const [deleteLoading, setDeleteLoading] = React.useState(false);
@@ -110,6 +112,7 @@ export default function GeneralSettingsPage() {
 
   const update = <K extends keyof FormState>(key: K, value: FormState[K]) => {
     setForm((f) => ({ ...f, [key]: value }));
+    setJustSaved(false);
     setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
@@ -138,6 +141,7 @@ export default function GeneralSettingsPage() {
       });
       setOrg(updated);
       setInitialForm({ ...form });
+      setJustSaved(true);
       toast.success('Company details updated');
       track('company_details_updated', { companyId: updated.id });
     } catch (e) {
@@ -177,12 +181,7 @@ export default function GeneralSettingsPage() {
   }, [isDirty]);
 
   if (loading || !org) {
-    return (
-      <div className="mx-auto w-full max-w-[800px] px-8 py-8">
-        <div className="h-7 w-40 animate-pulse rounded-md bg-border" />
-        <div className="mt-4 h-4 w-60 animate-pulse rounded bg-border" />
-      </div>
-    );
+    return <GeneralSkeleton />;
   }
 
   const isOwner = currentUser?.isOwner ?? false;
@@ -295,6 +294,7 @@ export default function GeneralSettingsPage() {
       <SaveBar
         visible={isDirty}
         loading={saveLoading}
+        saved={justSaved}
         onDiscard={handleDiscard}
         onSave={handleSave}
       />

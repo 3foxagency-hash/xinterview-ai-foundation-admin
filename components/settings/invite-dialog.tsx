@@ -71,7 +71,9 @@ export function InviteDialog({ open, onOpenChange, onInvite, seatsFull }: Invite
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 py-2">
+        {/* noValidate so the browser's native bubble doesn't pre-empt the zod
+            messages — without it an invalid email silently did nothing. */}
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4 py-2">
           <SettingsInput
             ref={emailRef}
             label="Email address"

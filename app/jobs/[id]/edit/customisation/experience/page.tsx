@@ -8,6 +8,7 @@ import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getInterviewExperience, saveInterviewExperience } from '@/lib/api/jobs';
 import type { InterviewExperienceInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -16,7 +17,7 @@ import { track } from '@/lib/utils/analytics';
 const DISCLOSURE_TEXT = 'Your session is monitored for interview integrity.';
 
 export default function ExperiencePage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getInterviewExperience,
     saveInterviewExperience,
     'integrity_settings_updated'
@@ -107,6 +108,7 @@ export default function ExperiencePage() {
           />
         </div>
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }

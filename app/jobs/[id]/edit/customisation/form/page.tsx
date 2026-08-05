@@ -8,6 +8,7 @@ import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { getFormSettings, saveFormSettings } from '@/lib/api/jobs';
 import type { FormSettingsInput, FieldRequirement } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
@@ -75,7 +76,7 @@ function SegmentedControl({
 }
 
 export default function FormSettingsPage() {
-  const { data, loading, update } = useCustomisationSave(
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
     getFormSettings,
     saveFormSettings,
     'form_fields_updated'
@@ -175,6 +176,7 @@ export default function FormSettingsPage() {
           />
         )}
       </SettingsSection>
+      <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />
     </div>
   );
 }
