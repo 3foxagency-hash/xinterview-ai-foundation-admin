@@ -90,13 +90,6 @@ const PREVIOUS_TITLES = [
   'DevOps Engineer',
 ];
 
-const QUESTION_TEMPLATES: QuestionTemplate[] = [
-  { id: 'tpl_1', name: 'Engineering standard', questionCount: 6 },
-  { id: 'tpl_2', name: 'Product & design', questionCount: 5 },
-  { id: 'tpl_3', name: 'Sales & GTM', questionCount: 4 },
-  { id: 'tpl_4', name: 'Executive screening', questionCount: 7 },
-];
-
 const COMPANY_MEMBERS: CompanyMember[] = [
   { id: 'cm_1', name: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', role: 'Admin', initials: 'SC' },
   { id: 'cm_2', name: 'Marcus Reid', email: 'marcus.reid@xinterview.ai', role: 'Manager', initials: 'MR' },
@@ -131,9 +124,18 @@ export async function getPreviousJobTitles(): Promise<string[]> {
   return [...PREVIOUS_TITLES];
 }
 
+/**
+ * Templates come from the question library in Settings, so anything created
+ * there is immediately offered when building a job.
+ */
 export async function getQuestionTemplates(): Promise<QuestionTemplate[]> {
-  await delay(400);
-  return [...QUESTION_TEMPLATES];
+  const { getQuestionTemplates: getLibraryTemplates } = await import('@/lib/api/settings');
+  const library = await getLibraryTemplates();
+  return library.map((t) => ({
+    id: t.id,
+    name: t.name,
+    questionCount: t.questions.length,
+  }));
 }
 
 export async function getCompanyMembers(): Promise<CompanyMember[]> {
@@ -382,62 +384,20 @@ export async function generateAiQuestions(
   return questions;
 }
 
+/**
+ * Pulls a template's questions from the Settings question library and gives
+ * each one a fresh id so editing them in a job never mutates the template.
+ */
 export async function getTemplateQuestions(templateId: string): Promise<Question[]> {
-  await delay(600);
-  if (templateId === 'tpl_1') {
-    return [
-      { id: genId('q'), type: 'video', title: 'Introduce yourself and your background.', description: '', retakesAllowed: 2, thinkingTime: '30s', answerTime: '2min' },
-      { id: genId('q'), type: 'video', title: 'Describe a complex technical problem you solved.', description: 'Walk us through your approach.', retakesAllowed: 1, thinkingTime: '60s', answerTime: '3min' },
-      { id: genId('q'), type: 'text', title: 'Which programming languages are you most proficient in?', description: '', answerTime: '5min', charLimit: 500 },
-      { id: genId('q'), type: 'single_choice', title: 'How many years of experience do you have?', description: '', options: [
-        { id: genId('opt'), text: '0-2 years', isCorrect: false },
-        { id: genId('opt'), text: '3-5 years', isCorrect: true },
-        { id: genId('opt'), text: '6+ years', isCorrect: false },
-      ]},
-      { id: genId('q'), type: 'audio', title: 'Why are you interested in this role?', description: '', retakesAllowed: 1, thinkingTime: '15s', answerTime: '2min' },
-      { id: genId('q'), type: 'video', title: 'Where do you see yourself in 3 years?', description: '', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    ];
-  }
-  if (templateId === 'tpl_2') {
-    return [
-      { id: genId('q'), type: 'video', title: 'Walk us through your portfolio.', description: '', retakesAllowed: 2, thinkingTime: '30s', answerTime: '3min' },
-      { id: genId('q'), type: 'text', title: 'Describe your design process.', description: '', answerTime: '5min', charLimit: 800 },
-      { id: genId('q'), type: 'single_choice', title: 'Which design tool do you use most?', description: '', options: [
-        { id: genId('opt'), text: 'Figma', isCorrect: true },
-        { id: genId('opt'), text: 'Sketch', isCorrect: false },
-      ]},
-      { id: genId('q'), type: 'video', title: 'How do you handle design feedback?', description: '', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-      { id: genId('q'), type: 'audio', title: 'Tell us about a project you are proud of.', description: '', retakesAllowed: 1, thinkingTime: '15s', answerTime: '2min' },
-    ];
-  }
-  if (templateId === 'tpl_3') {
-    return [
-      { id: genId('q'), type: 'video', title: 'Pitch our product to me.', description: '', retakesAllowed: 2, thinkingTime: '60s', answerTime: '3min' },
-      { id: genId('q'), type: 'text', title: 'How do you build a sales pipeline?', description: '', answerTime: '5min', charLimit: 500 },
-      { id: genId('q'), type: 'single_choice', title: 'What is your preferred sales methodology?', description: '', options: [
-        { id: genId('opt'), text: 'BANT', isCorrect: false },
-        { id: genId('opt'), text: 'MEDDIC', isCorrect: true },
-        { id: genId('opt'), text: 'Challenger', isCorrect: false },
-      ]},
-      { id: genId('q'), type: 'video', title: 'Describe your most successful deal.', description: '', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    ];
-  }
-  if (templateId === 'tpl_4') {
-    return [
-      { id: genId('q'), type: 'video', title: 'What is your leadership philosophy?', description: '', retakesAllowed: 2, thinkingTime: '60s', answerTime: '3min' },
-      { id: genId('q'), type: 'video', title: 'Describe a strategic decision you made.', description: '', retakesAllowed: 1, thinkingTime: '60s', answerTime: '3min' },
-      { id: genId('q'), type: 'text', title: 'How do you measure success for your team?', description: '', answerTime: '5min', charLimit: 800 },
-      { id: genId('q'), type: 'single_choice', title: 'What company size do you prefer leading?', description: '', options: [
-        { id: genId('opt'), text: 'Startup (0-50)', isCorrect: false },
-        { id: genId('opt'), text: 'Mid-size (50-500)', isCorrect: true },
-        { id: genId('opt'), text: 'Enterprise (500+)', isCorrect: false },
-      ]},
-      { id: genId('q'), type: 'audio', title: 'How do you handle conflict within your team?', description: '', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-      { id: genId('q'), type: 'video', title: 'What trends will shape our industry next year?', description: '', retakesAllowed: 1, thinkingTime: '60s', answerTime: '3min' },
-      { id: genId('q'), type: 'video', title: 'Why this company?', description: '', retakesAllowed: 2, thinkingTime: '30s', answerTime: '2min' },
-    ];
-  }
-  return [];
+  const { getQuestionTemplates: getLibraryTemplates } = await import('@/lib/api/settings');
+  const library = await getLibraryTemplates();
+  const template = library.find((t) => t.id === templateId);
+  if (!template) return [];
+  return template.questions.map((q) => ({
+    ...q,
+    id: genId('q'),
+    options: q.options?.map((o) => ({ ...o, id: genId('opt') })),
+  })) as Question[];
 }
 
 export function _resetJobsStore() {

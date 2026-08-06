@@ -13,7 +13,9 @@ interface LogoUploadProps {
 }
 
 const MAX_SIZE = 2 * 1024 * 1024;
-const MIN_DIM = 128;
+// Wordmark logos are wide and short (the live product ships a 301×58 mark), so
+// only a minimum height is enforced — a 128px square floor would reject them.
+const MIN_HEIGHT = 32;
 const ACCEPTED = ['image/png', 'image/jpeg', 'image/svg+xml'];
 
 export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUploadProps) {
@@ -36,8 +38,8 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
 
     try {
       const img = await loadImageDims(file);
-      if (img.width < MIN_DIM || img.height < MIN_DIM) {
-        setError(`Image is too small. Minimum size is ${MIN_DIM}×${MIN_DIM} pixels.`);
+      if (img.height < MIN_HEIGHT) {
+        setError(`Image is too small. It must be at least ${MIN_HEIGHT}px tall.`);
         return;
       }
     } catch {
@@ -75,10 +77,13 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
 
   return (
     <div>
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        {/* Wide preview — company logos are typically horizontal wordmarks, so
+            the frame is landscape and uses object-contain to show the whole
+            mark rather than cropping it into a square. */}
         <div
           className={cn(
-            'relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted-bg',
+            'relative flex h-[72px] w-[220px] shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted-bg px-3',
             dragOver && 'border-primary ring-2 ring-primary/20'
           )}
           onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
@@ -87,15 +92,24 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
         >
           {logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={`${companyName} logo`} className="h-full w-full object-cover" />
+            <img
+              src={logoUrl}
+              alt={`${companyName} logo`}
+              className="max-h-full max-w-full object-contain"
+            />
           ) : (
-            <span className="text-h2 font-bold text-primary">{initial}</span>
+            <span className="flex items-center gap-2 text-body-sm text-muted">
+              <span className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10 text-h3 font-bold text-primary">
+                {initial}
+              </span>
+              No logo yet
+            </span>
           )}
 
           {progress !== null && (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-surface/80">
               <Loader2 size={16} className="animate-spin text-muted" />
-              <div className="mt-1 h-1 w-8 overflow-hidden rounded-full bg-border">
+              <div className="mt-1 h-1 w-16 overflow-hidden rounded-full bg-border">
                 <div
                   className="h-full bg-primary transition-all"
                   style={{ width: `${progress}%` }}
@@ -105,26 +119,30 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
           )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={progress !== null}
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-transparent px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-surface disabled:opacity-50"
-          >
-            <Upload size={14} strokeWidth={1.5} />
-            Upload logo
-          </button>
-          {logoUrl && (
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              onClick={onReset}
-              className="inline-flex h-8 items-center rounded-md px-2 text-body-sm text-muted transition-colors hover:text-bodyText"
+              onClick={() => inputRef.current?.click()}
+              disabled={progress !== null}
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-body-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
             >
-              Reset to default
+              <Upload size={14} strokeWidth={1.5} />
+              Upload logo
             </button>
-          )}
-          <p className="text-caption text-muted">PNG, JPG, or SVG. Max 2MB. Min 128×128px.</p>
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={onReset}
+                className="inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <p className="text-caption text-muted">
+            PNG, JPG, or SVG. Max 2MB. A wide logo (about 3:1) looks best.
+          </p>
         </div>
       </div>
 

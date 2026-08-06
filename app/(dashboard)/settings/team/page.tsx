@@ -243,8 +243,8 @@ export default function TeamPage() {
         </div>
 
         {/* ── TABLE ── */}
-        <div className="overflow-hidden rounded-lg border border-border bg-surface">
-          <table className="w-full">
+        <div className="overflow-x-auto rounded-lg border border-border bg-surface">
+          <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted-bg">
                 <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">

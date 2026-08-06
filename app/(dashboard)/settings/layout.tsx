@@ -24,8 +24,9 @@ export default function SettingsLayout({
         <SettingsSubNav collapsed />
       </div>
 
-      {/* Scrollable content area */}
-      <div className="flex-1 overflow-y-auto">
+      {/* Scrollable content area — min-w-0 lets it shrink instead of forcing
+          the whole page to scroll horizontally. */}
+      <div className="min-w-0 flex-1 overflow-y-auto">
         {children}
       </div>
     </div>

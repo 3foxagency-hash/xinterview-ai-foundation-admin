@@ -15,7 +15,10 @@ interface SettingsPageProps {
 
 export function SettingsPage({ title, scope, companyName, description, children }: SettingsPageProps) {
   return (
-    <div className="mx-auto w-full max-w-[800px] px-8 py-8">
+    // min-w-0 so this column can shrink below its content width — without it
+    // the two sidebars plus an 800px floor forced the page to scroll sideways
+    // between roughly 1024px and 1300px.
+    <div className="mx-auto w-full min-w-0 max-w-[800px] px-4 py-8 sm:px-6 lg:px-8">
       <h1 className="text-h1 text-heading">{title}</h1>
       <div className="mt-2 flex items-center gap-2 text-body-sm text-muted">
         {scope === 'company' ? (

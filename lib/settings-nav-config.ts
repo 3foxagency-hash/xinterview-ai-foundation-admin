@@ -1,4 +1,5 @@
 import {
+  Briefcase,
   Building2,
   Users,
   Palette,
@@ -39,13 +40,13 @@ export const settingsNavGroups: SettingsNavGroup[] = [
     items: [
       { label: 'General', href: `${BASE}/general`, icon: Building2, scope: 'company' },
       { label: 'Team members', href: `${BASE}/team`, icon: Users, scope: 'company' },
-      { label: 'Branding', href: `${BASE}/branding`, icon: Palette, scope: 'company' },
       { label: 'Billing & plan', href: `${BASE}/billing`, icon: CreditCard, scope: 'company' },
     ],
   },
   {
     label: 'Product',
     items: [
+      { label: 'Branding', href: `${BASE}/branding`, icon: Palette, scope: 'company' },
       { label: 'Interview defaults', href: `${BASE}/interview-defaults`, icon: Video, scope: 'company' },
       { label: 'Evaluation criteria', href: `${BASE}/evaluation-criteria`, icon: ClipboardCheck, scope: 'company' },
       { label: 'Question library', href: `${BASE}/question-library`, icon: FileQuestion, scope: 'company' },
@@ -55,6 +56,7 @@ export const settingsNavGroups: SettingsNavGroup[] = [
   {
     label: 'Personal',
     items: [
+      { label: 'Careers page', href: `${BASE}/career`, icon: Briefcase, scope: 'company' },
       { label: 'Profile', href: `${BASE}/profile`, icon: User, scope: 'personal' },
       { label: 'Password & security', href: `${BASE}/security`, icon: Lock, scope: 'personal' },
       { label: 'Notifications', href: `${BASE}/notifications`, icon: Bell, scope: 'personal' },

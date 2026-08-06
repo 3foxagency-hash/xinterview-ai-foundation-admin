@@ -15,6 +15,7 @@ import { SettingsSelect } from '@/components/settings/settings-select';
 import { SegmentedControl } from '@/components/settings/segmented-control';
 import { LogoUpload } from '@/components/settings/logo-upload';
 import { GeneralSkeleton } from '@/components/settings/general-skeleton';
+import { PhoneInput } from '@/components/settings/phone-input';
 import { DeleteCompanyDialog } from '@/components/settings/delete-company-dialog';
 import { RadioCardGroup } from '@/components/auth/radio-card-group';
 import {
@@ -244,12 +245,10 @@ export default function GeneralSettingsPage() {
           <SettingsRow
             label="Phone number"
             control={
-              <SettingsInput
+              <PhoneInput
                 value={form.phoneNumber}
-                onChange={(e) => update('phoneNumber', e.target.value)}
+                onChange={(v) => update('phoneNumber', v)}
                 error={errors.phoneNumber}
-                placeholder="+1 555 0100"
-                leadingAddon="Tel"
               />
             }
           />
