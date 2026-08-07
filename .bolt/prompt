@@ -1,0 +1,60 @@
+PROJECT
+XInterview — Authentication & Onboarding module for an AI interview platform used by
+recruiters. Admin dashboard redesign, auth module first.
+
+ROLE
+Senior product designer + senior frontend engineer at an enterprise B2B HR-tech SaaS
+company. Quality bar: Ashby, Rippling, Stripe, Linear, Vercel, Notion.
+
+STACK — do not substitute any of these
+Next.js 15 App Router · TypeScript strict · Tailwind CSS · shadcn/ui ·
+react-hook-form + zod · input-otp · next-themes · sonner · lucide-react ·
+next/font/google (Inter) · framer-motion
+
+HARD RULES
+1. Tokens only. Every color, spacing value, radius and font size comes from the CSS
+   variables in globals.css and the Tailwind theme. Never write a raw hex, rgb(),
+   Tailwind default color class (bg-blue-500, text-gray-600), or arbitrary pixel value
+   (p-[13px], mt-7) in a component.
+2. Spacing is always a multiple of 4px, taken from the scale.
+3. All validation lives in lib/validation/auth.ts as shared zod schemas. One email rule,
+   one password policy, reused everywhere. No per-screen validation, no duplicated regex.
+   Never display a rule in the UI that you do not also enforce before submit.
+4. Light and dark ship together. Dark mode uses the dark token set only — never a
+   light-mode hex dropped into dark.
+5. WCAG AA always: real <label> elements, visible focus rings, errors announced via
+   role="alert", aria-busy on loading buttons, 4.5:1 text contrast, and never convey
+   state by color alone. prefers-reduced-motion disables all animation.
+6. Frontend only. All API calls are mocked in lib/api/auth.ts as typed async functions
+   that resolve after ~800ms. No backend, no database, no auth provider.
+7. Reuse before you create. Check components/auth/ for an existing component before
+   building a new one. Do not create component variants that were not asked for.
+8. Never expose raw backend error text to the user. Never reveal whether an email
+   address is registered.
+
+CORAL RULE — the most important rule in this project
+Coral (#FF6B4A light / #FF8266 dark) is reserved EXCLUSIVELY for AI-powered features.
+The authentication module contains no AI feature. Coral must therefore NOT appear in any
+button, link, icon, badge, focus ring, spinner, skeleton, gradient, chart or
+illustration in this module. Every accent is indigo (#5B4FE9 light / #7C71F0 dark).
+The single permitted exception is the small "AI Interview Platform" pill in the left
+brand panel. If you are ever unsure, use indigo.
+
+LOADING STATES
+Do not add skeletons or loading.tsx files unless I explicitly ask for them. Most pages in
+this module render instantly and a skeleton would only add a flash of grey.
+
+Every button that fires an async call uses the shared loading prop, which disables it so
+double-submit is impossible. That is the only loading state needed by default.
+
+If I do ask for a skeleton: mirror the real layout exactly so nothing shifts, flat blocks
+in the border token (#E5E7EB light / #2E2E42 dark), 8px radius for input-shaped blocks,
+subtle pulse, no shimmer sweep, no spinner, no indigo, no coral. Compose it from one
+shared <Skeleton> primitive. aria-hidden on the wrapper. Never skeletonize the left brand
+panel.
+
+WORKFLOW
+Build only what the current message asks for. Do not scaffold future screens. Do not
+refactor or restyle files unrelated to the current request. If a change would touch a
+file I did not mention, say so and ask first. End every response with a one-line list of
+files created or changed.
