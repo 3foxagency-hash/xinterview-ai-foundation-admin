@@ -153,47 +153,150 @@ export default function IntegrationsPage() {
     ? `${state.customDomain.subdomain}.${state.customDomain.domain}`
     : null;
 
+  const connections = [
+    {
+      id: 'smtp',
+      icon: Mail,
+      title: 'Email delivery',
+      description: 'Send candidate emails from your own mail server.',
+      active: state.smtpConnected,
+      detail: state.smtp?.fromEmail ?? null,
+      primaryLabel: state.smtpConnected ? 'Edit' : 'Set up',
+      onPrimary: () => setSmtpDialog(true),
+      onSecondary: state.smtpConnected ? handleDisconnectSmtp : undefined,
+      secondaryLabel: 'Disconnect',
+    },
+    {
+      id: 'domain',
+      icon: Globe,
+      title: 'Custom domain',
+      description: 'Serve application pages from your own web address.',
+      active: !!state.customDomain,
+      detail: domainLabel,
+      primaryLabel: state.customDomain ? 'Manage' : 'Connect',
+      onPrimary: () => setDomainDialog(true),
+    },
+    {
+      id: 'zapier',
+      icon: Zap,
+      title: 'Zapier',
+      description: 'Connect to Slack, Gmail and 5,000+ other apps.',
+      active: state.zapierActive,
+      detail: state.zapierActive ? 'Ready to connect in Zapier' : null,
+      primaryLabel: state.zapierActive ? 'View steps' : 'Activate',
+      onPrimary: () => {
+        setZapierDialog(true);
+        if (!state.zapierActive) handleZapier();
+      },
+    },
+  ];
+
+  const activeCount = connections.filter((c) => c.active).length;
+
   return (
     <>
       <SettingsPage
         title="Integrations"
         scope="company"
         companyName={companyName}
-        description="API keys, email delivery, your own domain and connected apps."
+        description="Connect XInterview to your own mail server, domain and the tools your team already uses."
       >
+        {/* ── Connections ── */}
+        <section>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-h3 text-heading">Connections</h2>
+              <p className="mt-1 text-body-sm text-muted">
+                {activeCount === 0
+                  ? 'Nothing connected yet.'
+                  : `${activeCount} of ${connections.length} connected.`}
+              </p>
+            </div>
+            <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted">
+              <span
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  activeCount > 0 ? 'bg-success' : 'bg-gray-500'
+                )}
+                aria-hidden
+              />
+              {activeCount > 0 ? 'Live' : 'Not set up'}
+            </span>
+          </div>
+
+          {/* One card per connection — a grid scans far better than a stack of
+              full-width rows. Three columns on desktop so all three sit on one
+              row; two at tablet; one on mobile. */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {connections.map((c) => (
+              <ConnectionCard key={c.id} {...c} />
+            ))}
+          </div>
+        </section>
+
+        {/* ── Branding: a preference, not a connection, so it sits apart ── */}
+        <section className="rounded-md border border-border bg-surface p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted-bg">
+                <BadgeCheck size={16} className="text-muted" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="text-body font-medium text-heading">
+                  Remove XInterview branding
+                </p>
+                <p className="mt-0.5 text-body-sm text-muted">
+                  Hides &ldquo;Powered by XInterview&rdquo; on candidate pages and shared links.
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 sm:pl-4">
+              {brandingBusy && <Loader2 size={15} className="animate-spin text-muted" />}
+              <Switch
+                checked={state.brandingRemoved}
+                onCheckedChange={handleBranding}
+                disabled={brandingBusy}
+                aria-label="Remove XInterview branding"
+              />
+            </div>
+          </div>
+        </section>
+
         {/* ── API keys ── */}
-        <SettingsSection
-          title="API keys"
-          description="Authenticate requests to the XInterview API and connect tools like Zapier."
-        >
-          <div className="flex items-center justify-between gap-4 border-b border-border px-4 py-3">
-            <p className="text-body-sm text-muted">
-              {keys.length === 0
-                ? 'No API keys yet.'
-                : `${keys.length} key${keys.length === 1 ? '' : 's'}`}
-            </p>
+        <section>
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div className="min-w-0">
+              <h2 className="text-h3 text-heading">API keys</h2>
+              <p className="mt-1 text-body-sm text-muted">
+                Authenticate requests to the XInterview API.
+              </p>
+            </div>
+            {/* The one Primary button on this page (§8). */}
             <button
               type="button"
               onClick={() => setKeyDialog(true)}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground transition-colors hover:bg-primary-hover"
             >
               <Plus size={15} />
-              Generate new
+              Generate key
             </button>
           </div>
 
           {keys.length === 0 ? (
-            <div className="px-4 py-8 text-center">
-              <KeyRound size={22} className="mx-auto text-muted" aria-hidden />
-              <p className="mt-2.5 text-body-sm text-muted">
-                Generate a key to start using the API.
+            <div className="mt-4 rounded-md border border-dashed border-border-strong px-6 py-10 text-center">
+              <KeyRound size={20} className="mx-auto text-muted" aria-hidden />
+              <p className="mt-3 text-body font-medium text-heading">No API keys yet</p>
+              <p className="mt-1 text-body-sm text-muted">
+                Generate a key to start making API requests.
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[480px]">
+            <div className="mt-4 overflow-hidden rounded-md border border-border bg-surface">
+              {/* Desktop: a table. Mobile: stacked cards — four columns at
+                  375px forces a horizontal scroll nobody discovers. */}
+              <table className="hidden w-full sm:table">
                 <thead>
-                  <tr className="border-b border-border bg-muted-bg">
+                  <tr className="border-b border-border">
                     <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                       Name
                     </th>
@@ -204,7 +307,7 @@ export default function IntegrationsPage() {
                       Expires
                     </th>
                     <th scope="col" className="px-4 py-2.5 text-right text-caption font-medium text-muted">
-                      Actions
+                      <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
@@ -212,10 +315,8 @@ export default function IntegrationsPage() {
                   {keys.map((k, i) => (
                     <tr key={k.id} className={cn(i > 0 && 'border-t border-border')}>
                       <td className="px-4 py-3 text-body font-medium text-heading">{k.name}</td>
+                      <td className="px-4 py-3 font-mono text-body-sm text-muted">{k.maskedKey}</td>
                       <td className="px-4 py-3 font-mono text-body-sm text-muted">
-                        {k.maskedKey}
-                      </td>
-                      <td className="px-4 py-3 text-body-sm text-muted">
                         {k.expiresAt ?? 'Never'}
                       </td>
                       <td className="px-4 py-3 text-right">
@@ -232,109 +333,40 @@ export default function IntegrationsPage() {
                   ))}
                 </tbody>
               </table>
+
+              <ul className="divide-y divide-border sm:hidden">
+                {keys.map((k) => (
+                  <li key={k.id} className="flex items-start justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="truncate text-body font-medium text-heading">{k.name}</p>
+                      <p className="mt-1 truncate font-mono text-body-sm text-muted">
+                        {k.maskedKey}
+                      </p>
+                      <p className="mt-1 text-caption text-muted">
+                        Expires{' '}
+                        <span className="font-mono">{k.expiresAt ?? 'never'}</span>
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteKey(k)}
+                      aria-label={`Delete API key ${k.name}`}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
-        </SettingsSection>
-
-        {/* ── Connections ── */}
-        <SettingsSection
-          title="Connections"
-          description="Email delivery, your own domain, branding and connected apps."
-        >
-          {/* SMTP */}
-          <IntegrationRow
-            icon={Mail}
-            title="SMTP configuration"
-            description="Send candidate notifications, reminders and other emails from your own account."
-            active={state.smtpConnected}
-            activeLabel={state.smtp?.fromEmail ? `Sending from ${state.smtp.fromEmail}` : undefined}
-            action={
-              <div className="flex gap-2">
-                {state.smtpConnected && (
-                  <button
-                    type="button"
-                    onClick={handleDisconnectSmtp}
-                    className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
-                  >
-                    Disconnect
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setSmtpDialog(true)}
-                  className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-                >
-                  {state.smtpConnected ? 'Edit' : 'Set up'}
-                </button>
-              </div>
-            }
-          />
-
-          {/* Custom domain */}
-          <IntegrationRow
-            icon={Globe}
-            title="Custom domain"
-            description="Use your own web address on the application page and shareable links."
-            active={!!state.customDomain}
-            activeLabel={domainLabel ?? undefined}
-            action={
-              <button
-                type="button"
-                onClick={() => setDomainDialog(true)}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-              >
-                {state.customDomain ? 'Manage' : 'Connect'}
-              </button>
-            }
-          />
-
-          {/* Branding */}
-          <IntegrationRow
-            icon={BadgeCheck}
-            title="Remove XInterview branding"
-            description="Hide “Powered by XInterview” on candidate pages and shareable links."
-            active={state.brandingRemoved}
-            activeLabel={state.brandingRemoved ? 'Branding hidden' : undefined}
-            action={
-              <div className="flex items-center gap-2">
-                {brandingBusy && <Loader2 size={15} className="animate-spin text-muted" />}
-                <Switch
-                  checked={state.brandingRemoved}
-                  onCheckedChange={handleBranding}
-                  disabled={brandingBusy}
-                  aria-label="Remove XInterview branding"
-                />
-              </div>
-            }
-          />
-
-          {/* Zapier */}
-          <IntegrationRow
-            icon={Zap}
-            title="Zapier integration"
-            description="Connect XInterview to Slack, Gmail, Typeform and 5,000+ other apps."
-            active={state.zapierActive}
-            activeLabel={state.zapierActive ? 'Ready to connect in Zapier' : undefined}
-            action={
-              <button
-                type="button"
-                onClick={() => {
-                  setZapierDialog(true);
-                  if (!state.zapierActive) handleZapier();
-                }}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-              >
-                {state.zapierActive ? 'View steps' : 'Activate'}
-              </button>
-            }
-          />
-        </SettingsSection>
+        </section>
 
         <p className="text-body-sm text-muted">
-          Having trouble? Contact us at{' '}
+          Having trouble? Contact{' '}
           <a
             href="mailto:help@xinterview.ai"
-            className="font-medium text-primary underline-offset-4 hover:underline"
+            className="font-medium text-heading underline underline-offset-4 hover:text-primary"
           >
             help@xinterview.ai
           </a>
@@ -382,49 +414,89 @@ export default function IntegrationsPage() {
   );
 }
 
-/** One connection row: icon, copy, status and its action. */
-function IntegrationRow({
+/**
+ * One connection as a card: icon, name, status dot, copy, and its actions.
+ * Cards use Secondary buttons — §8 allows a single Primary per view, and that
+ * is "Generate key". A filled button on every card would flatten the hierarchy.
+ */
+function ConnectionCard({
   icon: Icon,
   title,
   description,
   active,
-  activeLabel,
-  action,
+  detail,
+  primaryLabel,
+  onPrimary,
+  secondaryLabel,
+  onSecondary,
 }: {
   icon: typeof Mail;
   title: string;
   description: string;
   active: boolean;
-  activeLabel?: string;
-  action: React.ReactNode;
+  detail: string | null;
+  primaryLabel: string;
+  onPrimary: () => void;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
 }) {
   return (
-    <div className="flex flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between [&:not(:first-child)]:border-t [&:not(:first-child)]:border-border">
-      <div className="flex min-w-0 items-start gap-3">
-        <span
-          className={cn(
-            'flex h-9 w-9 shrink-0 items-center justify-center rounded-md',
-            active ? 'bg-primary/10' : 'bg-muted-bg'
-          )}
-        >
-          <Icon size={16} className={active ? 'text-primary' : 'text-muted'} aria-hidden />
+    // No hover tint: the card itself isn't clickable — its buttons are — and a
+    // tinted card reads as "selected" next to untinted peers.
+    <div className="flex min-w-0 flex-col rounded-md border border-border bg-surface p-4">
+      <div className="flex items-start gap-3">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-muted-bg">
+          <Icon size={16} className="text-heading" aria-hidden />
         </span>
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-body font-medium text-heading">{title}</span>
-            {active && (
-              <span className="rounded-full bg-success/10 px-2 py-0.5 text-caption font-medium text-success">
-                Active
-              </span>
-            )}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-body font-medium text-heading">{title}</p>
+            {/* Status is a dot plus a word — never colour alone (§17). */}
+            <span
+              className={cn(
+                'inline-flex shrink-0 items-center gap-1 text-caption font-medium',
+                active ? 'text-success' : 'text-muted'
+              )}
+            >
+              <span
+                className={cn(
+                  'h-1.5 w-1.5 rounded-full',
+                  active ? 'bg-success' : 'bg-gray-500'
+                )}
+                aria-hidden
+              />
+              {active ? 'Connected' : 'Off'}
+            </span>
           </div>
-          <p className="mt-0.5 text-body-sm text-muted">{description}</p>
-          {active && activeLabel && (
-            <p className="mt-1 truncate font-mono text-body-sm text-bodyText">{activeLabel}</p>
+          <p className="mt-1 text-body-sm text-muted">{description}</p>
+          {active && detail && (
+            <p className="mt-2 truncate font-mono text-caption text-bodyText" title={detail}>
+              {detail}
+            </p>
           )}
         </div>
       </div>
-      <div className="shrink-0">{action}</div>
+
+      {/* mt-auto pins actions to the card bottom so buttons line up across
+          the row even when descriptions wrap to different heights. */}
+      <div className="mt-auto flex flex-wrap gap-2 pt-4">
+        <button
+          type="button"
+          onClick={onPrimary}
+          className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
+        >
+          {primaryLabel}
+        </button>
+        {onSecondary && (
+          <button
+            type="button"
+            onClick={onSecondary}
+            className="inline-flex h-9 items-center justify-center rounded-md px-3 text-body-sm font-medium text-muted transition-colors hover:bg-card-hover hover:text-heading"
+          >
+            {secondaryLabel}
+          </button>
+        )}
+      </div>
     </div>
   );
 }
