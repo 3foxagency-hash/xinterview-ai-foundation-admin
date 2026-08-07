@@ -167,7 +167,7 @@ export default function ProfilePage() {
                     value={profile.bio}
                     onChange={(e) => update('bio', e.target.value)}
                     placeholder="A short introduction for your teammates."
-                    className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10"
+                    className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
                   />
                 </Field>
               </div>
@@ -280,7 +280,7 @@ function IdentityCard({
             onClick={() => fileRef.current?.click()}
             disabled={busy}
             aria-label="Change profile photo"
-            className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-heading shadow-sm transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+            className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-heading shadow-sm transition-colors hover:bg-card-hover disabled:opacity-50"
           >
             <Camera size={14} />
           </button>
@@ -309,7 +309,7 @@ function IdentityCard({
               onAvatarChange(null);
               toast.success('Photo removed — save to apply');
             }}
-            className="inline-flex h-9 w-fit shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:mb-1"
+            className="inline-flex h-9 w-fit shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover sm:mb-1"
           >
             <Trash2 size={14} />
             Remove photo
@@ -413,7 +413,7 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10"
+      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
     />
   );
 }

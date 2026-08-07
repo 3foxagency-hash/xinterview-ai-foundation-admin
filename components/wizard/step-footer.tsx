@@ -32,7 +32,7 @@ export function StepFooter({
             <button
               type="button"
               onClick={onCancel}
-              className="inline-flex h-10 items-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex h-10 items-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
             >
               Cancel
             </button>
@@ -43,7 +43,7 @@ export function StepFooter({
             <button
               type="button"
               onClick={onSaveExit}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-primary/30 bg-transparent px-4 text-button text-primary transition-colors hover:bg-active-menu-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex h-10 items-center gap-2 rounded-md border border-primary/30 bg-transparent px-4 text-button text-primary transition-colors hover:bg-active-menu-bg"
             >
               Save and exit
             </button>
@@ -56,7 +56,7 @@ export function StepFooter({
               aria-busy={nextLoading}
               title={nextDisabled ? nextTooltip : undefined}
               className={cn(
-                'inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-md transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-md transition-all hover:bg-primary-hover',
                 'disabled:pointer-events-none disabled:opacity-50'
               )}
             >

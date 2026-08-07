@@ -119,7 +119,7 @@ function FactorCard({
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="flex flex-1 items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded-md"
+          className="flex flex-1 items-center gap-3 text-left focus-visible:rounded-md"
           aria-expanded={expanded}
           aria-label={`${expanded ? 'Collapse' : 'Expand'} ${factor.name || 'untitled factor'}`}
         >
@@ -208,7 +208,7 @@ function FactorCard({
                     }}
                     placeholder={`What earns a ${level.level}?`}
                     rows={2}
-                    className="flex-1 resize-none rounded-md border border-border bg-surface px-3 py-2 text-body-sm text-heading focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary"
+                    className="flex-1 resize-none rounded-md border border-border bg-surface px-3 py-2 text-body-sm text-heading"
                   />
                 </div>
               ))}
@@ -457,7 +457,7 @@ export default function EvaluationPage() {
               onClick={handleGenerateAI}
               disabled={generating}
               aria-busy={generating}
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
             >
               <Sparkles size={16} strokeWidth={1.5} className="text-muted" />
               {generating ? 'Generating…' : 'Generate with AI'}

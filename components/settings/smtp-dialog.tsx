@@ -166,7 +166,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
                   onClick={() => set('provider', opt.id)}
                   aria-pressed={selected}
                   className={cn(
-                    'flex items-start gap-3 rounded-lg border p-4 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                    'flex items-start gap-3 rounded-lg border p-4 text-left transition-colors',
                     selected
                       ? 'border-primary bg-active-menu-bg'
                       : 'border-border hover:border-border-strong'
@@ -305,7 +305,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
             <button
               type="button"
               onClick={() => setStep(step - 1)}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
             >
               Back
             </button>
@@ -314,7 +314,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
             >
               Continue
             </button>
@@ -325,7 +325,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
               onClick={handleSave}
               disabled={loading}
               aria-busy={loading}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-50"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               Save and continue
@@ -338,7 +338,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
                 onClick={handleTest}
                 disabled={loading || !testEmail.trim()}
                 aria-busy={loading}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-primary/30 px-4 text-button text-primary transition-colors hover:bg-active-menu-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-primary/30 px-4 text-button text-primary transition-colors hover:bg-active-menu-bg disabled:pointer-events-none disabled:opacity-50"
               >
                 {loading && <Loader2 size={16} className="animate-spin" />}
                 Send test
@@ -346,7 +346,7 @@ export function SmtpDialog({ open, onOpenChange, initial, onSave, onTest }: Smtp
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 Finish
               </button>

@@ -99,7 +99,7 @@ export function TemplateDialog({
             <button
               type="button"
               onClick={() => onOpenChange(false)}
-              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover"
             >
               Cancel
             </button>
@@ -107,7 +107,7 @@ export function TemplateDialog({
               type="submit"
               disabled={loading}
               aria-busy={loading}
-              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+              className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-all hover:bg-primary-hover disabled:opacity-50"
             >
               {loading && <Loader2 size={16} className="animate-spin" />}
               {editing ? 'Save changes' : 'Add template'}

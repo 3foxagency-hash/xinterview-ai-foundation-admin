@@ -219,7 +219,7 @@ function TemplateRow({
           type="button"
           onClick={onEdit}
           aria-label={`Edit ${name}`}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
         >
           <Pencil size={13} />
           Edit

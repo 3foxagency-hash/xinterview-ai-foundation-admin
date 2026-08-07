@@ -31,7 +31,6 @@ export function NavItem({ item, expanded, showTooltip }: NavItemProps) {
       className={cn(
         // Base layout
         'group relative flex items-center rounded-md transition-colors duration-100',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-surface',
         expanded
           ? 'h-9 w-full gap-2.5 px-3'
           : 'h-10 w-10 justify-center',

@@ -150,7 +150,6 @@ export function WizardCombobox({
           }}
           className={cn(
             'flex h-12 w-full items-center rounded-md border bg-surface text-left text-body transition-all',
-            'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
             Icon ? 'pl-12 pr-3' : 'px-3',
             error ? 'border-error' : 'border-border hover:border-border-strong'
           )}
@@ -190,7 +189,7 @@ export function WizardCombobox({
                     aria-label={`Search ${label.toLowerCase()}`}
                     aria-controls={listboxId}
                     autoFocus
-                    className="h-9 w-full rounded-md border border-border bg-background pl-9 pr-3 text-body text-heading placeholder:text-muted focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10"
+                    className="h-9 w-full rounded-md border border-border bg-background pl-9 pr-3 text-body text-heading placeholder:text-muted"
                   />
                 </div>
               </div>

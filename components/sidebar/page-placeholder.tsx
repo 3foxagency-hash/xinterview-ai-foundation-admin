@@ -33,7 +33,7 @@ export function PagePlaceholder({
         {showBackLink && (
           <Link
             href="/dashboard"
-            className="mt-8 inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-6 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="mt-8 inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-6 text-button text-heading transition-colors hover:bg-card-hover"
           >
             Back to overview
           </Link>

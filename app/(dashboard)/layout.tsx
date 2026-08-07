@@ -74,7 +74,7 @@ export default function DashboardLayout({
               type="button"
               onClick={() => sidebar.setMobileOpen(true)}
               aria-label="Open navigation"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-bodyText hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-bodyText hover:bg-card-hover"
             >
               <Menu size={22} strokeWidth={1.5} />
             </button>

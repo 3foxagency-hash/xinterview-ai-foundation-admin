@@ -25,13 +25,13 @@ export default function DashboardNotFound() {
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
           <Link
             href="/dashboard"
-            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Back to overview
           </Link>
           <Link
             href="/support"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-6 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-6 text-button text-heading transition-colors hover:bg-card-hover"
           >
             Contact support
           </Link>

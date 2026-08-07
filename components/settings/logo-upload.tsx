@@ -125,7 +125,7 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
               type="button"
               onClick={() => inputRef.current?.click()}
               disabled={progress !== null}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-body-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-body-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-50"
             >
               <Upload size={14} strokeWidth={1.5} />
               Upload logo
@@ -134,7 +134,7 @@ export function LogoUpload({ logoUrl, companyName, onUploaded, onReset }: LogoUp
               <button
                 type="button"
                 onClick={onReset}
-                className="inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
               >
                 Reset
               </button>

@@ -178,14 +178,14 @@ export default function CandidatesPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search candidates"
-                className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10"
+                className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
               />
             </div>
             <button
               type="button"
               onClick={handleExport}
               disabled={filtered.length === 0}
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
+              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
             >
               <Download size={15} />
               Export
@@ -206,7 +206,7 @@ export default function CandidatesPage() {
                 setStage('');
                 setQuery('');
               }}
-              className="inline-flex items-center gap-1 rounded text-body-sm font-medium text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="inline-flex items-center gap-1 rounded text-body-sm font-medium text-primary transition-colors hover:text-primary-hover"
             >
               <X size={13} />
               Clear filters
@@ -287,7 +287,7 @@ export default function CandidatesPage() {
                               <button
                                 type="button"
                                 aria-label={`Change stage for ${c.name}`}
-                                className="inline-flex h-8 items-center gap-1 rounded-md border border-border-strong px-2.5 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                className="inline-flex h-8 items-center gap-1 rounded-md border border-border-strong px-2.5 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
                               >
                                 Move
                                 <ChevronDown size={13} className="text-muted" />
@@ -313,7 +313,7 @@ export default function CandidatesPage() {
                             type="button"
                             onClick={() => handleShare(c)}
                             aria-label={`Copy share link for ${c.name}`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
                           >
                             <Share2 size={14} />
                           </button>
@@ -321,7 +321,7 @@ export default function CandidatesPage() {
                             type="button"
                             onClick={() => setDeleteTarget(c)}
                             aria-label={`Remove ${c.name}`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
                           >
                             <Trash2 size={14} />
                           </button>

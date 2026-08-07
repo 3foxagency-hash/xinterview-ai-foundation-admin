@@ -153,7 +153,7 @@ export function QuestionCard({
           {...dragHandleProps}
           onKeyDown={handleKeyboardMove}
           aria-label={`Reorder question ${index + 1}. Press Ctrl or Cmd plus up or down arrow to move.`}
-          className="flex h-8 w-6 shrink-0 cursor-grab items-center justify-center text-muted hover:text-bodyText focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded active:cursor-grabbing"
+          className="flex h-8 w-6 shrink-0 cursor-grab items-center justify-center text-muted hover:text-bodyText focus-visible:rounded active:cursor-grabbing"
         >
           <GripVertical size={16} />
         </button>
@@ -184,7 +184,7 @@ export function QuestionCard({
             type="button"
             onClick={onToggleExpand}
             aria-label={expanded ? 'Collapse question' : 'Expand question'}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-card-hover hover:text-bodyText focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-card-hover hover:text-bodyText"
           >
             <ChevronDown
               size={16}
@@ -196,7 +196,7 @@ export function QuestionCard({
             type="button"
             onClick={onRemove}
             aria-label={`Remove question ${index + 1}`}
-            className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
+            className="flex h-8 w-8 items-center justify-center rounded-md text-muted hover:bg-error-banner-bg hover:text-error"
           >
             <Trash2 size={16} />
           </button>

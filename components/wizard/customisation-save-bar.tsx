@@ -48,7 +48,6 @@ export function CustomisationSaveBar({
         className={cn(
           'inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-colors',
           'hover:bg-primary-hover',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           'disabled:pointer-events-none disabled:opacity-50'
         )}
       >

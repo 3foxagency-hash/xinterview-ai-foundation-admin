@@ -28,7 +28,7 @@ export function AuthCheckbox({
         aria-checked={checked}
         onClick={() => onCheckedChange(!checked)}
         className={cn(
-          'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 transition-all',
           checked
             ? 'border-primary bg-primary text-primary-foreground shadow-sm'
             : 'border-border-strong bg-background hover:border-primary/50'

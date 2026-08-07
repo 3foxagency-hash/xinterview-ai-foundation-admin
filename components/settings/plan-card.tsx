@@ -100,7 +100,6 @@ export function PlanCard({
         aria-busy={loading}
         className={cn(
           'mt-6 inline-flex h-10 w-full items-center justify-center gap-2 rounded-md text-button transition-colors',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
           isCurrent
             ? 'cursor-default border border-border bg-muted-bg text-muted'
             : plan.popular

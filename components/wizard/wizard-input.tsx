@@ -51,10 +51,9 @@ export const WizardInput = React.forwardRef<HTMLInputElement, WizardInputProps>(
             aria-describedby={error ? errorId : description ? descId : undefined}
             className={cn(
               'h-12 w-full rounded-md border bg-surface text-body text-heading transition-all duration-200 placeholder:text-muted',
-              'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background',
               'disabled:cursor-not-allowed disabled:opacity-50',
               Icon ? 'pl-12 pr-4' : 'px-4',
-              error ? 'border-error focus-visible:border-error focus-visible:ring-error' : 'border-border',
+              error ?'border-error':'border-border',
               className
             )}
             {...props}
@@ -123,7 +122,6 @@ export function WizardSelect({
               'h-12 rounded-md border bg-surface text-body',
               Icon ? 'pl-12' : 'pl-4',
               error ? 'border-error' : 'border-border',
-              'focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2'
             )}
           >
             <SelectValue placeholder={placeholder} />

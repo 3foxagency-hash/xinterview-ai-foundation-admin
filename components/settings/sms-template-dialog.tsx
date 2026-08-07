@@ -133,7 +133,7 @@ export function SmsTemplateDialog({
             type="button"
             onClick={handleReset}
             disabled={resetting}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-body-sm font-medium text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+            className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-body-sm font-medium text-muted transition-colors hover:text-heading disabled:opacity-50"
           >
             {resetting ? <Loader2 size={13} className="animate-spin" /> : <RotateCcw size={13} />}
             Reset to default
@@ -159,10 +159,10 @@ export function SmsTemplateDialog({
                 aria-invalid={overLimit}
                 aria-describedby="sms-count"
                 className={cn(
-                  'w-full rounded-md border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10',
+                  'w-full rounded-md border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all',
                   overLimit
                     ? 'border-error'
-                    : 'border-border hover:border-border-strong focus-visible:border-primary'
+                    :'border-border hover:border-border-strong'
                 )}
               />
               <div className="mt-1.5 flex items-baseline justify-between gap-3">
@@ -195,7 +195,7 @@ export function SmsTemplateDialog({
                     key={t}
                     type="button"
                     onClick={() => insertPlaceholder(t)}
-                    className="rounded-md border border-border bg-muted-bg px-2 py-1 font-mono text-caption text-bodyText transition-colors hover:border-primary/40 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="rounded-md border border-border bg-muted-bg px-2 py-1 font-mono text-caption text-bodyText transition-colors hover:border-primary/40 hover:text-primary"
                   >
                     {t}
                   </button>
@@ -233,7 +233,7 @@ export function SmsTemplateDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
           >
             Cancel
           </button>
@@ -242,7 +242,7 @@ export function SmsTemplateDialog({
             onClick={handleSave}
             disabled={loading || overLimit}
             aria-busy={loading}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+            className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             Save

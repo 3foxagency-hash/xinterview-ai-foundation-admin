@@ -55,7 +55,7 @@ export function SettingsSelect({
         }}
         className={cn(
           'flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 text-body transition-all',
-          'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/10 hover:border-border-strong',
+          'hover:border-border-strong',
           error ? 'border-error' : 'border-border',
           !selectedOption && 'text-muted'
         )}

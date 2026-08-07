@@ -63,7 +63,6 @@ export function SettingsSubNav({
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
                       'flex items-center rounded-md transition-colors duration-100',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-surface',
                       collapsed
                         ? 'h-10 w-10 justify-center'
                         : 'h-9 w-full gap-2 px-3',
@@ -134,7 +133,6 @@ function StripNav({ pathname }: { pathname: string }) {
               aria-current={isActive ? 'page' : undefined}
               className={cn(
                 'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-body-sm font-medium transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
                 isActive
                   ? 'bg-active-menu-bg text-primary'
                   : item.danger

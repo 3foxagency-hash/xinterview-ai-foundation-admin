@@ -21,7 +21,7 @@ export function DangerZoneCard({ title, description, actionLabel, onAction, acti
         type="button"
         onClick={onAction}
         disabled={actionLoading}
-        className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-error bg-transparent px-4 text-button text-error transition-colors hover:bg-error-banner-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+        className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-error bg-transparent px-4 text-button text-error transition-colors hover:bg-error-banner-bg disabled:opacity-50"
       >
         {actionLabel}
       </button>

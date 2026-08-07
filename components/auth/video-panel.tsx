@@ -117,7 +117,7 @@ export function VideoPanel() {
           <a
             href="#"
             tabIndex={-1}
-            className="text-white/70 underline underline-offset-2 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/50 rounded"
+            className="text-white/70 underline underline-offset-2 transition-colors hover:text-white rounded"
           >
             View all paid plans here.
           </a>

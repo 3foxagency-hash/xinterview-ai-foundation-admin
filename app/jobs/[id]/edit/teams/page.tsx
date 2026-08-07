@@ -196,7 +196,7 @@ export default function TeamsPage() {
           <button
             type="button"
             onClick={openAddDialog}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             <Plus size={14} />
             Add team member
@@ -291,7 +291,7 @@ export default function TeamsPage() {
                               type="button"
                               onClick={() => handleRemove(m.id, m.name)}
                               aria-label={`Remove ${m.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
                             >
                               <Trash2 size={14} />
                             </button>

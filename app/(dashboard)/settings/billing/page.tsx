@@ -209,7 +209,7 @@ export default function BillingPage() {
                 type="button"
                 onClick={() => setAppliedCoupon(null)}
                 aria-label={`Remove coupon ${appliedCoupon.code}`}
-                className="ml-auto rounded p-1 text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="ml-auto rounded p-1 text-muted transition-colors hover:text-heading"
               >
                 <X size={14} />
               </button>
@@ -235,10 +235,10 @@ export default function BillingPage() {
                     aria-invalid={!!couponError}
                     aria-describedby={couponError ? 'coupon-error' : undefined}
                     className={cn(
-                      'h-10 w-full rounded-lg border bg-surface pl-8 pr-3 text-body text-heading placeholder:text-muted transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10',
+                      'h-10 w-full rounded-lg border bg-surface pl-8 pr-3 text-body text-heading placeholder:text-muted transition-all',
                       couponError
                         ? 'border-error'
-                        : 'border-border hover:border-border-strong focus-visible:border-primary'
+                        :'border-border hover:border-border-strong'
                     )}
                   />
                 </div>
@@ -246,7 +246,7 @@ export default function BillingPage() {
                   type="submit"
                   disabled={!coupon.trim() || couponLoading}
                   aria-busy={couponLoading}
-                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50"
+                  className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
                 >
                   {couponLoading && <Loader2 size={14} className="animate-spin" />}
                   Apply

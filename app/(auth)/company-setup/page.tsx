@@ -192,7 +192,7 @@ function CompanySetupContent() {
           <button
             type="button"
             onClick={() => setShowForm(true)}
-            className="w-full text-center text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+            className="w-full text-center text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline rounded"
           >
             Create a new workspace instead
           </button>

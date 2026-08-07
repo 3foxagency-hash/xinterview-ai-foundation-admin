@@ -72,7 +72,7 @@ export function CreditBreakdownPopover({ items, total }: CreditBreakdownPopoverP
         }}
         onFocus={() => setOpen(true)}
         onBlur={scheduleClose}
-        className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:text-heading"
       >
         <Info size={14} />
       </button>

@@ -107,7 +107,7 @@ function FormatCardView({
           type="button"
           onClick={() => setShowTooltip((v) => !v)}
           aria-label={`${card.name} — locked`}
-          className="flex w-full items-start gap-4 rounded-lg border border-border bg-surface p-5 text-left opacity-60 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex w-full items-start gap-4 rounded-lg border border-border bg-surface p-5 text-left opacity-60 transition-opacity hover:opacity-70"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
             <Icon size={20} strokeWidth={1.5} className="text-muted" />
@@ -156,7 +156,7 @@ function FormatCardView({
       onClick={() => onSelect(card.id)}
       aria-pressed={selected}
       className={cn(
-        'flex w-full items-start gap-4 rounded-lg border p-5 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+        'flex w-full items-start gap-4 rounded-lg border p-5 text-left transition-all',
         selected
           ? 'border-primary bg-active-menu-bg shadow-sm'
           : 'border-border bg-surface hover:border-primary/30 hover:shadow-sm'
@@ -307,7 +307,7 @@ export default function SetupPage() {
             <button
               type="button"
               onClick={onFormatContinue}
-              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-md transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-md transition-all hover:bg-primary-hover"
             >
               Continue
             </button>
@@ -380,7 +380,7 @@ export default function SetupPage() {
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex h-12 w-full items-center gap-3 rounded-md border border-border bg-surface px-3 text-left text-body text-heading transition-all hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    className="flex h-12 w-full items-center gap-3 rounded-md border border-border bg-surface px-3 text-left text-body text-heading transition-all hover:border-border-strong"
                   >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-active-menu-bg">
                       <CalendarIcon size={16} strokeWidth={1.5} className="text-primary" />
@@ -448,7 +448,7 @@ export default function SetupPage() {
                 onClick={onGenerateDescription}
                 disabled={generatingDesc || !titleValue || titleValue.length < 2}
                 aria-busy={generatingDesc}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-primary bg-transparent px-4 text-button text-primary transition-colors hover:bg-active-menu-bg disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-primary bg-transparent px-4 text-button text-primary transition-colors hover:bg-active-menu-bg disabled:pointer-events-none disabled:opacity-50"
               >
                 <Sparkles size={16} />
                 {generatingDesc ? 'Generating…' : 'Generate with AI'}

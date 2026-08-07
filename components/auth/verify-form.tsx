@@ -211,7 +211,7 @@ export function VerifyForm({ mode }: VerifyFormProps) {
               onClick={handleResend}
               disabled={resending}
               aria-busy={resending}
-              className="font-medium text-primary underline-offset-2 transition-colors hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded disabled:opacity-50"
+              className="font-medium text-primary underline-offset-2 transition-colors hover:text-primary-hover hover:underline rounded disabled:opacity-50"
             >
               {resending ? 'Sending...' : 'Resend code'}
             </button>
@@ -228,7 +228,7 @@ export function VerifyForm({ mode }: VerifyFormProps) {
         <div>
           <a
             href={backHref}
-            className="text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+            className="text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline rounded"
           >
             {backLabel}
           </a>

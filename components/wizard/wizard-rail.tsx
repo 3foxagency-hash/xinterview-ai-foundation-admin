@@ -143,7 +143,7 @@ function StepEntry({
 
   if (clickable) {
     return (
-      <Link href={step.href(jobId)} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:rounded-2xl">
+      <Link href={step.href(jobId)} className="block focus-visible:rounded-2xl">
         {inner}
       </Link>
     );
@@ -178,7 +178,7 @@ export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
               type="button"
               onClick={handleExit}
               aria-label="Close wizard"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading"
             >
               <X size={18} strokeWidth={1.5} />
             </button>
@@ -236,7 +236,7 @@ export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
             <button
               type="button"
               onClick={() => toast.info('AI assistant coming soon')}
-              className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-border-strong bg-surface text-[13px] font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="mt-3 flex h-9 w-full items-center justify-center gap-2 rounded-xl border border-border-strong bg-surface text-[13px] font-medium text-heading transition-colors hover:bg-card-hover"
             >
               <Sparkles size={14} className="text-primary" />
               Try AI assistant
@@ -265,14 +265,14 @@ export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
                 type="button"
                 onClick={() => setConfirmExit(false)}
                 autoFocus
-                className="rounded-xl border border-border-strong px-4 py-2 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="rounded-xl border border-border-strong px-4 py-2 text-button text-heading transition-colors hover:bg-card-hover"
               >
                 Stay
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/dashboard')}
-                className="rounded-xl bg-error px-4 py-2 text-button text-error-foreground transition-colors hover:bg-error/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error"
+                className="rounded-xl bg-error px-4 py-2 text-button text-error-foreground transition-colors hover:bg-error/90"
               >
                 Leave anyway
               </button>

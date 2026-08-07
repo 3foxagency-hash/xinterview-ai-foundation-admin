@@ -62,11 +62,10 @@ const AuthInput = React.forwardRef<HTMLInputElement, AuthInputProps>(
             aria-describedby={error ? errorId : description ? descId : undefined}
             className={cn(
               'flex h-12 w-full rounded-lg border bg-background px-4 py-2 text-body text-heading transition-all duration-200 placeholder:text-muted',
-              'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10',
               'disabled:cursor-not-allowed disabled:opacity-50',
               leadingIcon && 'pl-11',
               error
-                ? 'border-error focus-visible:border-error focus-visible:ring-error/10'
+                ?'border-error'
                 : 'border-border hover:border-border-strong',
               className
             )}

@@ -120,7 +120,7 @@ export function PhoneInput({
             aria-expanded={open}
             aria-controls={open ? listboxId : undefined}
             onClick={() => setOpen((o) => !o)}
-            className="flex h-full items-center gap-1.5 rounded-l-md border-r border-border px-2.5 text-body-sm text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="flex h-full items-center gap-1.5 rounded-l-md border-r border-border px-2.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
           >
             <span aria-hidden className="text-[16px] leading-none">
               {flagFor(country.code)}
@@ -146,7 +146,7 @@ export function PhoneInput({
                       placeholder="Search country or code"
                       aria-label="Search country"
                       autoFocus
-                      className="h-8 w-full rounded-md border border-border bg-background pl-8 pr-2 text-body-sm text-heading placeholder:text-muted focus-visible:border-primary focus-visible:outline-none"
+                      className="h-8 w-full rounded-md border border-border bg-background pl-8 pr-2 text-body-sm text-heading placeholder:text-muted"
                     />
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export function PhoneInput({
           placeholder={placeholder}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : undefined}
-          className="h-full min-w-0 flex-1 rounded-r-md bg-transparent px-3 text-body text-heading placeholder:text-muted focus-visible:outline-none"
+          className="h-full min-w-0 flex-1 rounded-r-md bg-transparent px-3 text-body text-heading placeholder:text-muted"
         />
       </div>
 

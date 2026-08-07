@@ -189,7 +189,7 @@ export default function QuestionsPage() {
           <button
             type="button"
             onClick={() => setAiDialogOpen(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+            className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
           >
             <Sparkles size={16} />
             AI Generate Questions
@@ -277,7 +277,7 @@ export default function QuestionsPage() {
           <button
             type="button"
             onClick={addQuestion}
-            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong text-button text-muted transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong text-button text-muted transition-colors hover:border-primary/50 hover:text-primary"
           >
             <Plus size={16} />
             Add question

@@ -154,7 +154,7 @@ function PasswordCard() {
         <button
           type="button"
           onClick={() => setShow((s) => !s)}
-          className="inline-flex w-fit items-center gap-1.5 rounded text-body-sm text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="inline-flex w-fit items-center gap-1.5 rounded text-body-sm text-muted transition-colors hover:text-heading"
         >
           {show ? <EyeOff size={14} /> : <Eye size={14} />}
           {show ? 'Hide passwords' : 'Show passwords'}
@@ -171,7 +171,7 @@ function PasswordCard() {
             type="button"
             onClick={reset}
             disabled={!current && !next && !confirm}
-            className="inline-flex h-10 items-center justify-center rounded-lg border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
           >
             Clear
           </button>
@@ -179,7 +179,7 @@ function PasswordCard() {
             type="submit"
             disabled={loading || !current || !next || !confirm || mismatch}
             aria-busy={loading}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
           >
             {loading && <Loader2 size={16} className="animate-spin" />}
             Update password
@@ -293,7 +293,7 @@ function SessionsCard() {
                     onClick={() => handleRevoke(s)}
                     disabled={busyId === s.id}
                     aria-busy={busyId === s.id}
-                    className="inline-flex h-9 w-fit shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+                    className="inline-flex h-9 w-fit shrink-0 items-center gap-1.5 rounded-lg border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover disabled:opacity-50"
                   >
                     {busyId === s.id ? (
                       <Loader2 size={13} className="animate-spin" />
@@ -357,7 +357,7 @@ function PasswordInput({
       autoComplete={autoComplete}
       aria-invalid={invalid || undefined}
       className={cn(
-        'h-10 w-full rounded-lg border bg-background px-3 text-body text-heading transition-all hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10',
+        'h-10 w-full rounded-lg border bg-background px-3 text-body text-heading transition-all hover:border-border-strong',
         invalid ? 'border-error' : 'border-border'
       )}
     />

@@ -78,14 +78,14 @@ export function ZapierDialog({ open, onOpenChange, onGenerateKey }: ZapierDialog
           <button
             type="button"
             onClick={onGenerateKey}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-primary/30 px-4 text-button text-primary transition-colors hover:bg-active-menu-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-primary/30 px-4 text-button text-primary transition-colors hover:bg-active-menu-bg"
           >
             Generate an API key
           </button>
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Done
           </button>

@@ -87,10 +87,9 @@ export function AuthSelect({
         onClick={() => setOpen((o) => !o)}
         className={cn(
           'flex h-12 w-full items-center justify-between rounded-lg border bg-background px-4 py-2 text-body text-heading transition-all duration-200',
-          'focus-visible:outline-none focus-visible:border-primary focus-visible:ring-4 focus-visible:ring-primary/10',
           'disabled:cursor-not-allowed disabled:opacity-50',
           error
-            ? 'border-error focus-visible:border-error focus-visible:ring-error/10'
+            ?'border-error'
             : 'border-border hover:border-border-strong'
         )}
       >
@@ -120,7 +119,7 @@ export function AuthSelect({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search..."
-                  className="flex h-9 w-full rounded-md border border-border bg-background px-3 text-body text-heading placeholder:text-muted focus-visible:outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/10"
+                  className="flex h-9 w-full rounded-md border border-border bg-background px-3 text-body text-heading placeholder:text-muted"
                   autoFocus
                 />
               </div>

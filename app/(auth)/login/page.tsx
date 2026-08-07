@@ -140,7 +140,7 @@ export default function LoginPage() {
           />
           <a
             href="/forgot-password"
-            className="text-[13px] font-medium text-primary underline-offset-4 transition-colors hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+            className="text-[13px] font-medium text-primary underline-offset-4 transition-colors hover:text-primary-hover hover:underline rounded"
           >
             Forgot password?
           </a>

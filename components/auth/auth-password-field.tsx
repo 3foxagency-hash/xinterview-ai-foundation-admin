@@ -68,7 +68,7 @@ const AuthPasswordField = React.forwardRef<HTMLInputElement, AuthPasswordFieldPr
               aria-label={visible ? 'Hide password' : 'Show password'}
               aria-pressed={visible}
               onClick={() => setVisible((v) => !v)}
-              className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="flex h-8 w-8 items-center justify-center rounded text-muted transition-colors hover:text-heading"
             >
               {visible ? <EyeOff size={18} strokeWidth={1.5} /> : <Eye size={18} strokeWidth={1.5} />}
             </button>

@@ -138,7 +138,10 @@
       0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
       0 24px 32px -8px rgba(0, 0, 0, 0.06);
     --shadow-glow: none;
-    --focus-ring: 0 0 0 2px var(--background-100), 0 0 0 4px var(--blue-700);
+    /* The ring is the ink, not blue. The doc's §8 default is blue-700, but the
+       achromatic shell reads better with a near-black ring — it matches the
+       primary button and the rich-text editor's focused frame. */
+    --focus-ring: 0 0 0 2px var(--background-100), 0 0 0 4px var(--gray-1000);
 
     /* Sizing */
     --height-sm: 32px;
@@ -266,6 +269,61 @@
     box-shadow: none !important;
     opacity: 1 !important;
     cursor: not-allowed;
+  }
+
+  /* ── One focus treatment, everywhere (§8, §9, §19) ──
+     Components had drifted into two competing patterns — buttons used
+     `ring-primary`, while inputs used `ring-primary/10` plus `border-primary`,
+     which rendered as a washed-out halo. Driving focus from the token here
+     means every control matches, and no component needs its own focus classes.
+
+     The outline is killed on plain `:focus` as well as `:focus-visible`:
+     clicking a text field matches `:focus` only, so a `:focus-visible`-scoped
+     reset leaves the browser's native blue outline painting underneath. */
+  :where(
+      button,
+      [role="button"],
+      a[href],
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex]:not([tabindex="-1"]),
+      [role="menuitem"],
+      [role="option"],
+      [role="switch"],
+      [role="tab"],
+      [role="radio"],
+      [role="checkbox"]
+    ):focus {
+    outline: none;
+  }
+
+  :where(
+      button,
+      [role="button"],
+      a[href],
+      input,
+      select,
+      textarea,
+      summary,
+      [tabindex]:not([tabindex="-1"]),
+      [role="menuitem"],
+      [role="option"],
+      [role="switch"],
+      [role="tab"],
+      [role="radio"],
+      [role="checkbox"]
+    ):focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+    /* The ring already carries the state; a shifting border would double it. */
+    border-color: var(--border);
+  }
+
+  /* An invalid field keeps its red border under the blue ring. */
+  :where(input, select, textarea)[aria-invalid="true"]:focus-visible {
+    border-color: var(--red-700);
   }
 }
 

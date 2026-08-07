@@ -88,16 +88,19 @@ function findNearestAccessible(hex: string, target = 4.5): string | null {
 function MiniThemePreview({ theme }: { theme: 'light' | 'dark' | 'auto' }) {
   const isDark = theme === 'dark';
   const isAuto = theme === 'auto';
-  const bg = isDark ? '#1F1F33' : isAuto ? '#F6F5FF' : '#FFFFFF';
-  const cardBg = isDark ? '#2A2A4A' : '#FFFFFF';
-  const textCol = isDark ? '#F5F5FF' : '#1F242E';
-  const mutedCol = isDark ? '#8B8BA3' : '#6B7280';
-  const indigo = '#5B4FE9';
+  // Literal hexes, not tokens: this thumbnail depicts the candidate-facing
+  // page in each theme, so it must show those surfaces regardless of the
+  // admin's own theme. Values mirror the Geist scales in globals.css.
+  const bg = isDark ? '#0a0a0a' : isAuto ? '#fafafa' : '#ffffff';
+  const cardBg = isDark ? '#1a1a1a' : '#ffffff';
+  const textCol = isDark ? '#ededed' : '#171717';
+  const mutedCol = isDark ? '#a1a1a1' : '#4d4d4d';
+  const indigo = isDark ? '#ededed' : '#171717';
 
   return (
     <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
       <rect width="120" height="80" rx="8" fill={bg} />
-      <rect x="8" y="8" width="104" height="64" rx="6" fill={cardBg} stroke="#E5E7EB" strokeOpacity="0.3" />
+      <rect x="8" y="8" width="104" height="64" rx="6" fill={cardBg} stroke={isDark ? '#2e2e2e' : '#eaeaea'} strokeOpacity="0.8" />
       <rect x="16" y="16" width="60" height="8" rx="4" fill={textCol} fillOpacity="0.8" />
       <rect x="16" y="30" width="80" height="6" rx="3" fill={mutedCol} fillOpacity="0.5" />
       <rect x="16" y="42" width="40" height="20" rx="4" fill={indigo} />
@@ -266,7 +269,7 @@ export default function BrandingPage() {
                 onClick={() => handleColourChange(colour)}
                 aria-label={`Select ${colour}`}
                 className={cn(
-                  'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
+                  'flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all hover:scale-110',
                   data.primaryColour.toUpperCase() === colour.toUpperCase()
                     ? 'border-heading'
                     : 'border-transparent'
@@ -323,7 +326,7 @@ export default function BrandingPage() {
               }}
               aria-pressed={data.theme === value}
               className={cn(
-                'flex flex-col items-center gap-2 rounded-lg border p-4 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                'flex flex-col items-center gap-2 rounded-lg border p-4 transition-all',
                 data.theme === value
                   ? 'border-primary bg-active-menu-bg shadow-sm'
                   : 'border-border hover:border-primary/30'

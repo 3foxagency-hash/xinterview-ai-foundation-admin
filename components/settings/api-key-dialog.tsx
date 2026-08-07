@@ -100,7 +100,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
                 <button
                   type="button"
                   onClick={copy}
-                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
                 >
                   {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
                   {copied ? 'Copied' : 'Copy'}
@@ -112,7 +112,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 Done
               </button>
@@ -152,7 +152,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
                   type="date"
                   value={expiresAt}
                   onChange={(e) => setExpiresAt(e.target.value)}
-                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-body text-heading transition-all hover:border-border-strong focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10"
+                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-body text-heading transition-all hover:border-border-strong"
                 />
                 <p className="mt-1 text-body-sm text-muted">
                   Leave blank for a key that never expires.
@@ -163,7 +163,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
                 <button
                   type="button"
                   onClick={() => onOpenChange(false)}
-                  className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                  className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover"
                 >
                   Cancel
                 </button>
@@ -171,7 +171,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
                   type="submit"
                   disabled={loading}
                   aria-busy={loading}
-                  className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-all hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+                  className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-all hover:bg-primary-hover disabled:opacity-50"
                 >
                   {loading && <Loader2 size={16} className="animate-spin" />}
                   Create key

@@ -165,7 +165,7 @@ export default function TeamPage() {
         <button
           type="button"
           onClick={loadData}
-          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover"
         >
           <RotateCw size={14} />
           Try again
@@ -219,7 +219,7 @@ export default function TeamPage() {
                 disabled={seatsFull}
                 aria-label={seatsFull ? 'Invite member — seat limit reached' : 'Invite member'}
                 className={cn(
-                  'inline-flex h-9 items-center gap-2 rounded-md px-4 text-button transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+                  'inline-flex h-9 items-center gap-2 rounded-md px-4 text-button transition-all',
                   seatsFull
                     ? 'cursor-not-allowed bg-muted-bg text-muted'
                     : 'bg-primary text-primary-foreground shadow-sm hover:bg-primary-hover'
@@ -273,7 +273,7 @@ export default function TeamPage() {
                       <button
                         type="button"
                         onClick={() => setInviteOpen(true)}
-                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-colors hover:bg-card-hover"
                       >
                         <UserPlus size={14} />
                         Invite your first team member
@@ -321,7 +321,7 @@ export default function TeamPage() {
                             <button
                               type="button"
                               aria-label={`Actions for ${member.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-card-hover hover:text-bodyText focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-card-hover hover:text-bodyText"
                             >
                               <MoreHorizontal size={16} />
                             </button>

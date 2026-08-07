@@ -124,7 +124,7 @@ export function RichTextEditor({
               onClick={handleClick}
               aria-label={btn.label}
               title={btn.label}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm text-bodyText transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm text-bodyText transition-colors hover:bg-card-hover"
             >
               <Icon size={16} strokeWidth={1.5} />
             </button>
@@ -164,7 +164,7 @@ export function RichTextEditor({
           type="button"
           onClick={() => setFullscreen((v) => !v)}
           aria-label={fullscreen ? 'Exit full screen' : 'Open full screen'}
-          className="flex h-7 w-7 items-center justify-center rounded-sm text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex h-7 w-7 items-center justify-center rounded-sm text-muted transition-colors hover:bg-card-hover hover:text-heading"
         >
           {fullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
         </button>

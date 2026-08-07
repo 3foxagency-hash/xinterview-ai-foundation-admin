@@ -180,7 +180,7 @@ export default function QuestionLibraryPage() {
         <button
           type="button"
           onClick={closeTemplate}
-          className="inline-flex items-center gap-1.5 rounded text-body-sm font-medium text-primary transition-colors hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex items-center gap-1.5 rounded text-body-sm font-medium text-primary transition-colors hover:text-primary-hover"
         >
           <ArrowLeft size={14} />
           All templates
@@ -199,7 +199,7 @@ export default function QuestionLibraryPage() {
           <button
             type="button"
             onClick={addQuestion}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             <Plus size={16} />
             Add question
@@ -251,7 +251,7 @@ export default function QuestionLibraryPage() {
                       <button
                         type="button"
                         onClick={() => setEditIndex(index)}
-                        className="flex w-full min-w-0 flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        className="flex w-full min-w-0 flex-col rounded text-left"
                       >
                         <span className="truncate text-body font-medium text-heading group-hover:text-primary">
                           {q.title || `Untitled question ${index + 1}`}
@@ -288,7 +288,7 @@ export default function QuestionLibraryPage() {
                           type="button"
                           onClick={() => setEditIndex(index)}
                           aria-label={`Edit question ${index + 1}`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
                         >
                           <Pencil size={14} />
                         </button>
@@ -297,7 +297,7 @@ export default function QuestionLibraryPage() {
                           onClick={() => moveQuestion(index, index - 1)}
                           disabled={index === 0}
                           aria-label={`Move question ${index + 1} up`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-30"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading disabled:pointer-events-none disabled:opacity-30"
                         >
                           <ChevronUp size={15} />
                         </button>
@@ -306,7 +306,7 @@ export default function QuestionLibraryPage() {
                           onClick={() => moveQuestion(index, index + 1)}
                           disabled={index === draft.length - 1}
                           aria-label={`Move question ${index + 1} down`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-30"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading disabled:pointer-events-none disabled:opacity-30"
                         >
                           <ChevronDown size={15} />
                         </button>
@@ -314,7 +314,7 @@ export default function QuestionLibraryPage() {
                           type="button"
                           onClick={() => removeQuestion(q.id)}
                           aria-label={`Remove question ${index + 1}`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -331,7 +331,7 @@ export default function QuestionLibraryPage() {
           <button
             type="button"
             onClick={closeTemplate}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
           >
             Cancel
           </button>
@@ -340,7 +340,7 @@ export default function QuestionLibraryPage() {
             onClick={handleSaveQuestions}
             disabled={savingQuestions}
             aria-busy={savingQuestions}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
+            className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-50"
           >
             {savingQuestions && <Loader2 size={16} className="animate-spin" />}
             Save questions
@@ -379,7 +379,7 @@ export default function QuestionLibraryPage() {
               setEditTarget(null);
               setDialogOpen(true);
             }}
-            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             <Plus size={16} />
             Add template
@@ -429,7 +429,7 @@ export default function QuestionLibraryPage() {
                         <button
                           type="button"
                           onClick={() => openTemplate(t)}
-                          className="flex min-w-0 flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          className="flex min-w-0 flex-col rounded text-left"
                         >
                           <span className="truncate text-body font-medium text-heading group-hover:text-primary">
                             {t.name}
@@ -451,7 +451,7 @@ export default function QuestionLibraryPage() {
                             <button
                               type="button"
                               aria-label={`Actions for ${t.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
                             >
                               <MoreHorizontal size={16} />
                             </button>

@@ -175,7 +175,7 @@ export default function IntegrationsPage() {
             <button
               type="button"
               onClick={() => setKeyDialog(true)}
-              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
             >
               <Plus size={15} />
               Generate new
@@ -223,7 +223,7 @@ export default function IntegrationsPage() {
                           type="button"
                           onClick={() => setDeleteKey(k)}
                           aria-label={`Delete API key ${k.name}`}
-                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
                         >
                           <Trash2 size={15} />
                         </button>
@@ -254,7 +254,7 @@ export default function IntegrationsPage() {
                   <button
                     type="button"
                     onClick={handleDisconnectSmtp}
-                    className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
                   >
                     Disconnect
                   </button>
@@ -262,7 +262,7 @@ export default function IntegrationsPage() {
                 <button
                   type="button"
                   onClick={() => setSmtpDialog(true)}
-                  className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
                 >
                   {state.smtpConnected ? 'Edit' : 'Set up'}
                 </button>
@@ -281,7 +281,7 @@ export default function IntegrationsPage() {
               <button
                 type="button"
                 onClick={() => setDomainDialog(true)}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 {state.customDomain ? 'Manage' : 'Connect'}
               </button>
@@ -322,7 +322,7 @@ export default function IntegrationsPage() {
                   setZapierDialog(true);
                   if (!state.zapierActive) handleZapier();
                 }}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 {state.zapierActive ? 'View steps' : 'Activate'}
               </button>

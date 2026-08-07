@@ -137,7 +137,7 @@ function SubNavItemRow({
   return (
     <Link
       href={item.href(jobId)}
-      className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded-lg"
+      className="block focus-visible:rounded-lg"
       aria-current={isActive ? 'page' : undefined}
     >
       {content}

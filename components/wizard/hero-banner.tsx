@@ -9,17 +9,19 @@ interface HeroBannerProps {
   step: number;
 }
 
-/** Abstract inline SVG illustrations per step, built from indigo-scale shapes. */
+/** Abstract inline SVG illustrations per step, built from tonal shapes. */
 function HeroIllustration({ step }: { step: number }) {
-  // All shapes use indigo with 20–60% opacity
+  // The system is achromatic: these shapes inherit the surrounding ink via
+  // currentColor rather than carrying a hardcoded brand hue, so they follow
+  // the theme in both light and dark.
   const op = (n: number) => n / 100;
-  const indigo = '#5B4FE9';
-  const indigoLight = '#7C71F0';
+  const indigo = 'currentColor';
+  const indigoLight = 'currentColor';
 
   if (step === 1) {
     // Implied form surface with floating card
     return (
-      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden lg:block">
+      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden text-heading lg:block">
         <rect x="40" y="20" width="200" height="100" rx="12" fill={indigo} fillOpacity={op(12)} />
         <rect x="56" y="36" width="120" height="10" rx="5" fill={indigo} fillOpacity={op(30)} />
         <rect x="56" y="56" width="80" height="8" rx="4" fill={indigo} fillOpacity={op(20)} />
@@ -33,7 +35,7 @@ function HeroIllustration({ step }: { step: number }) {
   if (step === 2) {
     // Question list with checkmarks
     return (
-      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden lg:block">
+      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden text-heading lg:block">
         <rect x="40" y="16" width="200" height="108" rx="12" fill={indigo} fillOpacity={op(10)} />
         <circle cx="56" cy="40" r="8" fill={indigo} fillOpacity={op(25)} />
         <circle cx="56" cy="40" r="4" fill="white" fillOpacity={op(50)} />
@@ -50,7 +52,7 @@ function HeroIllustration({ step }: { step: number }) {
   if (step === 3) {
     // Team avatars
     return (
-      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden lg:block">
+      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden text-heading lg:block">
         <rect x="40" y="20" width="200" height="100" rx="12" fill={indigo} fillOpacity={op(10)} />
         <circle cx="72" cy="50" r="16" fill={indigo} fillOpacity={op(25)} />
         <circle cx="72" cy="44" r="6" fill="white" fillOpacity={op(50)} />
@@ -67,7 +69,7 @@ function HeroIllustration({ step }: { step: number }) {
   if (step === 4) {
     // Sliders / customisation
     return (
-      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden lg:block">
+      <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden text-heading lg:block">
         <rect x="40" y="20" width="200" height="100" rx="12" fill={indigo} fillOpacity={op(10)} />
         <line x1="56" y1="44" x2="200" y2="44" stroke={indigo} strokeWidth="2" strokeOpacity={op(25)} strokeLinecap="round" />
         <circle cx="80" cy="44" r="6" fill={indigo} fillOpacity={op(40)} />
@@ -81,7 +83,7 @@ function HeroIllustration({ step }: { step: number }) {
   }
   // Step 5 — mail/envelope
   return (
-    <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden lg:block">
+    <svg width="280" height="140" viewBox="0 0 280 140" fill="none" className="hidden text-heading lg:block">
       <rect x="40" y="24" width="200" height="92" rx="12" fill={indigo} fillOpacity={op(10)} />
       <rect x="56" y="40" width="168" height="60" rx="8" fill={indigo} fillOpacity={op(15)} />
       <path d="M56 48l84 36 84-36" stroke={indigoLight} strokeWidth="2" strokeOpacity={op(35)} strokeLinecap="round" fill="none" />

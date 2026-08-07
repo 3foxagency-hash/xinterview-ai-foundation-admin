@@ -77,7 +77,7 @@ export function QuestionEditDialog({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
           >
             Cancel
           </button>
@@ -87,7 +87,7 @@ export function QuestionEditDialog({
               onSave(draft);
               onOpenChange(false);
             }}
-            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Done
           </button>

@@ -131,7 +131,7 @@ export default function CareerPage() {
                 href={getCareerPageUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 <ExternalLink size={15} />
                 View live page
@@ -244,7 +244,7 @@ export default function CareerPage() {
             <button
               type="button"
               onClick={() => setListingsOpen(true)}
-              className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-lg border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-lg border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
             >
               <ListChecks size={15} />
               Manage listings
@@ -334,10 +334,10 @@ export default function CareerPage() {
                 aria-invalid={metaDescOver}
                 aria-describedby="meta-description-count"
                 className={cn(
-                  'w-full rounded-lg border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/10',
+                  'w-full rounded-lg border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all',
                   metaDescOver
                     ? 'border-error'
-                    : 'border-border hover:border-border-strong focus-visible:border-primary'
+                    :'border-border hover:border-border-strong'
                 )}
               />
               {metaDescOver && (
@@ -434,7 +434,7 @@ function ShareField({
           type="button"
           onClick={copy}
           aria-label={`Copy ${label.toLowerCase()}`}
-          className="shrink-0 rounded p-1 text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="shrink-0 rounded p-1 text-muted transition-colors hover:text-heading"
         >
           {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
         </button>
@@ -469,7 +469,7 @@ function ColourField({
               aria-label={`Use ${c}`}
               aria-pressed={active}
               className={cn(
-                'h-7 w-7 shrink-0 rounded-full transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+                'h-7 w-7 shrink-0 rounded-full transition-transform',
                 active ? 'scale-110 ring-2 ring-heading ring-offset-2 ring-offset-surface' : 'hover:scale-110'
               )}
               style={{ backgroundColor: c }}

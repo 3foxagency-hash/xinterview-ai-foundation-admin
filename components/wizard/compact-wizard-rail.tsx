@@ -48,7 +48,7 @@ export function CompactWizardRail({
         type="button"
         onClick={onExpand}
         aria-label="Expand navigation"
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading"
       >
         <PanelLeft size={18} strokeWidth={1.5} />
       </button>
@@ -57,7 +57,7 @@ export function CompactWizardRail({
         type="button"
         onClick={handleExit}
         aria-label="Close wizard"
-        className="mt-2 flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="mt-2 flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading"
       >
         <X size={18} strokeWidth={1.5} />
       </button>
@@ -139,7 +139,7 @@ export function CompactWizardRail({
                   {clickable ? (
                     <Link
                       href={step.href(jobId)}
-                      className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:rounded-xl"
+                      className="focus-visible:rounded-xl"
                     >
                       {tile}
                     </Link>

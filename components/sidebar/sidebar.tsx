@@ -31,7 +31,7 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
         <Link
           href="/dashboard"
           aria-label="XInterview home"
-          className="flex shrink-0 items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="flex shrink-0 items-center gap-2 rounded-md"
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-button font-bold text-primary-foreground">
             X
@@ -51,7 +51,6 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
           className={cn(
             'flex shrink-0 items-center justify-center rounded-md text-muted transition-colors',
             'hover:bg-card-hover hover:text-bodyText',
-            'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
             'h-8 w-8',
             expanded && 'ml-auto'
           )}

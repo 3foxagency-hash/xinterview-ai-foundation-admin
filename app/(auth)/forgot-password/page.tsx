@@ -79,7 +79,7 @@ export default function ForgotPasswordPage() {
       footer={
         <a
           href="/login"
-          className="text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background rounded"
+          className="text-body-sm text-muted underline-offset-4 transition-colors hover:text-heading hover:underline rounded"
         >
           Back to sign in
         </a>

@@ -48,7 +48,6 @@ export function SegmentedControl({ options, value, onChange, id }: SegmentedCont
             onKeyDown={(e) => handleKeyDown(e, idx)}
             className={cn(
               'flex h-8 flex-1 items-center justify-center rounded-sm px-3 text-body font-medium transition-all',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-surface',
               selected
                 ? 'bg-surface text-heading shadow-sm'
                 : 'text-muted hover:text-bodyText'

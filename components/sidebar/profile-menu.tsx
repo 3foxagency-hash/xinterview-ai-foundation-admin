@@ -215,7 +215,6 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
       onKeyDown={handleTriggerKeyDown}
       className={cn(
         'flex w-full items-center gap-2 rounded-md transition-colors',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
         expanded ? 'h-10 px-2' : 'h-10 w-10 justify-center',
         'hover:bg-card-hover'
       )}
@@ -283,7 +282,6 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
               className={cn(
                 'flex h-8 w-8 items-center justify-center rounded-md',
                 'text-muted hover:bg-card-hover hover:text-bodyText',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
               )}
             >
               <ThemeIcon size={18} strokeWidth={1.5} />
@@ -305,7 +303,6 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
                 className={cn(
                   'flex h-9 items-center gap-2.5 rounded-md px-2 text-body-sm text-bodyText',
                   'hover:bg-card-hover',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
                 )}
               >
                 <Icon size={20} strokeWidth={1.5} className="shrink-0 text-muted" />
@@ -325,7 +322,6 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
             className={cn(
               'flex h-9 w-full items-center gap-2.5 rounded-md px-2 text-body-sm text-error',
               'hover:bg-error-banner-bg',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-error'
             )}
           >
             <LogOut size={20} strokeWidth={1.5} className="shrink-0" />

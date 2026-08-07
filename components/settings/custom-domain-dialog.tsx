@@ -149,7 +149,7 @@ export function CustomDomainDialog({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center justify-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
               >
                 Cancel
               </button>
@@ -157,7 +157,7 @@ export function CustomDomainDialog({
                 type="submit"
                 disabled={loading}
                 aria-busy={loading}
-                className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-50"
+                className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-50"
               >
                 {loading && <Loader2 size={16} className="animate-spin" />}
                 Next
@@ -181,7 +181,7 @@ export function CustomDomainDialog({
                     type="button"
                     onClick={copyTarget}
                     aria-label="Copy DNS value"
-                    className="shrink-0 rounded p-1 text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                    className="shrink-0 rounded p-1 text-muted transition-colors hover:text-heading"
                   >
                     {copied ? <Check size={13} className="text-success" /> : <Copy size={13} />}
                   </button>
@@ -198,7 +198,7 @@ export function CustomDomainDialog({
               <button
                 type="button"
                 onClick={() => onOpenChange(false)}
-                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
                 Done
               </button>

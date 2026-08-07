@@ -65,7 +65,7 @@ export function TopBar() {
           href={candidateUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
         >
           <ExternalLink size={16} strokeWidth={1.5} />
           <span className="hidden sm:inline">Preview landing page</span>
