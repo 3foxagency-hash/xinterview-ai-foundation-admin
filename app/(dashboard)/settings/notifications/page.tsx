@@ -7,21 +7,18 @@ import { cn } from '@/lib/utils';
 import { SettingsPage } from '@/components/settings';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SegmentedControl } from '@/components/settings/segmented-control';
-import { Switch } from '@/components/ui/switch';
 import { EmailTemplateDialog } from '@/components/settings/email-template-dialog';
 import { SmsTemplateDialog } from '@/components/settings/sms-template-dialog';
 import { NotificationsSkeleton } from '@/components/settings/notifications-skeleton';
 import {
   getEmailTemplates,
   saveEmailTemplate,
-  setEmailTemplateEnabled,
   resetEmailTemplate,
   type EmailTemplate,
 } from '@/lib/api/email-templates';
 import {
   getSmsTemplates,
   saveSmsTemplate,
-  setSmsTemplateEnabled,
   resetSmsTemplate,
   type SmsTemplate,
 } from '@/lib/api/sms-templates';
@@ -39,7 +36,6 @@ export default function NotificationsPage() {
 
   const [emailTarget, setEmailTarget] = React.useState<EmailTemplate | null>(null);
   const [smsTarget, setSmsTarget] = React.useState<SmsTemplate | null>(null);
-  const [busyId, setBusyId] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -66,19 +62,6 @@ export default function NotificationsPage() {
   }, []);
 
   // ── Email handlers ──
-  const toggleEmail = async (t: EmailTemplate, enabled: boolean) => {
-    setBusyId(`email-${t.id}`);
-    try {
-      const next = await setEmailTemplateEnabled(t.id, enabled);
-      setEmails((prev) => prev.map((x) => (x.id === next.id ? next : x)));
-      toast.success(`${next.name} email ${enabled ? 'enabled' : 'disabled'}`);
-    } catch (e) {
-      toast.error(getSettingsErrorMessage(e));
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   const saveEmail = async (subject: string, body: string) => {
     if (!emailTarget) return;
     const next = await saveEmailTemplate(emailTarget.id, { subject, body });
@@ -95,19 +78,6 @@ export default function NotificationsPage() {
   };
 
   // ── SMS handlers (kept separate — these APIs will diverge) ──
-  const toggleSms = async (t: SmsTemplate, enabled: boolean) => {
-    setBusyId(`sms-${t.id}`);
-    try {
-      const next = await setSmsTemplateEnabled(t.id, enabled);
-      setTexts((prev) => prev.map((x) => (x.id === next.id ? next : x)));
-      toast.success(`${next.name} SMS ${enabled ? 'enabled' : 'disabled'}`);
-    } catch (e) {
-      toast.error(getSettingsErrorMessage(e));
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   const saveSms = async (body: string) => {
     if (!smsTarget) return;
     const next = await saveSmsTemplate(smsTarget.id, { body });
@@ -126,8 +96,6 @@ export default function NotificationsPage() {
   if (loading) return <NotificationsSkeleton />;
 
   const isEmail = channel === 'email';
-  const activeEmails = emails.filter((t) => t.enabled).length;
-  const activeSms = texts.filter((t) => t.enabled).length;
 
   return (
     <>
@@ -135,7 +103,7 @@ export default function NotificationsPage() {
         title="Notifications"
         scope="company"
         companyName={companyName}
-        description="The emails and text messages XInterview sends on your behalf. Turn each one on or off and tailor the wording."
+        description="The emails and text messages XInterview sends on your behalf. Edit any template to tailor its wording."
       >
         <div className="mx-auto w-full max-w-[320px]">
           <SegmentedControl
@@ -151,7 +119,7 @@ export default function NotificationsPage() {
         {isEmail ? (
           <SettingsSection
             title="Email templates"
-            description={`${activeEmails} of ${emails.length} enabled. Candidates and recruiters receive these automatically.`}
+            description="Candidates and recruiters receive these automatically."
           >
             {emails.map((t, i) => (
               <TemplateRow
@@ -160,10 +128,7 @@ export default function NotificationsPage() {
                 name={t.name}
                 description={t.description}
                 audience={t.audience}
-                enabled={t.enabled}
-                busy={busyId === `email-${t.id}`}
                 first={i === 0}
-                onToggle={(v) => toggleEmail(t, v)}
                 onEdit={() => setEmailTarget(t)}
               />
             ))}
@@ -171,7 +136,7 @@ export default function NotificationsPage() {
         ) : (
           <SettingsSection
             title="SMS templates"
-            description={`${activeSms} of ${texts.length} enabled. Text messages are billed per segment.`}
+            description="Text messages are billed per segment."
           >
             {texts.map((t, i) => (
               <TemplateRow
@@ -180,10 +145,7 @@ export default function NotificationsPage() {
                 name={t.name}
                 description={t.description}
                 audience={t.audience}
-                enabled={t.enabled}
-                busy={busyId === `sms-${t.id}`}
                 first={i === 0}
-                onToggle={(v) => toggleSms(t, v)}
                 onEdit={() => setSmsTarget(t)}
               />
             ))}
@@ -214,26 +176,20 @@ export default function NotificationsPage() {
   );
 }
 
-/** One template row: icon, name, description, audience, toggle and Edit. */
+/** One template row: icon, name, description, audience and Edit. */
 function TemplateRow({
   icon: Icon,
   name,
   description,
   audience,
-  enabled,
-  busy,
   first,
-  onToggle,
   onEdit,
 }: {
   icon: typeof Mail;
   name: string;
   description: string;
   audience: string;
-  enabled: boolean;
-  busy: boolean;
   first: boolean;
-  onToggle: (v: boolean) => void;
   onEdit: () => void;
 }) {
   return (
@@ -244,13 +200,8 @@ function TemplateRow({
       )}
     >
       <div className="flex min-w-0 items-start gap-3">
-        <span
-          className={cn(
-            'flex h-9 w-9 shrink-0 items-center justify-center rounded-md',
-            enabled ? 'bg-primary/10' : 'bg-muted-bg'
-          )}
-        >
-          <Icon size={16} className={enabled ? 'text-primary' : 'text-muted'} aria-hidden />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10">
+          <Icon size={16} className="text-primary" aria-hidden />
         </span>
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -263,21 +214,16 @@ function TemplateRow({
         </div>
       </div>
 
-      <div className="flex shrink-0 items-center gap-3">
+      <div className="flex shrink-0 items-center">
         <button
           type="button"
           onClick={onEdit}
+          aria-label={`Edit ${name}`}
           className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border-strong px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           <Pencil size={13} />
           Edit
         </button>
-        <Switch
-          checked={enabled}
-          disabled={busy}
-          onCheckedChange={onToggle}
-          aria-label={`Enable ${name}`}
-        />
       </div>
     </div>
   );

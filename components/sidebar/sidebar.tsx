@@ -73,7 +73,7 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
             <div key={group.label} className="flex flex-col gap-1">
               {/* Group label: text in expanded, 1px divider in rail */}
               {expanded ? (
-                <span className="px-3 pb-1 text-caption font-medium uppercase tracking-wider text-muted">
+                <span className="px-3 pb-1 text-caption font-medium text-muted">
                   {group.label}
                 </span>
               ) : (

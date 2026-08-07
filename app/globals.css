@@ -4,163 +4,225 @@
 
 @layer base {
   :root {
-    /* Brand */
-    --primary: #5B4FE9;
-    --primary-hover: #4338CA;
-    --primary-soft: #B8B0FA;
-    --primary-foreground: #FFFFFF;
-    --secondary: #1F242E;
-    --secondary-foreground: #FFFFFF;
+    /* ─── Geist scales ─── */
+    --background-100: #ffffff;
+    --background-200: #fafafa;
 
-    /* AI-only accent (unused in auth module) */
-    --accent-ai: #FF6B4A;
-    --accent-ai-hover: #E5502F;
+    --gray-100: #f2f2f2;
+    --gray-200: #ebebeb;
+    --gray-300: #e6e6e6;
+    --gray-400: #eaeaea;
+    --gray-500: #c9c9c9;
+    --gray-600: #a8a8a8;
+    --gray-700: #8f8f8f;
+    --gray-800: #7d7d7d;
+    --gray-900: #4d4d4d;
+    --gray-1000: #171717;
 
-    /* Indigo scale (auth left panel) */
-    --indigo-900: #2E25B3;
-    --indigo-700: #5B4FE9;
-    --indigo-500: #8B7FF5;
-    --indigo-300: #B8B0FA;
-    --indigo-100: #E0DCFC;
+    --gray-alpha-100: #0000000d;
+    --gray-alpha-200: #00000015;
+    --gray-alpha-300: #0000001a;
+    --gray-alpha-400: #00000014;
+    --gray-alpha-500: #00000036;
+    --gray-alpha-600: #0000003d;
+    --gray-alpha-700: #00000070;
+    --gray-alpha-800: #00000082;
+    --gray-alpha-900: #000000b3;
+    --gray-alpha-1000: #000000e8;
 
-    /* Surfaces */
-    --background: #F6F5FF;
-    --surface: #FFFFFF;
-    --surface-foreground: #1F242E;
-    --border: #E5E7EB;
-    --border-strong: #D1D5DB;
-    --input: #E5E7EB;
-    --ring: #5B4FE9;
+    --blue-100: #f0f7ff;
+    --blue-200: #e9f4ff;
+    --blue-400: #cae7ff;
+    --blue-700: #006bff;
+    --blue-800: #0059ec;
+    --blue-900: #005ff2;
 
-    /* Text */
-    --heading: #1F242E;
-    --body: #4B5563;
-    --muted: #6B7280;
+    --red-100: #ffeeef;
+    --red-400: #f9c5c8;
+    --red-700: #e5484d;
+    --red-800: #da3036;
+    --red-900: #ca2a30;
 
-    /* Status */
-    --success: #10B981;
-    --success-foreground: #FFFFFF;
-    --warning: #F59E0B;
-    --warning-foreground: #FFFFFF;
-    --error: #EF4444;
-    --error-foreground: #FFFFFF;
-    --info: #7C71F0;
-    --info-foreground: #FFFFFF;
+    --amber-100: #fff6e5;
+    --amber-400: #ffdd9e;
+    --amber-700: #ffb224;
+    --amber-900: #a35200;
 
-    /* Special surfaces */
-    --card-hover: #F9FAFB;
-    --active-menu-bg: #EEF2FF;
-    --error-banner-bg: #FEF2F2;
-    --success-toast-bg: #ECFDF5;
+    --green-100: #eefcf1;
+    --green-400: #b4dfc4;
+    --green-700: #45a557;
+    --green-900: #297c3b;
 
-    /* Premium panel */
-    --panel-gradient-1: #2E25B3;
-    --panel-gradient-2: #4338CA;
-    --panel-gradient-3: #5B4FE9;
+    --purple-100: #fbf3fe;
+    --purple-400: #e5d3f7;
+    --purple-700: #8e4ec6;
+    --purple-900: #793aaf;
+
+    /* ─── Semantic aliases (§21 migration) ───
+       Existing component classes keep working; only the values change. */
+
+    /* "Primary" is now the ink, not a brand hue. */
+    --primary: var(--gray-1000);
+    --primary-hover: var(--gray-900);
+    --primary-soft: var(--gray-300);
+    --primary-foreground: var(--background-100);
+    --secondary: var(--gray-1000);
+    --secondary-foreground: var(--background-100);
+
+    /* AI is marked by form, not hue (§16). Purple only as dot/numeral. */
+    --accent-ai: var(--purple-700);
+    --accent-ai-hover: var(--purple-900);
+
+    --indigo-900: var(--gray-1000);
+    --indigo-700: var(--gray-900);
+    --indigo-500: var(--gray-700);
+    --indigo-300: var(--gray-500);
+    --indigo-100: var(--gray-100);
+
+    /* Surfaces — the page and sidebar share one surface (§11). */
+    --background: var(--background-100);
+    --surface: var(--background-100);
+    --surface-foreground: var(--gray-1000);
+    --border: var(--gray-400);
+    --border-strong: var(--gray-500);
+    --input: var(--gray-400);
+    --ring: var(--blue-700);
+
+    /* Text — three tiers only (§4). */
+    --heading: var(--gray-1000);
+    --body: var(--gray-1000);
+    --muted: var(--gray-900);
+
+    --success: var(--green-700);
+    --success-foreground: #ffffff;
+    --warning: var(--amber-700);
+    --warning-foreground: #ffffff;
+    --error: var(--red-700);
+    --error-foreground: #ffffff;
+    --info: var(--blue-700);
+    --info-foreground: #ffffff;
+
+    --card-hover: var(--gray-100);
+    --active-menu-bg: var(--gray-100);
+    --error-banner-bg: var(--red-100);
+    --success-toast-bg: var(--green-100);
+
+    --panel-gradient-1: #000000;
+    --panel-gradient-2: #0a0a0a;
+    --panel-gradient-3: #171717;
     --glass-bg: rgba(255, 255, 255, 0.08);
     --glass-border: rgba(255, 255, 255, 0.12);
     --glass-bg-strong: rgba(255, 255, 255, 0.12);
 
-    /* Hero banner gradient (wizard) */
-    --hero-from: #EEF2FF;
-    --hero-via: #E0DCFC;
-    --hero-to: #D8D4F5;
+    /* Hero bands are tonal, not brand-tinted. */
+    --hero-from: var(--background-200);
+    --hero-via: var(--gray-100);
+    --hero-to: var(--background-200);
 
-    /* Radii */
+    /* Shape — 6px on nearly everything (§6). */
     --radius-sm: 6px;
-    --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    --radius-md: 6px;
+    --radius-lg: 6px;
+    --radius-xl: 8px;
+    --radius-full: 9999px;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
-    --shadow-md: 0 4px 8px rgba(16, 24, 40, 0.08);
-    --shadow-lg: 0 12px 24px rgba(16, 24, 40, 0.12);
-    --shadow-xl: 0 24px 48px rgba(16, 24, 40, 0.16);
-    --shadow-glow: 0 0 24px rgba(91, 79, 233, 0.15);
+    /* Elevation — hairline ring carries the edge (§7). */
+    --shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
+      0 16px 24px -8px rgba(0, 0, 0, 0.06);
+    --shadow-lg: var(--shadow-md);
+    --shadow-xl:
+      0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
+      0 24px 32px -8px rgba(0, 0, 0, 0.06);
+    --shadow-glow: none;
+    --focus-ring: 0 0 0 2px var(--background-100), 0 0 0 4px var(--blue-700);
+
+    /* Sizing */
+    --height-sm: 32px;
+    --height-md: 40px;
+    --height-lg: 48px;
+    --nav-item-height: 36px;
 
     /* shadcn compat */
     --foreground: var(--heading);
     --muted-foreground: var(--muted);
-    --muted-bg: var(--card-hover);
+    --muted-bg: var(--gray-100);
     --card: var(--surface);
     --card-foreground: var(--surface-foreground);
     --popover: var(--surface);
     --popover-foreground: var(--surface-foreground);
     --accent: var(--active-menu-bg);
-    --accent-foreground: var(--primary);
+    --accent-foreground: var(--gray-1000);
     --destructive: var(--error);
     --destructive-foreground: var(--error-foreground);
-    --radius: var(--radius-md);
+    --radius: var(--radius-sm);
   }
 
   .dark {
-    /* Brand */
-    --primary: #7C71F0;
-    --primary-hover: #6D5FE6;
-    --primary-soft: #3A3A5A;
-    --primary-foreground: #FFFFFF;
-    --secondary: #1F242E;
-    --secondary-foreground: #F5F5FF;
+    --background-100: #0a0a0a;
+    --background-200: #000000;
 
-    /* AI-only accent (unused in auth module) */
-    --accent-ai: #FF8266;
-    --accent-ai-hover: #E5694F;
+    --gray-100: #1a1a1a;
+    --gray-200: #1f1f1f;
+    --gray-300: #292929;
+    --gray-400: #2e2e2e;
+    --gray-500: #454545;
+    --gray-600: #878787;
+    --gray-700: #8f8f8f;
+    --gray-800: #7d7d7d;
+    --gray-900: #a1a1a1;
+    --gray-1000: #ededed;
 
-    /* Surfaces */
-    --background: #0F0F1A;
-    --surface: #181828;
-    --surface-foreground: #F5F5FF;
-    --border: #2E2E42;
-    --border-strong: #3A3A52;
-    --input: #2E2E42;
-    --ring: #7C71F0;
+    --gray-alpha-100: #ffffff0d;
+    --gray-alpha-200: #ffffff15;
+    --gray-alpha-300: #ffffff1a;
+    --gray-alpha-400: #ffffff14;
+    --gray-alpha-500: #ffffff36;
+    --gray-alpha-600: #ffffff3d;
+    --gray-alpha-700: #ffffff70;
+    --gray-alpha-800: #ffffff82;
+    --gray-alpha-900: #ffffffb3;
+    --gray-alpha-1000: #ffffffe8;
 
-    /* Text */
-    --heading: #F5F5FF;
-    --body: #C7C7D9;
-    --muted: #8B8BA3;
+    --blue-700: #0072f5;
+    --blue-900: #52a8ff;
+    --red-700: #e5484d;
+    --red-900: #ff6166;
+    --amber-700: #ffb224;
+    --amber-900: #f1a10d;
+    --green-700: #45a557;
+    --green-900: #62c073;
+    --purple-700: #8e4ec6;
+    --purple-900: #bf7af0;
 
-    /* Status */
-    --success: #10B981;
-    --success-foreground: #0F0F1A;
-    --warning: #F59E0B;
-    --warning-foreground: #0F0F1A;
-    --error: #EF4444;
-    --error-foreground: #0F0F1A;
-    --info: #7C71F0;
-    --info-foreground: #0F0F1A;
+    /* Polarity flips: the primary button is near-white ink (§3.1). */
+    --primary: var(--gray-1000);
+    --primary-hover: var(--gray-900);
+    --primary-foreground: var(--background-100);
+    --secondary: var(--gray-1000);
+    --secondary-foreground: var(--background-100);
 
-    /* Special surfaces */
-    --card-hover: #1F1F33;
-    --active-menu-bg: #2A2A4A;
-    --error-banner-bg: #3A1F1F;
-    --success-toast-bg: #12261F;
+    --success-foreground: var(--background-100);
+    --warning-foreground: var(--background-100);
+    --error-foreground: #ffffff;
+    --info-foreground: #ffffff;
 
-    /* Premium panel (dark) */
-    --panel-gradient-1: #1E1B4B;
-    --panel-gradient-2: #312E81;
-    --panel-gradient-3: #4338CA;
-    --glass-bg: rgba(255, 255, 255, 0.06);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-bg-strong: rgba(255, 255, 255, 0.10);
+    --panel-gradient-1: #000000;
+    --panel-gradient-2: #0a0a0a;
+    --panel-gradient-3: #1a1a1a;
 
-    /* Shadows (dark uses border for card edges, shadows kept subtle) */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.6);
-    --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.7);
-    --shadow-glow: 0 0 24px rgba(124, 113, 240, 0.2);
+    --hero-from: var(--gray-100);
+    --hero-via: var(--gray-200);
+    --hero-to: var(--gray-100);
 
-    /* Hero banner gradient (dark) */
-    --hero-from: #1F1F33;
-    --hero-via: #2A2A4A;
-    --hero-to: #1F1F33;
-
-    /* shadcn compat (dark) */
-    --foreground: var(--heading);
-    --muted-foreground: var(--muted);
-    --muted-bg: var(--card-hover);
+    /* Shadows do nothing on near-black; the hairline defines every edge. */
+    --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-card: none;
+    --shadow-sm: none;
+    --shadow-glow: none;
   }
 }
 
@@ -175,18 +237,61 @@
   body {
     background-color: var(--background);
     color: var(--body);
-    font-feature-settings: 'cv11', 'ss01';
-    font-variation-settings: 'opsz' 32;
+    /* Geist ships no cv11/ss01 alternates; ligatures only (§5). */
+    font-feature-settings: "liga" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     color: var(--heading);
     font-weight: 600;
   }
   ::selection {
-    background-color: color-mix(in srgb, var(--primary) 20%, transparent);
+    background-color: var(--gray-200);
+  }
+
+  /* §8: a disabled button is a gray-100 fill with gray-700 text — not the
+     solid ink fill at reduced opacity, which still reads as the main action. */
+  button:disabled.bg-primary,
+  button[disabled].bg-primary,
+  a[aria-disabled="true"].bg-primary {
+    background-color: var(--gray-100) !important;
+    color: var(--gray-700) !important;
+    box-shadow: none !important;
+    opacity: 1 !important;
+    cursor: not-allowed;
+  }
+}
+
+@layer utilities {
+  /* Numbers that must align vertically down a column (§2). */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Identifiers, scores, timestamps — never a whole sentence. */
+  .mono {
+    font-family:
+      var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  /* The one decorative typographic move the system allows (§5). */
+  .eyebrow {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-size: 12px;
+    line-height: 16px;
+    font-weight: 500;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: var(--gray-900);
+  }
+  /* Hairline ring instead of a CSS border — no layout shift on hover (§7). */
+  .ring-hairline {
+    box-shadow: var(--shadow-border);
   }
 }
 

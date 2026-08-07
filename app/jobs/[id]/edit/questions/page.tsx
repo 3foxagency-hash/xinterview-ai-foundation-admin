@@ -189,7 +189,7 @@ export default function QuestionsPage() {
           <button
             type="button"
             onClick={() => setAiDialogOpen(true)}
-            className="inline-flex h-9 items-center gap-2 rounded-md border border-accent-ai bg-accent-ai/5 px-4 text-button text-accent-ai transition-colors hover:bg-accent-ai/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ai"
+            className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
           >
             <Sparkles size={16} />
             AI Generate Questions

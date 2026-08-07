@@ -118,7 +118,7 @@ export function AiQuestionDialog({
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Sparkles size={18} className="text-accent-ai" />
+            <Sparkles size={18} strokeWidth={1.5} className="text-muted" />
             AI Generate Questions
           </DialogTitle>
           <DialogDescription>
@@ -153,7 +153,7 @@ export function AiQuestionDialog({
                 type="button"
                 onClick={handleGenerate}
                 disabled={total === 0 || total > 10}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-accent-ai bg-accent-ai/5 px-4 text-button text-accent-ai transition-colors hover:bg-accent-ai/10 disabled:pointer-events-none disabled:opacity-50"
+                className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
               >
                 <Sparkles size={14} />
                 Generate
@@ -164,7 +164,7 @@ export function AiQuestionDialog({
 
         {generating && (
           <div className="flex flex-col items-center justify-center py-12">
-            <Loader2 size={24} className="animate-spin text-accent-ai" />
+            <Loader2 size={24} className="animate-spin text-muted" />
             <p className="mt-3 text-body text-muted">Generating questions with AI…</p>
           </div>
         )}
@@ -178,7 +178,7 @@ export function AiQuestionDialog({
                   className={cn(
                     'flex items-start gap-3 rounded-md border p-3 transition-colors',
                     selected.has(q.id)
-                      ? 'border-accent-ai/40 bg-accent-ai/5'
+                      ? 'border-border-strong bg-[var(--background-200)]'
                       : 'border-border bg-surface hover:border-border-strong'
                   )}
                 >

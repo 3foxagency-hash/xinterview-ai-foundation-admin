@@ -62,7 +62,14 @@ export function CreditBreakdownPopover({ items, total }: CreditBreakdownPopoverP
         type="button"
         aria-label="What uses AI credits?"
         aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
+        // Every input path already opens the panel before click can fire —
+        // mouseenter for pointers, focus for keyboard and touch. So click only
+        // ever needs to dismiss; toggling here would fight those handlers and
+        // leave the panel closed on the very gesture meant to reveal it.
+        onClick={() => {
+          cancelClose();
+          setOpen(false);
+        }}
         onFocus={() => setOpen(true)}
         onBlur={scheduleClose}
         className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-muted transition-colors hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"

@@ -64,7 +64,7 @@ export default function DashboardLayout({
             ? expanded
               ? 'ml-[260px] flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 motion-reduce:transition-none'
               : 'ml-[72px] flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 motion-reduce:transition-none'
-            : 'flex min-h-screen flex-1 flex-col'
+            : 'flex min-h-screen min-w-0 flex-1 flex-col'
         }
       >
         {/* Mobile top bar — menu button + logo */}

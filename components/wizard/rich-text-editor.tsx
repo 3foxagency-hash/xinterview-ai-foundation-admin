@@ -152,7 +152,7 @@ export function RichTextEditor({
       />
       <div className="absolute bottom-3 right-4 flex items-center gap-2">
         {generating && (
-          <span className="flex items-center gap-1.5 text-caption text-accent-ai">
+          <span className="flex items-center gap-1.5 font-mono text-caption uppercase tracking-[0.4px] text-muted">
             <Loader2 size={12} className="animate-spin" />
             Generating…
           </span>

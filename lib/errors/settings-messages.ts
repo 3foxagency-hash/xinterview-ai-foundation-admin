@@ -52,6 +52,22 @@ const SETTINGS_MESSAGES: Record<string, string> = {
   sms_body_too_long: 'This message is too long. Keep it under 480 characters.',
   sms_template_not_found:
     'We could not find that template. Please refresh and try again.',
+  session_not_found: 'That session has already ended.',
+  session_is_current: "You can't sign out of the device you're using.",
+  avatar_type_invalid: 'Choose a PNG or JPEG image.',
+  avatar_too_large: 'That image is over 800KB. Choose a smaller one.',
+  avatar_read_failed: "That image couldn't be read. Try another file.",
+  profile_first_name_required: 'Enter your first name.',
+  profile_last_name_required: 'Enter your last name.',
+  profile_email_invalid: 'Enter a valid email address.',
+  password_current_required: 'Enter your current password.',
+  password_current_wrong: "That doesn't match your current password.",
+  password_mismatch: 'The new passwords do not match.',
+  password_too_short: 'Use at least 8 characters.',
+  password_too_weak:
+    'Include a lowercase letter, an uppercase letter, a number and a symbol.',
+  password_same_as_current: 'Your new password must be different from the current one.',
+  candidate_not_found: 'We could not find that candidate. Please refresh and try again.',
 };
 
 const FALLBACK = 'Something went wrong. Please try again.';

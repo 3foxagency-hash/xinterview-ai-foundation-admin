@@ -2,17 +2,13 @@ import {
   Briefcase,
   Building2,
   Users,
-  Palette,
   CreditCard,
   Video,
-  ClipboardCheck,
   FileQuestion,
   Plug,
   User,
   Lock,
   Bell,
-  Code,
-  Shield,
   AlertTriangle,
   type LucideIcon,
 } from 'lucide-react';
@@ -46,11 +42,8 @@ export const settingsNavGroups: SettingsNavGroup[] = [
   {
     label: 'Product',
     items: [
-      { label: 'Branding', href: `${BASE}/branding`, icon: Palette, scope: 'company' },
-      { label: 'Interview defaults', href: `${BASE}/interview-defaults`, icon: Video, scope: 'company' },
-      { label: 'Evaluation criteria', href: `${BASE}/evaluation-criteria`, icon: ClipboardCheck, scope: 'company' },
+      { label: 'Customisation', href: `${BASE}/customisation`, icon: Video, scope: 'company' },
       { label: 'Question library', href: `${BASE}/question-library`, icon: FileQuestion, scope: 'company' },
-      { label: 'Integrations', href: `${BASE}/integrations`, icon: Plug, scope: 'company' },
     ],
   },
   {
@@ -65,8 +58,7 @@ export const settingsNavGroups: SettingsNavGroup[] = [
   {
     label: 'Advanced',
     items: [
-      { label: 'API & webhooks', href: `${BASE}/api`, icon: Code, scope: 'company' },
-      { label: 'Data & privacy', href: `${BASE}/data-privacy`, icon: Shield, scope: 'company' },
+      { label: 'Integrations', href: `${BASE}/integrations`, icon: Plug, scope: 'company' },
       { label: 'Danger zone', href: `${BASE}/danger-zone`, icon: AlertTriangle, scope: 'company', danger: true },
     ],
   },

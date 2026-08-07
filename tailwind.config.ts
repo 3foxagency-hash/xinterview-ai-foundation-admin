@@ -10,19 +10,22 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-geist-sans)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'ui-monospace', 'SF Mono', 'Menlo', 'Monaco', 'monospace'],
       },
+      // Weights follow §5: 600 headings, 500 interactive, 400 reading. Never 700.
+      // Tracking tightens as size grows.
       fontSize: {
-        'display-lg': ['40px', { lineHeight: '48px', fontWeight: '700' }],
-        display: ['32px', { lineHeight: '40px', fontWeight: '700' }],
-        h1: ['24px', { lineHeight: '32px', fontWeight: '700' }],
-        h2: ['20px', { lineHeight: '28px', fontWeight: '600' }],
-        h3: ['16px', { lineHeight: '24px', fontWeight: '600' }],
-        'body-lg': ['15px', { lineHeight: '24px', fontWeight: '400' }],
+        'display-lg': ['40px', { lineHeight: '48px', letterSpacing: '-2.4px', fontWeight: '600' }],
+        display: ['32px', { lineHeight: '40px', letterSpacing: '-1.28px', fontWeight: '600' }],
+        h1: ['24px', { lineHeight: '32px', letterSpacing: '-0.96px', fontWeight: '600' }],
+        h2: ['20px', { lineHeight: '26px', letterSpacing: '-0.4px', fontWeight: '600' }],
+        h3: ['16px', { lineHeight: '24px', letterSpacing: '-0.32px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
         body: ['14px', { lineHeight: '20px', fontWeight: '400' }],
         'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
         caption: ['12px', { lineHeight: '16px', fontWeight: '500' }],
-        button: ['14px', { lineHeight: '20px', fontWeight: '600' }],
+        button: ['14px', { lineHeight: '20px', fontWeight: '500' }],
       },
       spacing: {
         '1': '4px',
@@ -84,6 +87,51 @@ const config: Config = {
           500: 'var(--indigo-500)',
           300: 'var(--indigo-300)',
           100: 'var(--indigo-100)',
+        },
+        gray: {
+          100: 'var(--gray-100)',
+          200: 'var(--gray-200)',
+          300: 'var(--gray-300)',
+          400: 'var(--gray-400)',
+          500: 'var(--gray-500)',
+          600: 'var(--gray-600)',
+          700: 'var(--gray-700)',
+          800: 'var(--gray-800)',
+          900: 'var(--gray-900)',
+          1000: 'var(--gray-1000)',
+        },
+        blue: {
+          100: 'var(--blue-100)',
+          200: 'var(--blue-200)',
+          400: 'var(--blue-400)',
+          700: 'var(--blue-700)',
+          800: 'var(--blue-800)',
+          900: 'var(--blue-900)',
+        },
+        red: {
+          100: 'var(--red-100)',
+          400: 'var(--red-400)',
+          700: 'var(--red-700)',
+          800: 'var(--red-800)',
+          900: 'var(--red-900)',
+        },
+        amber: {
+          100: 'var(--amber-100)',
+          400: 'var(--amber-400)',
+          700: 'var(--amber-700)',
+          900: 'var(--amber-900)',
+        },
+        green: {
+          100: 'var(--green-100)',
+          400: 'var(--green-400)',
+          700: 'var(--green-700)',
+          900: 'var(--green-900)',
+        },
+        purple: {
+          100: 'var(--purple-100)',
+          400: 'var(--purple-400)',
+          700: 'var(--purple-700)',
+          900: 'var(--purple-900)',
         },
         success: {
           DEFAULT: 'var(--success)',

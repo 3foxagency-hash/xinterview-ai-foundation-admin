@@ -12,7 +12,7 @@ function Skeleton({ className }: { className?: string }) {
  */
 export function TeamSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[800px] px-8 py-8" aria-hidden>
+    <div className="mx-auto w-full max-w-[800px] px-4 py-8 sm:px-6 lg:px-8" aria-hidden>
       {/* Page header — title, scope line, description */}
       <Skeleton className="h-8 w-44" />
       <Skeleton className="mt-3 h-4 w-72" />

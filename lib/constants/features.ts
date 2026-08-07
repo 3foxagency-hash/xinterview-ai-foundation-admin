@@ -1,6 +1,8 @@
 export const features = {
   companyDeletion: false,
-  inviteWithRole: true,
+  // Invites always go out as Member; the role is set afterwards from the
+  // roster, so the invite modal doesn't ask for it.
+  inviteWithRole: false,
   editableRoles: true,
   customStages: false,
 } as const;

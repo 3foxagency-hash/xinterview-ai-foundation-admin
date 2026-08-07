@@ -9,26 +9,27 @@ export default function SettingsLayout({
   children: React.ReactNode;
 }) {
   return (
-    // This div fills the content area that the dashboard layout provides.
-    // We use dvh (dynamic viewport height) so it fills exactly the screen.
-    // Both columns get their own overflow-y-auto so they scroll independently.
-    <div className="flex" style={{ height: '100dvh' }}>
-      {/* 240px settings sub-nav — desktop. Fixed height + overflow-y-auto
-          means the nav scrolls its own list while the content scrolls separately. */}
+    // On mobile this is a normal-flow column: the horizontal tab strip sits
+    // above the content and the page scrolls as one. From lg up it becomes a
+    // fixed-height two-column layout where each side scrolls independently.
+    //
+    // The height is capped with min-h-0 rather than 100dvh because the
+    // dashboard renders a ~69px mobile top bar above this; a full-viewport
+    // height there pushed the page past the fold.
+    <div className="flex min-h-0 flex-col lg:h-[100dvh] lg:flex-row">
+      {/* Desktop: 240px sub-nav with its own scroll */}
       <div className="hidden h-full w-[240px] shrink-0 overflow-y-auto lg:flex lg:flex-col">
         <SettingsSubNav />
       </div>
 
-      {/* 56px icon-only rail — tablet / small screens */}
-      <div className="flex h-full w-14 shrink-0 flex-col overflow-y-auto lg:hidden">
-        <SettingsSubNav collapsed />
+      {/* Mobile/tablet: horizontal tab strip. An icon-only rail was unusable
+          here — 15 unlabelled icons with no way to tell them apart. */}
+      <div className="lg:hidden">
+        <SettingsSubNav variant="strip" />
       </div>
 
-      {/* Scrollable content area — min-w-0 lets it shrink instead of forcing
-          the whole page to scroll horizontally. */}
-      <div className="min-w-0 flex-1 overflow-y-auto">
-        {children}
-      </div>
+      {/* Content — min-w-0 lets it shrink instead of forcing the page wide */}
+      <div className="min-w-0 flex-1 lg:overflow-y-auto">{children}</div>
     </div>
   );
 }

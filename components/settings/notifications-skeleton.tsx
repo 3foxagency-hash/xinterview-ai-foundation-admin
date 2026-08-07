@@ -32,7 +32,6 @@ export function NotificationsSkeleton() {
                 <Skeleton className="h-3 w-72" />
               </div>
               <Skeleton className="ml-auto h-9 w-20 shrink-0 rounded-md" />
-              <Skeleton className="h-6 w-11 shrink-0 rounded-full" />
             </div>
           ))}
         </div>

@@ -24,7 +24,7 @@ function Row({ helper = true, control }: { helper?: boolean; control: string }) 
  */
 export function GeneralSkeleton() {
   return (
-    <div className="mx-auto w-full max-w-[800px] px-8 py-8" aria-hidden>
+    <div className="mx-auto w-full max-w-[800px] px-4 py-8 sm:px-6 lg:px-8" aria-hidden>
       {/* Page header */}
       <Skeleton className="h-8 w-32" />
       <Skeleton className="mt-3 h-4 w-72" />

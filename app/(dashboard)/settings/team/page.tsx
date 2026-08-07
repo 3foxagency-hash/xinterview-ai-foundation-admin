@@ -247,19 +247,19 @@ export default function TeamPage() {
           <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-border bg-muted-bg">
-                <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                   Member
                 </th>
-                <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                   Role
                 </th>
-                <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                   Status
                 </th>
-                <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                   Joined / Invited
                 </th>
-                <th scope="col" className="px-4 py-2.5 text-right text-caption font-semibold uppercase tracking-wider text-muted">
+                <th scope="col" className="px-4 py-2.5 text-right text-caption font-medium text-muted">
                   Actions
                 </th>
               </tr>

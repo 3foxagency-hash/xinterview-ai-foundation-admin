@@ -176,9 +176,20 @@ export async function updateOrganization(
   return { ...orgStore };
 }
 
-export async function uploadLogo(_file: File): Promise<{ logoUrl: string }> {
-  await delay(1000);
-  return { logoUrl: 'mock://logo' };
+/**
+ * Reads the file to a data URL so the preview can actually display it. The real
+ * endpoint will return a hosted URL; callers only need something assignable to
+ * an <img src>.
+ */
+export async function uploadLogo(file: File): Promise<{ logoUrl: string }> {
+  const logoUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('logo_read_failed'));
+    reader.readAsDataURL(file);
+  });
+  await delay(700);
+  return { logoUrl };
 }
 
 export async function getCurrentUser(): Promise<CurrentUser> {
@@ -312,6 +323,10 @@ export type CurrentPlan = {
   name: string;
   tagline: string;
   activeUntil: string;
+  /** ISO date behind `activeUntil`, so the UI can derive a countdown. */
+  activeUntilIso: string;
+  /** True while on a free trial rather than a paid tier. */
+  isTrial: boolean;
   /** Where the AI credit allowance is spent, shown in the info popover. */
   creditBreakdown: CreditBreakdown[];
   /**
@@ -401,6 +416,8 @@ export async function getCurrentPlan(): Promise<CurrentPlan> {
     name: 'Trial',
     tagline: 'A simple start for everyone',
     activeUntil: 'Aug 1, 2027',
+    activeUntilIso: '2027-08-01',
+    isTrial: true,
     planId: null,
     creditBreakdown: [
       { id: 'questions', label: 'AI question generation', used: 0, limit: 400 },

@@ -1,7 +1,17 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowLeft, FileQuestion, MoreHorizontal, Plus, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronDown,
+  ChevronUp,
+  FileQuestion,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { SettingsPage } from '@/components/settings';
@@ -14,7 +24,8 @@ import {
 import { TemplateDialog } from '@/components/settings/template-dialog';
 import { DeleteTemplateDialog } from '@/components/settings/delete-template-dialog';
 import { TemplateSkeleton } from '@/components/settings/template-skeleton';
-import { QuestionCard, genId } from '@/components/wizard/question-card';
+import { genId } from '@/components/wizard/question-card';
+import { QuestionEditDialog } from '@/components/settings/question-edit-dialog';
 import {
   getQuestionTemplates,
   createQuestionTemplate,
@@ -28,6 +39,14 @@ import {
 import { getSettingsErrorMessage } from '@/lib/errors/settings-messages';
 import type { Question } from '@/lib/api/jobs';
 
+/** Short enough to sit in the table's Type column without wrapping. */
+const TYPE_LABEL: Record<Question['type'], string> = {
+  video: 'Video',
+  audio: 'Audio',
+  text: 'Text',
+  single_choice: 'Choice',
+};
+
 export default function QuestionLibraryPage() {
   const [templates, setTemplates] = React.useState<QuestionTemplateRecord[]>([]);
   const [companyName, setCompanyName] = React.useState<string>();
@@ -36,7 +55,8 @@ export default function QuestionLibraryPage() {
   /** null → template list; otherwise the id of the template being edited */
   const [openId, setOpenId] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<Question[]>([]);
-  const [expandedId, setExpandedId] = React.useState<string | null>(null);
+  /** Row index being edited in the question dialog, or null */
+  const [editIndex, setEditIndex] = React.useState<number | null>(null);
   const [savingQuestions, setSavingQuestions] = React.useState(false);
 
   const [dialogOpen, setDialogOpen] = React.useState(false);
@@ -65,13 +85,13 @@ export default function QuestionLibraryPage() {
   const openTemplate = (t: QuestionTemplateRecord) => {
     setOpenId(t.id);
     setDraft(t.questions.map((q) => ({ ...q })) as Question[]);
-    setExpandedId(t.questions[0]?.id ?? null);
+    setEditIndex(null);
   };
 
   const closeTemplate = () => {
     setOpenId(null);
     setDraft([]);
-    setExpandedId(null);
+    setEditIndex(null);
   };
 
   const handleCreate = async (name: string, description: string) => {
@@ -117,6 +137,8 @@ export default function QuestionLibraryPage() {
 
   const addQuestion = () => {
     const id = genId();
+    // Open the new row straight away so it can be filled in.
+    setEditIndex(draft.length);
     setDraft((prev) => [
       ...prev,
       {
@@ -129,7 +151,6 @@ export default function QuestionLibraryPage() {
         answerTime: '2m',
       } as Question,
     ]);
-    setExpandedId(id);
   };
 
   const updateQuestion = (id: string, updated: Question) =>
@@ -155,7 +176,7 @@ export default function QuestionLibraryPage() {
   // ── Question editor: replaces the table for the selected template ──
   if (openRecord) {
     return (
-      <div className="mx-auto w-full max-w-[800px] px-8 py-8">
+      <div className="mx-auto w-full min-w-0 max-w-[800px] px-4 py-8 sm:px-6 lg:px-8">
         <button
           type="button"
           onClick={closeTemplate}
@@ -170,43 +191,140 @@ export default function QuestionLibraryPage() {
           {openRecord.description || 'Add the questions this template should include.'}
         </p>
 
-        <div className="mt-8 space-y-4">
-          {draft.map((q, index) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              index={index}
-              expanded={expandedId === q.id}
-              onToggleExpand={() => setExpandedId(expandedId === q.id ? null : q.id)}
-              onChange={(updated) => updateQuestion(q.id, updated)}
-              onRemove={() => removeQuestion(q.id)}
-              onMoveUp={() => moveQuestion(index, index - 1)}
-              onMoveDown={() => moveQuestion(index, index + 1)}
-              onKeyboardMove={(dir) =>
-                moveQuestion(index, dir === 'up' ? index - 1 : index + 1)
-              }
-              dragHandleProps={{
-                draggable: false,
-                onDragStart: () => {},
-                onDragEnd: () => {},
-              }}
-            />
-          ))}
+        {/* Same table shape as the template list — the rows are now questions. */}
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <p className="text-body-sm text-bodyText">
+            {draft.length} question{draft.length === 1 ? '' : 's'}
+          </p>
+          <button
+            type="button"
+            onClick={addQuestion}
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          >
+            <Plus size={16} />
+            Add question
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={addQuestion}
-          className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border-strong text-button text-muted transition-colors hover:border-primary/50 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-        >
-          <Plus size={16} />
-          Add question
-        </button>
-
-        {draft.length === 0 && (
-          <p className="mt-4 text-center text-body-sm text-muted">
-            No questions in this template yet.
-          </p>
+        {draft.length === 0 ? (
+          <div className="mt-6 rounded-lg border border-border bg-surface px-4 py-10 text-center">
+            <FileQuestion size={24} className="mx-auto text-muted" aria-hidden />
+            <p className="mt-3 text-body text-heading">No questions yet</p>
+            <p className="mt-1 text-body-sm text-muted">
+              Add one to build out this template.
+            </p>
+          </div>
+        ) : (
+          <div className="mt-6 overflow-x-auto rounded-lg border border-border bg-surface">
+            <table className="w-full min-w-[560px] table-fixed">
+              <thead>
+                <tr className="border-b border-border bg-muted-bg">
+                  <th scope="col" className="w-[44%] px-4 py-2.5 text-left text-caption font-medium text-muted">
+                    Question
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
+                    Type
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
+                    Retakes
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
+                    Time
+                  </th>
+                  <th scope="col" className="px-4 py-2.5 text-right text-caption font-medium text-muted">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {draft.map((q, index) => (
+                  <tr
+                    key={q.id}
+                    className={cn(
+                      'group transition-colors hover:bg-card-hover',
+                      index > 0 && 'border-t border-border'
+                    )}
+                  >
+                    {/* max-w keeps long prompts from stretching the table past
+                        its container and clipping the Actions column. */}
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setEditIndex(index)}
+                        className="flex w-full min-w-0 flex-col rounded text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                      >
+                        <span className="truncate text-body font-medium text-heading group-hover:text-primary">
+                          {q.title || `Untitled question ${index + 1}`}
+                        </span>
+                        {q.description && (
+                          <span className="truncate text-body-sm text-muted">
+                            {q.description}
+                          </span>
+                        )}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3">
+                      {/* "Multiple choice" is long; truncate rather than let it
+                          bleed into the next column. */}
+                      <span className="inline-block max-w-full truncate rounded-full border border-border bg-muted-bg px-2 py-0.5 text-caption text-bodyText">
+                        {TYPE_LABEL[q.type]}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-body-sm tabular-nums text-bodyText">
+                      {q.type === 'text' || q.type === 'single_choice'
+                        ? '—'
+                        : (q.retakesAllowed ?? 0)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-body-sm text-muted">
+                      {q.type === 'text'
+                        ? `${q.charLimit ?? 0} chars`
+                        : q.type === 'single_choice'
+                          ? '—'
+                          : `${q.thinkingTime ?? '—'} + ${q.answerTime ?? '—'}`}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setEditIndex(index)}
+                          aria-label={`Edit question ${index + 1}`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveQuestion(index, index - 1)}
+                          disabled={index === 0}
+                          aria-label={`Move question ${index + 1} up`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-30"
+                        >
+                          <ChevronUp size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveQuestion(index, index + 1)}
+                          disabled={index === draft.length - 1}
+                          aria-label={`Move question ${index + 1} down`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:pointer-events-none disabled:opacity-30"
+                        >
+                          <ChevronDown size={15} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeQuestion(q.id)}
+                          aria-label={`Remove question ${index + 1}`}
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
 
         <div className="mt-6 flex items-center justify-end gap-3 border-t border-border pt-4">
@@ -228,6 +346,16 @@ export default function QuestionLibraryPage() {
             Save questions
           </button>
         </div>
+
+        <QuestionEditDialog
+          open={editIndex !== null}
+          onOpenChange={(o) => {
+            if (!o) setEditIndex(null);
+          }}
+          question={editIndex !== null ? draft[editIndex] ?? null : null}
+          index={editIndex ?? 0}
+          onSave={(updated) => updateQuestion(updated.id, updated)}
+        />
       </div>
     );
   }
@@ -273,16 +401,16 @@ export default function QuestionLibraryPage() {
             <table className="w-full min-w-[480px]">
               <thead>
                 <tr className="border-b border-border bg-muted-bg">
-                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                     Template
                   </th>
-                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                     Questions
                   </th>
-                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-semibold uppercase tracking-wider text-muted">
+                  <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                     Updated
                   </th>
-                  <th scope="col" className="px-4 py-2.5 text-right text-caption font-semibold uppercase tracking-wider text-muted">
+                  <th scope="col" className="px-4 py-2.5 text-right text-caption font-medium text-muted">
                     Actions
                   </th>
                 </tr>

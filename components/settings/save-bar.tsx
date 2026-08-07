@@ -46,7 +46,7 @@ export function SaveBar({
     >
       <span
         className={cn(
-          'mr-auto text-body-sm transition-opacity duration-200',
+          'mr-auto min-w-0 truncate text-body-sm transition-opacity duration-200',
           visible ? 'text-bodyText opacity-100' : 'opacity-0'
         )}
       >
@@ -65,7 +65,7 @@ export function SaveBar({
         onClick={onDiscard}
         disabled={loading || !visible}
         className={cn(
-          'inline-flex h-9 items-center justify-center rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-all hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
+          'inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded-md border border-border-strong bg-transparent px-4 text-button text-heading transition-all hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
           !visible && 'pointer-events-none opacity-0'
         )}
       >
@@ -77,7 +77,7 @@ export function SaveBar({
         onClick={onSave}
         disabled={loading || !visible}
         aria-busy={loading}
-        className="inline-flex h-9 items-center justify-center gap-2 rounded-md bg-primary px-5 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
+        className="inline-flex h-9 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-md bg-primary px-5 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:opacity-50"
       >
         {loading && <Loader2 size={16} className="animate-spin" />}
         {loading ? 'Saving…' : 'Save changes'}

@@ -18,7 +18,8 @@ export function SettingsRow({ label, helper, control }: SettingsRowProps) {
           <p className="mt-1 text-body-sm text-muted">{helper}</p>
         )}
       </div>
-      <div className="w-full md:max-w-[400px] md:shrink-0 [&_input]:h-10 [&_button]:h-10">
+      {/* Normalises control heights, but switches carry their own slim geometry. */}
+      <div className="w-full md:max-w-[400px] md:shrink-0 [&_input]:h-10 [&_button:not([role=switch])]:h-10">
         {control}
       </div>
     </div>

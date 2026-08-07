@@ -12,6 +12,7 @@ import {
   Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AIMarker } from '@/components/ui/ai-marker';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -447,7 +448,8 @@ export default function EvaluationPage() {
         title="Evaluation factors"
         description="Up to 4 factors. Each has a weight and a 1–5 rubric."
       >
-        {/* Coral AI button — only when no factors exist */}
+        {/* Secondary button — §16 forbids a coloured AI fill; the sparkle and
+            the word "AI" carry the meaning. */}
         {data.factors.length === 0 && !aiPreview && (
           <div className="p-4">
             <button
@@ -455,9 +457,9 @@ export default function EvaluationPage() {
               onClick={handleGenerateAI}
               disabled={generating}
               aria-busy={generating}
-              className="inline-flex h-9 items-center gap-2 rounded-md border border-accent-ai bg-accent-ai/5 px-4 text-button text-accent-ai transition-colors hover:bg-accent-ai/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-ai"
+              className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-surface disabled:pointer-events-none disabled:opacity-50"
             >
-              <Sparkles size={16} />
+              <Sparkles size={16} strokeWidth={1.5} className="text-muted" />
               {generating ? 'Generating…' : 'Generate with AI'}
             </button>
             <p className="mt-2 text-body-sm text-muted">
@@ -468,11 +470,11 @@ export default function EvaluationPage() {
 
         {/* AI preview */}
         {aiPreview && (
-          <div className="m-4 rounded-lg border border-accent-ai/30 bg-accent-ai/5 p-4">
+          <div className="m-4 rounded-md border border-border bg-[var(--background-200)] p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-accent-ai" />
-                <span className="text-body font-semibold text-heading">AI-generated factors</span>
+                <AIMarker />
+                <span className="text-body font-medium text-heading">Generated factors</span>
               </div>
               <div className="flex gap-2">
                 <button
