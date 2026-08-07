@@ -52,6 +52,36 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
   const menuRef = React.useRef<HTMLDivElement>(null);
   const itemRefs = React.useRef<(HTMLButtonElement | HTMLAnchorElement | null)[]>([]);
 
+  const MENU_WIDTH = 260;
+  /**
+   * The sidebar is `overflow-hidden`, so an absolutely-positioned 260px panel
+   * inside a 72px rail gets clipped and dragged off-screen. Positioning the
+   * menu fixed to the trigger's viewport rect lets it escape the rail entirely,
+   * and clamping keeps it on screen at any sidebar width.
+   */
+  const [pos, setPos] = React.useState<{ left: number; bottom: number } | null>(null);
+
+  const place = React.useCallback(() => {
+    const r = triggerRef.current?.getBoundingClientRect();
+    if (!r) return;
+    const left = Math.min(
+      Math.max(8, r.left),
+      Math.max(8, window.innerWidth - MENU_WIDTH - 8)
+    );
+    setPos({ left, bottom: window.innerHeight - r.top + 8 });
+  }, []);
+
+  React.useLayoutEffect(() => {
+    if (!open) return;
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, place]);
+
   const currentTheme = (theme as ThemeMode) ?? 'system';
   const ThemeIcon = mounted ? themeIcon[currentTheme] ?? Monitor : Monitor;
 
@@ -101,6 +131,7 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
 
   const closeMenu = React.useCallback(() => {
     setOpen(false);
+    setPos(null);
     triggerRef.current?.focus();
   }, []);
 
@@ -208,7 +239,10 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
   );
 
   return (
-    <div className="relative">
+    // min-w-0 so a 260px menu can't stretch this wrapper and push it out of the
+    // 72px rail — the sidebar is overflow-hidden, so an overflowing child gets
+    // clipped and dragged off-screen instead of expanding the rail.
+    <div className="relative min-w-0">
       {trigger}
 
       {open && (
@@ -218,11 +252,14 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
           aria-label="User menu"
           onKeyDown={handleMenuKeyDown}
           className={cn(
-            'absolute bottom-[calc(100%+8px)] left-0 z-50 w-[260px]',
+            'fixed z-50 w-[260px]',
             'rounded-lg border border-border bg-surface p-2 shadow-lg'
           )}
           style={{
-            transform: 'translateY(-4px)',
+            left: pos?.left ?? 0,
+            bottom: pos?.bottom ?? 0,
+            // Hide until measured so it can't flash at the wrong position.
+            visibility: pos ? 'visible' : 'hidden',
             animation: 'fadeInRise 150ms ease-out',
           }}
         >
