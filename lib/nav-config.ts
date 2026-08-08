@@ -1,4 +1,5 @@
 import {
+  Settings,
   Home,
   Plus,
   Briefcase,
@@ -38,6 +39,9 @@ export const primaryNavGroups: NavGroup[] = [
     label: 'Insights',
     items: [
       { label: 'Reports', href: '/reports', icon: FileText },
+      // Workspace-level settings. Organisation settings live under the
+      // account menu at the bottom of the sidebar.
+      { label: 'Settings', href: '/workspace-settings', icon: Settings },
     ],
   },
 ];

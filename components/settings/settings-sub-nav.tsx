@@ -4,25 +4,31 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { settingsNavGroups } from '@/lib/settings-nav-config';
+import { settingsNavGroups, type SettingsNavGroup } from '@/lib/settings-nav-config';
 import { NavTooltip } from '@/components/sidebar/nav-tooltip';
 
 interface SettingsSubNavProps {
   collapsed?: boolean;
   /** 'strip' renders a horizontal scroller for mobile */
   variant?: 'sidebar' | 'strip';
+  /** Heading above the list. */
+  title?: string;
+  /** Which nav tree to render — organisation settings by default. */
+  groups?: SettingsNavGroup[];
 }
 
 export function SettingsSubNav({
   collapsed = false,
   variant = 'sidebar',
+  title = 'Settings',
+  groups = settingsNavGroups,
 }: SettingsSubNavProps) {
   const pathname = usePathname();
 
   // Mobile: one horizontal row of labelled pills, grouped headings dropped
   // since there is no room for them.
   if (variant === 'strip') {
-    return <StripNav pathname={pathname} />;
+    return <StripNav pathname={pathname} groups={groups} />;
   }
 
   return (
@@ -35,14 +41,14 @@ export function SettingsSubNav({
     >
       {!collapsed && (
         <div className="shrink-0 px-4 pb-3 pt-6">
-          <h2 className="text-h2 text-heading">Settings</h2>
+          <h2 className="text-h2 text-heading">{title}</h2>
         </div>
       )}
 
       <div className={cn('flex-1 overflow-y-auto pb-6', collapsed ? 'px-2 pt-4' : 'px-3 pt-2')}>
-        {settingsNavGroups.map((group, gi) => (
+        {groups.map((group, gi) => (
           <div key={group.label} className={cn(gi > 0 && 'mt-5')}>
-            {collapsed ? (
+            {collapsed || !group.label ? (
               gi > 0 && <div className="mx-2 my-2 h-px bg-border" />
             ) : (
               // §10: a named group uses label-12 weight 500 gray-900 in
@@ -101,11 +107,8 @@ export function SettingsSubNav({
  * was unusable here — 15 unlabelled icons with no way to tell them apart.
  * Group headings are dropped since there is no room for them.
  */
-function StripNav({ pathname }: { pathname: string }) {
-  const items = React.useMemo(
-    () => settingsNavGroups.flatMap((g) => g.items),
-    []
-  );
+function StripNav({ pathname, groups }: { pathname: string; groups: SettingsNavGroup[] }) {
+  const items = React.useMemo(() => groups.flatMap((g) => g.items), [groups]);
   const activeRef = React.useRef<HTMLAnchorElement>(null);
 
   // Bring the current page into view so you can see where you are in a list

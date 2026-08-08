@@ -6,6 +6,7 @@ import { PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { primaryNavGroups, bottomNavItems } from '@/lib/nav-config';
 import { NavItem } from './nav-item';
+import { WorkspaceSwitcher } from './workspace-switcher';
 import { ProfileMenu, type ProfileMenuUser } from './profile-menu';
 
 interface SidebarProps {
@@ -57,6 +58,12 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
         >
           <PanelLeft size={18} strokeWidth={1.5} className="shrink-0" />
         </button>
+      </div>
+
+      {/* Workspace switcher — sits under the logo so the current workspace is
+          always visible, and switching is one click from anywhere. */}
+      <div className="shrink-0 pb-3">
+        <WorkspaceSwitcher expanded={expanded} />
       </div>
 
       {/* ── MIDDLE ZONE (primary nav) ──

@@ -13,7 +13,6 @@ import {
 import { SettingsInput } from '@/components/settings/settings-input';
 import { SettingsSelect } from '@/components/settings/settings-select';
 import { SegmentedControl } from '@/components/settings/segmented-control';
-import { LogoUpload } from '@/components/settings/logo-upload';
 import { GeneralSkeleton } from '@/components/settings/general-skeleton';
 import { PhoneInput } from '@/components/settings/phone-input';
 import { DeleteCompanyDialog } from '@/components/settings/delete-company-dialog';
@@ -159,11 +158,6 @@ export default function GeneralSettingsPage() {
     }
   };
 
-  const handleLogoReset = () => {
-    setLogoUrl(null);
-    setOrg((o) => (o ? { ...o, logoUrl: null } : o));
-  };
-
   const handleDeleteConfirm = async () => {
     setDeleteLoading(true);
     await new Promise((r) => setTimeout(r, 1000));
@@ -195,17 +189,6 @@ export default function GeneralSettingsPage() {
         companyName={org.name}
         description="Your company's account details. These appear on candidate-facing interviews and reports."
       >
-        <SettingsSection title="Company logo">
-          <div className="px-4 py-4">
-            <LogoUpload
-              logoUrl={logoUrl}
-              companyName={form.companyName}
-              onUploaded={setLogoUrl}
-              onReset={handleLogoReset}
-            />
-          </div>
-        </SettingsSection>
-
         <SettingsSection title="Company details">
           <SettingsRow
             label="Company name"

@@ -91,6 +91,8 @@ export type AiQuestionGenInput = z.infer<typeof aiQuestionGenSchema>;
 
 // ─── Step 4: Customisation — Branding ───
 export const brandingSchema = z.object({
+  /** Shown beside the logo on candidate-facing pages. */
+  companyTitle: z.string().max(60, 'Company title must be 60 characters or fewer').optional().default(''),
   logoUrl: z.string().optional().default(''),
   primaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#5B4FE9'),
   theme: z.enum(['light', 'dark', 'auto']).default('light'),

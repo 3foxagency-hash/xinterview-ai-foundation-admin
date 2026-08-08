@@ -433,6 +433,7 @@ export async function getBranding(jobId: string): Promise<BrandingInput> {
   await delay(300);
   const data = getCustom(jobId);
   return (data.branding as BrandingInput) ?? {
+    companyTitle: '',
     logoUrl: '',
     primaryColour: '#5B4FE9',
     theme: 'light',

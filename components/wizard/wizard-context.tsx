@@ -29,6 +29,17 @@ export function useWizard() {
   return ctx;
 }
 
+/**
+ * Same context, but null outside a WizardProvider instead of throwing.
+ *
+ * The customisation sections are reused verbatim in Workspace settings, where
+ * there is no wizard around them. They still need markDirty/clearDirty when
+ * they *are* in the wizard, so this lets one component serve both.
+ */
+export function useOptionalWizard() {
+  return React.useContext(WizardContext);
+}
+
 export function WizardProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [jobId, setJobIdState] = React.useState<string | null>(null);

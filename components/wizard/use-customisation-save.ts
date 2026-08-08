@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useParams } from 'next/navigation';
-import { useWizard } from '@/components/wizard/wizard-context';
+import { useOptionalWizard } from '@/components/wizard/wizard-context';
 
 /**
  * Autosave hook for customisation sections.
@@ -10,13 +10,21 @@ import { useWizard } from '@/components/wizard/wizard-context';
  * section can offer a Save button alongside the debounce.
  */
 export function useCustomisationSave<T>(
-  loader: (jobId: string) => Promise<T>,
-  saver: (jobId: string, data: T) => Promise<T>,
-  eventName?: string
+  loader: (scopeId: string) => Promise<T>,
+  saver: (scopeId: string, data: T) => Promise<T>,
+  eventName?: string,
+  /**
+   * Overrides the job id from the route. Workspace settings pass a fixed scope
+   * so the same section components can edit workspace-level defaults.
+   */
+  scopeIdOverride?: string
 ) {
   const params = useParams<{ id: string }>();
-  const jobId = params?.id ?? null;
-  const { markDirty, clearDirty } = useWizard();
+  const jobId = scopeIdOverride ?? params?.id ?? null;
+  // null outside the wizard — Workspace settings render these sections too.
+  const wizard = useOptionalWizard();
+  const markDirty = wizard?.markDirty;
+  const clearDirty = wizard?.clearDirty;
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -53,7 +61,7 @@ export function useCustomisationSave<T>(
       try {
         await saver(jobId, payload);
         pendingData.current = null;
-        clearDirty();
+        clearDirty?.();
         setSaved(true);
       } catch {
         // Errors surface through the wizard's own save indicator.
@@ -66,19 +74,22 @@ export function useCustomisationSave<T>(
 
   const update = React.useCallback(
     (patch: Partial<T>) => {
-      setData((prev) => {
-        if (!prev) return prev;
-        const next = { ...prev, ...patch };
-        latest.current = next;
-        pendingData.current = next;
-        markDirty();
-        setSaved(false);
-        if (saveTimer.current) clearTimeout(saveTimer.current);
-        saveTimer.current = setTimeout(() => {
-          if (pendingData.current) persist(pendingData.current);
-        }, 1000);
-        return next;
-      });
+      // The side effects live outside the setData updater: React may invoke an
+      // updater during render, and calling markDirty() there sets state on the
+      // WizardProvider mid-render ("Cannot update a component while rendering a
+      // different component").
+      const prev = latest.current;
+      if (!prev) return;
+      const next = { ...prev, ...patch };
+      latest.current = next;
+      pendingData.current = next;
+      setData(next);
+      markDirty?.();
+      setSaved(false);
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      saveTimer.current = setTimeout(() => {
+        if (pendingData.current) persist(pendingData.current);
+      }, 1000);
     },
     [markDirty, persist]
   );
