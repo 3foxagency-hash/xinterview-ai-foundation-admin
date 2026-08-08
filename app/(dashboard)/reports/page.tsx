@@ -125,15 +125,15 @@ export default function ReportsPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-h1 text-heading">Reports</h1>
           <p className="mt-2 text-body text-bodyText">
             How your hiring funnel is performing.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="min-w-0 flex-1 sm:w-44 sm:flex-none">
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1 sm:w-40 sm:flex-none">
             <label htmlFor="report-range" className="sr-only">
               Date range
             </label>
@@ -155,12 +155,13 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      {/* KPI row — headline numbers belong in stat tiles, not a bar chart */}
-      <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      {/* §11: a stat card is a caption, a number and an optional delta — no
+          box. Hairline dividers group them without six competing surfaces. */}
+      <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-6 border-y border-border py-6 sm:grid-cols-3 lg:grid-cols-6 lg:gap-x-4">
         {data.stats.map((s) => (
-          <div key={s.id} className="rounded-lg border border-border bg-surface p-4">
-            <p className="truncate text-body-sm text-muted">{s.label}</p>
-            <p className="mt-1 text-h1 tabular-nums text-heading">{s.value}</p>
+          <div key={s.id} className="min-w-0">
+            <p className="eyebrow truncate">{s.label}</p>
+            <p className="mt-1.5 font-mono text-display tabular-nums text-heading">{s.value}</p>
             {s.delta !== null && (
               <p
                 className={cn(
@@ -169,23 +170,24 @@ export default function ReportsPage() {
                 )}
               >
                 {s.delta >= 0 ? <ArrowUp size={12} /> : <ArrowDown size={12} />}
-                {Math.abs(s.delta)}%
-                <span className="font-normal text-muted">vs previous</span>
+                <span className="font-mono tabular-nums">{Math.abs(s.delta)}%</span>
               </p>
             )}
           </div>
         ))}
       </div>
 
-      {/* Trend — two series over time, so categorical colour + a legend */}
-      <div className="mt-6 rounded-lg border border-border bg-surface p-4 sm:p-5">
-        <h2 className="text-h3 text-heading">Overall progress</h2>
-        <p className="mt-1 text-body-sm text-muted">
-          Candidates invited versus those who responded,{' '}
-          {data.granularity === 'daily' ? 'per day' : 'per week'}.
-        </p>
-
-        <div className="mt-3 flex flex-wrap items-center gap-4">
+      {/* Trend. §14: no card wrapping the chart — the plot is the object. */}
+      <div className="mt-8">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
+          <div className="min-w-0">
+            <h2 className="text-h3 text-heading">Overall progress</h2>
+            <p className="mt-1 text-body-sm text-muted">
+              Candidates invited versus those who responded,{' '}
+              {data.granularity === 'daily' ? 'per day' : 'per week'}.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4">
           {[
             { c: invitedColor, l: SERIES.invited.label },
             { c: respondedColor, l: SERIES.responded.label },
@@ -199,11 +201,14 @@ export default function ReportsPage() {
               {s.l}
             </span>
           ))}
+          </div>
         </div>
 
-        <div className="mt-4 h-[260px] w-full sm:h-[320px]">
+        <div className="mt-5 h-[260px] w-full sm:h-[320px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data.progress} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
+            {/* Right margin reserves a lane for the final x-axis label, which
+                otherwise renders half outside the plot area (§14). */}
+            <AreaChart data={data.progress} margin={{ top: 4, right: 20, bottom: 0, left: -18 }}>
               <defs>
                 <linearGradient id="fillInvited" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={invitedColor} stopOpacity={0.18} />
@@ -264,15 +269,15 @@ export default function ReportsPage() {
       </div>
 
       {/* Per-job breakdown — a table, because these are exact values to compare */}
-      <div className="mt-6">
+      <div className="mt-10">
         <h2 className="text-h3 text-heading">By job</h2>
         <p className="mt-1 text-body-sm text-muted">
           How each open role is converting.
         </p>
-        <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
+        <div className="mt-4 overflow-x-auto rounded-md border border-border bg-surface">
           <table className="w-full min-w-[520px]">
             <thead>
-              <tr className="border-b border-border bg-muted-bg">
+              <tr className="border-b border-border">
                 <th scope="col" className="px-4 py-2.5 text-left text-caption font-medium text-muted">
                   Job
                 </th>

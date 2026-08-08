@@ -131,82 +131,124 @@ export default function CandidatesPage() {
     toast.success(`Exported ${filtered.length} candidate${filtered.length === 1 ? '' : 's'}`);
   };
 
+  // Stage counts drive the summary strip. Computed from everything matching the
+  // *other* filters, so the numbers still mean something while a stage is
+  // selected — otherwise the chosen stage would read N and the rest zero.
+  const stageBase = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return rows.filter(
+      (c) =>
+        (!job || c.jobTitle === job) &&
+        (!q ||
+          c.name.toLowerCase().includes(q) ||
+          c.email.toLowerCase().includes(q) ||
+          c.jobTitle.toLowerCase().includes(q))
+    );
+  }, [rows, job, query]);
+
+  const stageCounts = React.useMemo(() => {
+    const m = new Map<string, number>();
+    for (const s of CANDIDATE_STAGES) m.set(s, 0);
+    for (const c of stageBase) m.set(c.stage, (m.get(c.stage) ?? 0) + 1);
+    return m;
+  }, [stageBase]);
+
   if (loading) return <CandidatesSkeleton />;
+
+  const clearAll = () => {
+    setJob('');
+    setStage('');
+    setQuery('');
+  };
 
   return (
     <>
       <div className="mx-auto w-full min-w-0 max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8">
-        <h1 className="text-h1 text-heading">Candidates</h1>
-        <p className="mt-2 text-body text-bodyText">
-          Everyone who has been invited to interview, across every job.
-        </p>
+        {/* Header + the one Primary action */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-h1 text-heading">Candidates</h1>
+            <p className="mt-2 text-body text-bodyText">
+              Everyone invited to interview, across every job.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleExport}
+            disabled={filtered.length === 0}
+            className="inline-flex h-10 w-fit shrink-0 items-center justify-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
+          >
+            <Download size={15} />
+            Export CSV
+          </button>
+        </div>
 
-        {/* Filters */}
-        <div className="mt-8 flex flex-col gap-3 lg:flex-row lg:items-end">
-          <div className="grid flex-1 gap-3 sm:grid-cols-2">
+        {/* Stage strip — a count per stage that doubles as the stage filter.
+            Reading the funnel and filtering it are the same gesture. */}
+        <div className="mt-6 -mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
+            <StageChip
+              label="All"
+              count={stageBase.length}
+              active={stage === ''}
+              onClick={() => setStage('')}
+            />
+            {CANDIDATE_STAGES.map((s) => (
+              <StageChip
+                key={s}
+                label={s}
+                count={stageCounts.get(s) ?? 0}
+                active={stage === s}
+                onClick={() => setStage(stage === s ? '' : s)}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Search + job filter on one row */}
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <label htmlFor="candidate-search" className="sr-only">
+              Search candidates
+            </label>
+            <Search
+              size={15}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+              aria-hidden
+            />
+            <input
+              id="candidate-search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, email or job"
+              className="h-10 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-body text-heading placeholder:text-muted transition-colors hover:border-border-strong"
+            />
+          </div>
+          <div className="sm:w-56">
+            <label htmlFor="job-filter" className="sr-only">
+              Filter by job
+            </label>
             <SettingsSelect
-              label="Job position"
+              id="job-filter"
               value={job}
               onChange={setJob}
               placeholder="All jobs"
               options={[{ value: '', label: 'All jobs' }, ...jobs.map((j) => ({ value: j, label: j }))]}
             />
-            <SettingsSelect
-              label="Stage"
-              value={stage}
-              onChange={setStage}
-              placeholder="All stages"
-              options={[
-                { value: '', label: 'All stages' },
-                ...CANDIDATE_STAGES.map((s) => ({ value: s, label: s })),
-              ]}
-            />
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row lg:shrink-0">
-            <div className="relative sm:w-56">
-              <label htmlFor="candidate-search" className="sr-only">
-                Search candidates
-              </label>
-              <Search
-                size={15}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-                aria-hidden
-              />
-              <input
-                id="candidate-search"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search candidates"
-                className="h-10 w-full rounded-md border border-border bg-background pl-9 pr-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleExport}
-              disabled={filtered.length === 0}
-              className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
-            >
-              <Download size={15} />
-              Export
-            </button>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
           <p className="text-body-sm text-muted">
-            {filtered.length} candidate{filtered.length === 1 ? '' : 's'}
+            <span className="font-mono tabular-nums text-heading">{filtered.length}</span>{' '}
+            candidate{filtered.length === 1 ? '' : 's'}
             {hasFilters && ` of ${rows.length}`}
           </p>
           {hasFilters && (
             <button
               type="button"
-              onClick={() => {
-                setJob('');
-                setStage('');
-                setQuery('');
-              }}
-              className="inline-flex items-center gap-1 rounded text-body-sm font-medium text-primary transition-colors hover:text-primary-hover"
+              onClick={clearAll}
+              className="inline-flex items-center gap-1 rounded text-body-sm font-medium text-muted transition-colors hover:text-heading"
             >
               <X size={13} />
               Clear filters
@@ -214,24 +256,35 @@ export default function CandidatesPage() {
           )}
         </div>
 
-        {/* Table */}
         {filtered.length === 0 ? (
-          <div className="mt-4 rounded-lg border border-border bg-surface px-4 py-12 text-center">
-            <Users size={24} className="mx-auto text-muted" aria-hidden />
-            <p className="mt-3 text-body text-heading">No candidates found</p>
+          <div className="mt-4 rounded-md border border-dashed border-border-strong px-6 py-14 text-center">
+            <Users size={20} className="mx-auto text-muted" aria-hidden />
+            <p className="mt-3 text-body font-medium text-heading">No candidates found</p>
             <p className="mt-1 text-body-sm text-muted">
               {hasFilters
                 ? 'Try clearing your filters or searching for something else.'
                 : 'Candidates appear here once you invite them to a job.'}
             </p>
+            {hasFilters && (
+              <button
+                type="button"
+                onClick={clearAll}
+                className="mt-4 inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
+              >
+                Clear filters
+              </button>
+            )}
           </div>
         ) : (
           <>
-            <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-surface">
-              <table className="w-full min-w-[820px]">
+            <div className="mt-4 overflow-hidden rounded-md border border-border bg-surface">
+              {/* The table needs ~850px of content width. At lg the sidebar is
+                  already showing and only ~750px is left, so it would overflow —
+                  the card list holds until xl, where there is genuine room. */}
+              <table className="hidden w-full xl:table">
                 <thead>
-                  <tr className="border-b border-border bg-muted-bg">
-                    {['Candidate', 'Job position', 'Mobile', 'Stage', 'Job deadline'].map((h) => (
+                  <tr className="border-b border-border">
+                    {['Candidate', 'Job position', 'Stage'].map((h) => (
                       <th
                         key={h}
                         scope="col"
@@ -240,11 +293,11 @@ export default function CandidatesPage() {
                         {h}
                       </th>
                     ))}
-                    <th
-                      scope="col"
-                      className="px-4 py-2.5 text-right text-caption font-medium text-muted"
-                    >
-                      Actions
+                    <th scope="col" className="px-4 py-2.5 text-right font-mono text-caption font-medium text-muted">
+                      Deadline
+                    </th>
+                    <th scope="col" className="px-4 py-2.5 text-right text-caption font-medium text-muted">
+                      <span className="sr-only">Actions</span>
                     </th>
                   </tr>
                 </thead>
@@ -256,88 +309,89 @@ export default function CandidatesPage() {
                     >
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-caption font-semibold text-primary">
-                            {c.initials}
-                          </span>
+                          <Avatar initials={c.initials} />
                           <span className="flex min-w-0 flex-col">
                             <span className="truncate text-body font-medium text-heading">{c.name}</span>
                             <span className="truncate text-body-sm text-muted">{c.email}</span>
                           </span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-body-sm text-bodyText">{c.jobTitle}</td>
-                      <td className="px-4 py-3 text-body-sm text-muted">{c.mobile ?? 'N/A'}</td>
                       <td className="px-4 py-3">
-                        <span
-                          className={cn(
-                            'inline-block whitespace-nowrap rounded-full border px-2 py-0.5 text-caption font-medium',
-                            STAGE_TONE[c.stage]
-                          )}
-                        >
-                          {c.stage}
-                        </span>
+                        <span className="block truncate text-body-sm text-bodyText">{c.jobTitle}</span>
+                        {c.mobile && (
+                          <span className="mt-0.5 block font-mono text-caption text-muted">
+                            {c.mobile}
+                          </span>
+                        )}
                       </td>
-                      <td className="whitespace-nowrap px-4 py-3 text-body-sm text-muted">
+                      <td className="px-4 py-3">
+                        <StageBadge stage={c.stage} />
+                      </td>
+                      <td className="whitespace-nowrap px-4 py-3 text-right font-mono text-body-sm text-muted">
                         {c.jobDeadline}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center justify-end gap-1">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                type="button"
-                                aria-label={`Change stage for ${c.name}`}
-                                className="inline-flex h-8 items-center gap-1 rounded-md border border-border-strong px-2.5 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
-                              >
-                                Move
-                                <ChevronDown size={13} className="text-muted" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {CANDIDATE_STAGES.map((s) => (
-                                <DropdownMenuItem
-                                  key={s}
-                                  onClick={() => handleStage(c, s)}
-                                  className={cn(
-                                    'flex items-center justify-between gap-4',
-                                    s === c.stage && 'text-primary'
-                                  )}
-                                >
-                                  {s}
-                                  {s === c.stage && <Check size={14} />}
-                                </DropdownMenuItem>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <button
-                            type="button"
-                            onClick={() => handleShare(c)}
-                            aria-label={`Copy share link for ${c.name}`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
-                          >
-                            <Share2 size={14} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteTarget(c)}
-                            aria-label={`Remove ${c.name}`}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
+                        <RowActions
+                          candidate={c}
+                          onStage={handleStage}
+                          onShare={handleShare}
+                          onDelete={setDeleteTarget}
+                        />
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+
+              <ul className="divide-y divide-border xl:hidden">
+                {visible.map((c) => (
+                  <li key={c.id} className="p-4">
+                    <div className="flex items-start gap-3">
+                      <Avatar initials={c.initials} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-body font-medium text-heading">{c.name}</p>
+                        <p className="truncate text-body-sm text-muted">{c.email}</p>
+                      </div>
+                      <StageBadge stage={c.stage} />
+                    </div>
+
+                    <dl className="mt-3 space-y-1 pl-11">
+                      <div className="flex gap-2 text-body-sm">
+                        <dt className="shrink-0 text-muted">Job</dt>
+                        <dd className="min-w-0 truncate text-bodyText">{c.jobTitle}</dd>
+                      </div>
+                      <div className="flex gap-2 text-body-sm">
+                        <dt className="shrink-0 text-muted">Deadline</dt>
+                        <dd className="font-mono text-bodyText">{c.jobDeadline}</dd>
+                      </div>
+                      {c.mobile && (
+                        <div className="flex gap-2 text-body-sm">
+                          <dt className="shrink-0 text-muted">Mobile</dt>
+                          <dd className="font-mono text-bodyText">{c.mobile}</dd>
+                        </div>
+                      )}
+                    </dl>
+
+                    <div className="mt-3 pl-11">
+                      <RowActions
+                        candidate={c}
+                        onStage={handleStage}
+                        onShare={handleShare}
+                        onDelete={setDeleteTarget}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
 
             {pageCount > 1 && (
               <div className="mt-4 flex items-center justify-between gap-3">
                 <p className="text-body-sm text-muted">
-                  {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)} of{' '}
-                  {filtered.length}
+                  <span className="font-mono tabular-nums">
+                    {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filtered.length)}
+                  </span>{' '}
+                  of <span className="font-mono tabular-nums">{filtered.length}</span>
                 </p>
                 <div className="flex gap-2">
                   <button
@@ -375,5 +429,126 @@ export default function CandidatesPage() {
         />
       )}
     </>
+  );
+}
+
+/* ─────────────────────────── Pieces ─────────────────────────── */
+
+function Avatar({ initials }: { initials: string }) {
+  return (
+    <span
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted-bg text-caption font-medium text-heading"
+      aria-hidden
+    >
+      {initials}
+    </span>
+  );
+}
+
+function StageBadge({ stage }: { stage: CandidateStage }) {
+  return (
+    <span
+      className={cn(
+        'inline-block shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-caption font-medium',
+        STAGE_TONE[stage]
+      )}
+    >
+      {stage}
+    </span>
+  );
+}
+
+/** A stage count that is also the stage filter. */
+function StageChip({
+  label,
+  count,
+  active,
+  onClick,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        'inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-1.5 text-body-sm font-medium transition-colors',
+        active
+          ? 'border-heading bg-primary text-primary-foreground'
+          : 'border-border bg-surface text-bodyText hover:bg-card-hover hover:text-heading'
+      )}
+    >
+      {label}
+      <span
+        className={cn(
+          'font-mono text-caption tabular-nums',
+          active ? 'text-primary-foreground/70' : 'text-muted'
+        )}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
+/** Stage dropdown, share and delete — shared by the table and the card list. */
+function RowActions({
+  candidate: c,
+  onStage,
+  onShare,
+  onDelete,
+}: {
+  candidate: CandidateRecord;
+  onStage: (c: CandidateRecord, next: CandidateStage) => void;
+  onShare: (c: CandidateRecord) => void;
+  onDelete: (c: CandidateRecord) => void;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-1">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={`Change stage for ${c.name}`}
+            className="inline-flex h-8 items-center gap-1 rounded-md border border-border-strong px-2.5 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
+          >
+            Move
+            <ChevronDown size={13} className="text-muted" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {CANDIDATE_STAGES.map((s) => (
+            <DropdownMenuItem
+              key={s}
+              onClick={() => onStage(c, s)}
+              className={cn('flex items-center justify-between gap-4', s === c.stage && 'text-primary')}
+            >
+              {s}
+              {s === c.stage && <Check size={14} />}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <button
+        type="button"
+        onClick={() => onShare(c)}
+        aria-label={`Copy share link for ${c.name}`}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
+      >
+        <Share2 size={14} />
+      </button>
+      <button
+        type="button"
+        onClick={() => onDelete(c)}
+        aria-label={`Remove ${c.name}`}
+        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
+      >
+        <Trash2 size={14} />
+      </button>
+    </div>
   );
 }
