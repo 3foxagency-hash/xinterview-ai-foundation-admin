@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -58,9 +59,7 @@ export function WelcomeSection({
                 placeholder="Welcome to your interview"
                 aria-label="Headline"
               />
-              <p className="mt-1 text-right text-caption tabular-nums text-muted">
-                {data.headline.length}/50
-              </p>
+              <CharCount value={data.headline ?? ''} max={50} />
             </div>
           }
         />
@@ -80,9 +79,7 @@ export function WelcomeSection({
                 placeholder="We're excited to learn more about you"
                 aria-label="Subtitle"
               />
-              <p className="mt-1 text-right text-caption tabular-nums text-muted">
-                {(data.subtitle ?? '').length}/150
-              </p>
+              <CharCount value={data.subtitle ?? ''} max={150} />
             </div>
           }
         />
@@ -157,6 +154,7 @@ export function WelcomeSection({
             <SettingsRow
               label="Note title"
               control={
+                <>
                 <Input
                   value={data.introNoteTitle ?? ''}
                   onChange={(e) => update({ introNoteTitle: e.target.value } as Partial<WelcomePageInput>)}
@@ -164,6 +162,8 @@ export function WelcomeSection({
                   placeholder="Before you begin"
                   aria-label="Note title"
                 />
+                  <CharCount value={data.introNoteTitle ?? ''} max={100} />
+                </>
               }
             />
             <div className="border-t border-border px-4 py-4">

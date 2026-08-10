@@ -18,12 +18,15 @@ function StepEntry({
   step,
   state,
   clickable,
+  lockedReason,
   jobId,
   isLast,
 }: {
   step: WizardStep;
   state: 'complete' | 'current' | 'upcoming';
   clickable: boolean;
+  /** Why this step cannot be opened yet, shown on hover. */
+  lockedReason?: string;
   jobId: string | null;
   isLast: boolean;
 }) {
@@ -38,6 +41,7 @@ function StepEntry({
         !clickable && 'cursor-default'
       )}
       aria-current={state === 'current' ? 'step' : undefined}
+      title={!clickable && state !== 'current' ? lockedReason : undefined}
     >
       {/* Left column: icon tile + connector */}
       <div className="flex flex-col items-center">
@@ -153,7 +157,7 @@ function StepEntry({
 
 export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
   const router = useRouter();
-  const { isDirty, jobId } = useWizard();
+  const { isDirty, jobId, questionCount } = useWizard();
   const [confirmExit, setConfirmExit] = React.useState(false);
 
   const handleExit = () => {
@@ -208,7 +212,12 @@ export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
                 : step.number === currentStep
                   ? 'current'
                   : 'upcoming';
-            const clickable = jobId !== null && state !== 'current';
+            // Step 2 opens as soon as the job exists. Steps 3–5 need step 2
+            // genuinely finished — at least one question — not merely visited,
+            // since a job with no questions cannot be sent to anyone.
+            const unlocked =
+              jobId !== null && (step.number <= 2 || questionCount > 0);
+            const clickable = unlocked && state !== 'current';
 
             return (
               <StepEntry
@@ -216,6 +225,11 @@ export function WizardRail({ currentStep, completedSteps }: WizardRailProps) {
                 step={step}
                 state={state}
                 clickable={clickable}
+                lockedReason={
+                  jobId === null
+                    ? 'Add the job details first.'
+                    : 'Add at least one question first.'
+                }
                 jobId={jobId}
                 isLast={index === WIZARD_STEPS.length - 1}
               />

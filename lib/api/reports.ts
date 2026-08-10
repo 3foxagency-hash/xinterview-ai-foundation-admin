@@ -44,6 +44,19 @@ export type ReportData = {
 
 const RANGE_DAYS: Record<ReportRange, number> = { '7d': 7, '30d': 30, '90d': 90, all: 120 };
 
+/** The jobs the report can be narrowed to. `''` means every job. */
+const JOBS: JobBreakdown[] = [
+  { jobTitle: 'Senior Frontend Engineer', invited: 42, responded: 31, hired: 3 },
+  { jobTitle: 'Product Manager', invited: 28, responded: 19, hired: 2 },
+  { jobTitle: 'Data Scientist', invited: 35, responded: 24, hired: 4 },
+  { jobTitle: 'UX Designer', invited: 21, responded: 12, hired: 1 },
+];
+
+export async function getReportJobs(): Promise<string[]> {
+  await delay(300);
+  return JOBS.map((j) => j.jobTitle);
+}
+
 /** Deterministic pseudo-random so the chart doesn't reshuffle every render. */
 function seeded(i: number, salt: number) {
   return Math.abs(Math.sin(i * 12.9898 + salt) * 43758.5453) % 1;
@@ -71,12 +84,25 @@ function buildProgress(days: number): ProgressPoint[] {
   return points;
 }
 
-export async function getReport(range: ReportRange): Promise<ReportData> {
+/**
+ * @param job job title to narrow to; `''` (the default) reports across all jobs.
+ */
+export async function getReport(range: ReportRange, job = ''): Promise<ReportData> {
   await delay();
   const days = RANGE_DAYS[range];
-  const progress = buildProgress(days);
+  const byJob = job ? JOBS.filter((j) => j.jobTitle === job) : JOBS;
+
+  // Narrowing to one job scales the whole report down to that job's share of
+  // invitations, so the chart and the stats agree with the table below them.
+  const total = JOBS.reduce((s, j) => s + j.invited, 0);
+  const share = job ? (byJob[0]?.invited ?? 0) / total : 1;
+  const progress = buildProgress(days).map((p) => ({
+    ...p,
+    invited: Math.round(p.invited * share),
+    responded: Math.round(p.responded * share),
+  }));
+
   const invited = progress.reduce((s, p) => s + p.invited, 0);
-  const responded = progress.reduce((s, p) => s + p.responded, 0);
 
   return {
     stats: [
@@ -89,12 +115,7 @@ export async function getReport(range: ReportRange): Promise<ReportData> {
     ],
     progress,
     granularity: days <= 14 ? 'daily' : 'weekly',
-    byJob: [
-      { jobTitle: 'Senior Frontend Engineer', invited: 42, responded: 31, hired: 3 },
-      { jobTitle: 'Product Manager', invited: 28, responded: 19, hired: 2 },
-      { jobTitle: 'Data Scientist', invited: 35, responded: 24, hired: 4 },
-      { jobTitle: 'UX Designer', invited: 21, responded: 12, hired: 1 },
-    ],
+    byJob: byJob.map((j) => ({ ...j })),
   };
 }
 

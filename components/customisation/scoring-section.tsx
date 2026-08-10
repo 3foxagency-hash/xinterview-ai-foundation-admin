@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, X, AlertCircle } from 'lucide-react';
+import { GripVertical, Plus, X, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { Input } from '@/components/ui/input';
@@ -56,6 +56,9 @@ export function ScoringSection({
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('scoring', save);
 
+  const [dragId, setDragId] = React.useState<string | null>(null);
+  const [overId, setOverId] = React.useState<string | null>(null);
+
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 
   const overlapError = findOverlap(data.bands);
@@ -77,6 +80,28 @@ export function ScoringSection({
   const updateBand = (id: string, patch: Partial<ScoringBand>) => {
     update({ bands: data.bands.map((b) => (b.id === id ? { ...b, ...patch } : b)) });
     track('scoring_labels_updated', { bandId: id });
+  };
+
+  /**
+   * Reorder by drag. A band *is* its score range, so moving one swaps the two
+   * bands' ranges rather than shuffling array positions — otherwise the list
+   * order and the numbers would disagree.
+   */
+  const reorder = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const a = data.bands.find((b) => b.id === dragId);
+    const b = data.bands.find((x) => x.id === targetId);
+    if (!a || !b) return;
+    update({
+      bands: data.bands.map((x) =>
+        x.id === a.id
+          ? { ...x, min: b.min, max: b.max }
+          : x.id === b.id
+            ? { ...x, min: a.min, max: a.max }
+            : x
+      ),
+    });
+    track('scoring_labels_updated', { reordered: true });
   };
 
   const removeBand = (id: string) => {
@@ -128,8 +153,40 @@ export function ScoringSection({
               (sortedIndex < sorted.length - 1 && band.max > sorted[sortedIndex + 1].min);
 
             return (
-              <div key={band.id} className="p-4">
+              <div
+                key={band.id}
+                draggable
+                onDragStart={() => setDragId(band.id)}
+                onDragEnd={() => {
+                  setDragId(null);
+                  setOverId(null);
+                }}
+                onDragOver={(e) => {
+                  if (!dragId) return;
+                  e.preventDefault();
+                  setOverId(band.id);
+                }}
+                onDragLeave={() => setOverId((o) => (o === band.id ? null : o))}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  reorder(band.id);
+                  setOverId(null);
+                }}
+                className={cn(
+                  'p-4 transition-colors',
+                  dragId === band.id && 'opacity-50',
+                  overId === band.id && 'bg-card-hover'
+                )}
+              >
                 <div className="flex flex-wrap items-end gap-3">
+                  {/* Order */}
+                  <div className="flex h-10 w-5 shrink-0 items-center justify-center">
+                    <GripVertical
+                      size={15}
+                      className="cursor-grab text-muted active:cursor-grabbing"
+                      aria-hidden
+                    />
+                  </div>
                   {/* Colour */}
                   <div>
                     <Label className="mb-1.5 block text-body-sm font-semibold text-heading">Colour</Label>

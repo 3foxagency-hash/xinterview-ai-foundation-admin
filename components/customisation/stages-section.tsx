@@ -1,66 +1,207 @@
 'use client';
 
 import * as React from 'react';
-import { Info, GitBranch } from 'lucide-react';
-import { SettingsSection } from '@/components/settings/settings-section';
-import { features } from '@/lib/constants/features';
+import { GripVertical, Lock, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
+import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
+import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { getStages, saveStages } from '@/lib/api/jobs';
+import type { Stage, StagesInput } from '@/lib/validation/job';
 
-/** Mirrors the default pipeline in the live product. */
-const DEFAULT_STAGES = [
-  { name: 'Invited', description: 'Candidate has been invited to the interview.' },
-  { name: 'In progress', description: 'Candidate is completing their interview.' },
-  { name: 'Review', description: 'Interview is complete and awaiting review.' },
-  { name: 'Shortlisted', description: 'Candidate has been shortlisted.' },
-  { name: 'Live interview', description: 'Candidate has moved to a live interview.' },
-  { name: 'Hired', description: 'Candidate has been hired.' },
-  { name: 'Rejected', description: 'Candidate has been rejected.' },
-];
+function genId() {
+  return `stage_${Math.random().toString(36).slice(2, 10)}`;
+}
 
-// Read-only: the default pipeline is fixed, so there is nothing scoped to
-// a job or workspace here.
-export function StagesSection() {
+export function StagesSection({
+  scopeId,
+  showSaveBar = true,
+}: {
+  scopeId?: string;
+  showSaveBar?: boolean;
+}) {
+  const { data, loading, update, save, saving, saved } = useCustomisationSave(
+    getStages,
+    saveStages,
+    'stages_updated',
+    scopeId
+  );
+
+  // Lets the wizard's single Next button commit this section.
+  useRegisterSave('stages', save);
+
+  const [dragId, setDragId] = React.useState<string | null>(null);
+  const [overId, setOverId] = React.useState<string | null>(null);
+
+  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+
+  const stages = data.stages;
+  const setStages = (next: Stage[]) => update({ stages: next } as Partial<StagesInput>);
+
+  const rename = (id: string, name: string) =>
+    setStages(stages.map((s) => (s.id === id ? { ...s, name } : s)));
+
+  const remove = (id: string) => setStages(stages.filter((s) => s.id !== id));
+
+  const add = () => setStages([...stages, { id: genId(), name: '', locked: false }]);
+
+  /**
+   * Reorder by drag. A locked stage is neither draggable nor a valid drop
+   * target, so the system stages keep their positions.
+   */
+  const handleDrop = (targetId: string) => {
+    if (!dragId || dragId === targetId) return;
+    const from = stages.findIndex((s) => s.id === dragId);
+    const to = stages.findIndex((s) => s.id === targetId);
+    if (from < 0 || to < 0 || stages[from].locked || stages[to].locked) return;
+    const next = [...stages];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    setStages(next);
+  };
+
+  const duplicate = (s: Stage) =>
+    stages.some(
+      (o) => o.id !== s.id && o.name.trim().toLowerCase() === s.name.trim().toLowerCase()
+    );
+
+  const customCount = stages.filter((s) => !s.locked).length;
+
   return (
     <div className="space-y-6">
-      <SettingsSection
-        title="Stages"
-        description="The pipeline stages candidates move through."
-      >
-        {/* Info panel */}
-        <div className="flex items-start gap-2 bg-active-menu-bg/30 px-4 py-4">
-          <Info size={16} className="mt-0.5 shrink-0 text-primary" />
-          <div>
-            <p className="text-body-sm text-heading">
-              Custom stages are not available yet.
-            </p>
+      <section>
+        {/* Header: title, context and the add action on one line */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-h3 text-heading">Stages</h3>
             <p className="mt-1 text-body-sm text-muted">
-              The stages below are the default pipeline. Every candidate moves through them automatically.
+              The pipeline candidates move through.{' '}
+              <span className="font-mono tabular-nums">{stages.length}</span> stages,{' '}
+              <span className="font-mono tabular-nums">{customCount}</span> of them yours.
             </p>
           </div>
+          <button
+            type="button"
+            onClick={add}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
+          >
+            <Plus size={14} />
+            Add stage
+          </button>
         </div>
 
-        {/* Read-only stage list */}
-        <div className="divide-y divide-border">
-          {DEFAULT_STAGES.map((stage, i) => (
-            <div key={stage.name} className="flex items-center gap-3 p-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-card-hover">
-                <GitBranch size={16} className="text-muted" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="flex h-5 w-5 items-center justify-center rounded-full border border-border text-caption tabular-nums text-muted">
+        <div className="mt-4 overflow-hidden rounded-lg border border-border bg-surface">
+          {/* Column headers — sentence case, weight 500 (§12) */}
+          <div className="flex items-center gap-3 border-b border-border px-4 py-2.5">
+            <span className="w-5 shrink-0" aria-hidden />
+            <span className="w-8 shrink-0 text-caption font-medium text-muted">#</span>
+            <span className="min-w-0 flex-1 text-caption font-medium text-muted">Stage name</span>
+            <span className="w-9 shrink-0" aria-hidden />
+          </div>
+
+          <ul className="divide-y divide-border">
+            {stages.map((s, i) => {
+              const invalid = !s.locked && (!s.name.trim() || duplicate(s));
+              return (
+                <li
+                  key={s.id}
+                  draggable={!s.locked}
+                  onDragStart={() => !s.locked && setDragId(s.id)}
+                  onDragEnd={() => {
+                    setDragId(null);
+                    setOverId(null);
+                  }}
+                  onDragOver={(e) => {
+                    if (s.locked || !dragId) return;
+                    e.preventDefault();
+                    setOverId(s.id);
+                  }}
+                  onDragLeave={() => setOverId((o) => (o === s.id ? null : o))}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    handleDrop(s.id);
+                    setOverId(null);
+                  }}
+                  className={cn(
+                    'flex items-center gap-3 px-4 py-2.5 transition-colors',
+                    !s.locked && 'hover:bg-card-hover',
+                    dragId === s.id && 'opacity-40',
+                    overId === s.id && 'bg-card-hover ring-1 ring-inset ring-border-strong'
+                  )}
+                >
+                  {/* Drag handle, or a lock for system stages */}
+                  <span className="flex w-5 shrink-0 items-center justify-center">
+                    {s.locked ? (
+                      <Lock size={13} className="text-muted" aria-label="Fixed stage" />
+                    ) : (
+                      <GripVertical
+                        size={15}
+                        className="cursor-grab text-muted active:cursor-grabbing"
+                        aria-hidden
+                      />
+                    )}
+                  </span>
+
+                  <span className="w-8 shrink-0 font-mono text-body-sm tabular-nums text-muted">
                     {i + 1}
                   </span>
-                  <span className="text-body font-medium text-heading">{stage.name}</span>
-                </div>
-                <p className="mt-1 text-body-sm text-muted">{stage.description}</p>
-              </div>
-              {!features.customStages && (
-                <span className="text-caption text-muted">Default</span>
-              )}
-            </div>
-          ))}
+
+                  <span className="min-w-0 flex-1">
+                    {s.locked ? (
+                      // A disabled input for a value that can never change reads
+                      // as broken; plain text with a lock says "fixed" instead.
+                      <span className="flex h-9 items-center text-body text-heading">
+                        {s.name}
+                      </span>
+                    ) : (
+                      <>
+                        <Input
+                          value={s.name}
+                          onChange={(e) => rename(s.id, e.target.value)}
+                          placeholder="Enter stage name"
+                          maxLength={30}
+                          aria-label={`Stage name: ${s.name || 'new stage'}`}
+                          aria-invalid={invalid}
+                          className={cn('h-9', invalid && 'border-error')}
+                        />
+                        {invalid && (
+                          <p className="mt-1 text-caption text-error">
+                            {!s.name.trim()
+                              ? 'Enter a stage name.'
+                              : 'Another stage already uses this name.'}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </span>
+
+                  <span className="flex w-9 shrink-0 items-center justify-center">
+                    {!s.locked && (
+                      <button
+                        type="button"
+                        onClick={() => remove(s.id)}
+                        aria-label={`Remove ${s.name || 'stage'}`}
+                        className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         </div>
-      </SettingsSection>
+
+        <p className="mt-2.5 flex items-start gap-1.5 text-caption text-muted">
+          <Lock size={12} className="mt-0.5 shrink-0" aria-hidden />
+          Locked stages are set automatically as candidates move through an interview, so
+          they cannot be renamed, reordered or removed.
+        </p>
+      </section>
+
+      {showSaveBar && <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />}
     </div>
   );
 }

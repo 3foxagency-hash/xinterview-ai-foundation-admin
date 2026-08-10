@@ -100,7 +100,7 @@ export default function NotificationsPage() {
   return (
     <>
       <SettingsPage
-        title="Notifications"
+        title="Templates"
         scope="company"
         companyName={companyName}
         description="The emails and text messages XInterview sends on your behalf. Edit any template to tailor its wording."

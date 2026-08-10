@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Upload } from 'lucide-react';
+import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Input } from '@/components/ui/input';
@@ -9,7 +10,11 @@ import { useCustomisationSave } from '@/components/wizard/use-customisation-save
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
 import { getSocialPreview, saveSocialPreview } from '@/lib/api/jobs';
-import type { SocialPreviewInput } from '@/lib/validation/job';
+import {
+  META_TITLE_MAX,
+  META_DESCRIPTION_MAX,
+  type SocialPreviewInput,
+} from '@/lib/validation/job';
 
 export function SocialSection({
   scopeId,
@@ -66,16 +71,39 @@ export function SocialSection({
           }
         />
         <SettingsRow
-          label="Preview title"
-          helper="The title shown in link previews."
+          label="Meta title"
+          helper="The title shown in search results and browser tabs."
           control={
-            <Input
-              value={data.previewTitle ?? ''}
-              onChange={(e) => update({ previewTitle: e.target.value } as Partial<SocialPreviewInput>)}
-              maxLength={120}
-              placeholder="Senior Frontend Engineer — Interview"
-              aria-label="Preview title"
-            />
+            <div>
+              <Input
+                value={data.previewTitle ?? ''}
+                onChange={(e) => update({ previewTitle: e.target.value } as Partial<SocialPreviewInput>)}
+                maxLength={META_TITLE_MAX}
+                placeholder="Senior Frontend Engineer — Interview"
+                aria-label="Meta title"
+              />
+              <CharCount value={data.previewTitle ?? ''} max={META_TITLE_MAX} />
+            </div>
+          }
+        />
+        <SettingsRow
+          label="Meta description"
+          helper="A brief summary shown in search results."
+          control={
+            <div>
+              <textarea
+                value={data.previewDescription ?? ''}
+                onChange={(e) =>
+                  update({ previewDescription: e.target.value } as Partial<SocialPreviewInput>)
+                }
+                maxLength={META_DESCRIPTION_MAX}
+                rows={3}
+                placeholder="Apply in minutes with a short video interview."
+                aria-label="Meta description"
+                className="w-full resize-y rounded-md border border-border bg-surface px-3 py-2 text-body text-heading placeholder:text-muted transition-colors hover:border-border-strong"
+              />
+              <CharCount value={data.previewDescription ?? ''} max={META_DESCRIPTION_MAX} />
+            </div>
           }
         />
 
@@ -95,6 +123,9 @@ export function SocialSection({
               <p className="text-caption uppercase text-muted">{domain}</p>
               <p className="mt-1 text-body-sm font-medium text-heading">
                 {data.previewTitle || 'Your preview title appears here'}
+              </p>
+              <p className="mt-0.5 line-clamp-2 text-caption text-muted">
+                {data.previewDescription || 'Your description appears here.'}
               </p>
             </div>
           </div>

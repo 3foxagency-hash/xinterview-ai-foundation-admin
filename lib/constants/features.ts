@@ -4,7 +4,9 @@ export const features = {
   // roster, so the invite modal doesn't ask for it.
   inviteWithRole: false,
   editableRoles: true,
-  customStages: false,
+  // Stages are editable: 4 system stages stay locked, the rest can be
+  // renamed, reordered and removed. Matches the live product.
+  customStages: true,
 } as const;
 
 export type FeatureFlags = typeof features;

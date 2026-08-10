@@ -16,7 +16,8 @@ import {
   Share2,
   Shield,
   Mail,
-  ClipboardCheck,
+  Globe,
+  Server,
   Tags,
   GitBranch,
   type LucideIcon,
@@ -96,15 +97,21 @@ export const workspaceNavGroups: SettingsNavGroup[] = [
     label: 'Interview',
     items: [
       { label: 'Interview experience', href: `${WS}/experience`, icon: Shield, scope: 'company' },
-      { label: 'Emails & notifications', href: `${WS}/interview-emails`, icon: Mail, scope: 'company' },
+      { label: 'Notifications', href: `${WS}/interview-emails`, icon: Mail, scope: 'company' },
     ],
   },
   {
     label: 'Evaluation',
     items: [
-      { label: 'AI evaluation', href: `${WS}/evaluation`, icon: ClipboardCheck, scope: 'company' },
       { label: 'Scoring labels', href: `${WS}/scoring`, icon: Tags, scope: 'company' },
       { label: 'Stages', href: `${WS}/stages`, icon: GitBranch, scope: 'company' },
+    ],
+  },
+  {
+    label: 'Delivery',
+    items: [
+      { label: 'Domain settings', href: `${WS}/domain`, icon: Globe, scope: 'company' },
+      { label: 'SMTP settings', href: `${WS}/smtp`, icon: Server, scope: 'company' },
     ],
   },
   // These two are sections in their own right, but each holds a single page —
@@ -114,7 +121,7 @@ export const workspaceNavGroups: SettingsNavGroup[] = [
     label: '',
     items: [
       { label: 'Careers page', href: `${WS}/career`, icon: Briefcase, scope: 'company' },
-      { label: 'Notifications', href: `${WS}/notifications`, icon: Bell, scope: 'company' },
+      { label: 'Templates', href: `${WS}/notifications`, icon: Bell, scope: 'company' },
     ],
   },
 ];

@@ -4,7 +4,6 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import {
   Check,
-  AlertTriangle,
   Copy,
   ExternalLink,
   Plus,
@@ -17,9 +16,8 @@ import { cn } from '@/lib/utils';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
 import { HeroBanner } from '@/components/wizard/hero-banner';
-import { SectionCard } from '@/components/wizard/section-card';
+import { SegmentedControl } from '@/components/settings/segmented-control';
 import {
-  getInviteReadiness,
   getPlanInfo,
   sendInvites,
   bulkInvite,
@@ -44,19 +42,12 @@ function genRowId() {
 
 const MAX_BULK_ROWS = 50;
 
-type Readiness = {
-  jobDetailsReady: boolean;
-  questionCount: number;
-  teamCount: number;
-  brandingReady: boolean;
-};
-
 export default function InvitePage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
   const { job, loading: jobLoading } = useWizard();
-  const [readiness, setReadiness] = React.useState<Readiness | null>(null);
+  const [mode, setMode] = React.useState<'individual' | 'bulk'>('individual');
   const [plan, setPlan] = React.useState<{ candidateLimit: number; candidatesUsed: number } | null>(null);
   const [rows, setRows] = React.useState<InviteRow[]>([
     { id: genRowId(), firstName: '', lastName: '', email: '' },
@@ -70,7 +61,6 @@ export default function InvitePage() {
 
   React.useEffect(() => {
     if (!jobId) return;
-    getInviteReadiness(jobId).then(setReadiness).catch(() => {});
     getPlanInfo().then((p) => setPlan({ candidateLimit: p.candidateLimit, candidatesUsed: p.candidatesUsed })).catch(() => {});
   }, [jobId]);
 
@@ -80,7 +70,6 @@ export default function InvitePage() {
   const candidateUrl =
     job?.candidateUrl ?? (jobId ? `https://xinterview.ai/interview/${jobId}` : '');
   const linkReady = !!candidateUrl && !jobLoading;
-  const candidatesRemaining = plan ? plan.candidateLimit - plan.candidatesUsed : 0;
   const planLimitReached = plan ? plan.candidatesUsed >= plan.candidateLimit : false;
 
   const validRows = rows.filter((r) => {
@@ -218,31 +207,6 @@ export default function InvitePage() {
     }, 500);
   };
 
-  const readinessItems = readiness
-    ? [
-        // Links back to THIS job, not the new-job wizard.
-        { label: 'Job details', ready: readiness.jobDetailsReady, link: jobId ? `/jobs/${jobId}/edit/questions` : '' },
-        { label: `${readiness.questionCount} question${readiness.questionCount !== 1 ? 's' : ''} added`, ready: readiness.questionCount > 0, link: jobId ? `/jobs/${jobId}/edit/questions` : '' },
-        {
-          label:
-            readiness.teamCount <= 1
-              ? 'No team assigned — only you will be notified about candidate activity'
-              : `${readiness.teamCount} team members assigned`,
-          ready: readiness.teamCount > 1,
-          link: jobId ? `/jobs/${jobId}/edit/teams` : '',
-        },
-        {
-          // Label has to track `ready`, otherwise a customised job still reads
-          // "Branding not customised" next to a green tick.
-          label: readiness.brandingReady
-            ? 'Branding customised'
-            : 'Branding not customised — candidates will see the default experience',
-          ready: readiness.brandingReady,
-          link: jobId ? `/jobs/${jobId}/edit/customisation` : '',
-        },
-      ]
-    : [];
-
   return (
     <div className="space-y-6">
       <HeroBanner
@@ -251,56 +215,23 @@ export default function InvitePage() {
         step={5}
       />
 
-      {/* Readiness checklist */}
-      {readiness && (
-        <SectionCard
-          title="Before you invite"
-          description="A quick summary of what's set up."
-          statusDot={readinessItems.every((i) => i.ready) ? 'success' : 'indigo'}
-          statusTooltip={readinessItems.every((i) => i.ready) ? 'Complete' : 'Some items need attention'}
-        >
-          <ul className="space-y-3">
-            {readinessItems.map((item, i) => (
-              <li key={i} className="flex items-start gap-3">
-                {item.ready ? (
-                  <Check size={18} className="mt-0.5 shrink-0 text-success" />
-                ) : (
-                  <AlertTriangle size={18} className="mt-0.5 shrink-0 text-warning" />
-                )}
-                <span className="text-body-sm text-bodyText">
-                  {item.ready ? (
-                    item.label
-                  ) : (
-                    <>
-                      {item.label}{' '}
-                      {item.link && (
-                        <a
-                          href={item.link}
-                          className="font-medium text-primary hover:underline"
-                        >
-                          Go to step →
-                        </a>
-                      )}
-                    </>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-4 border-t border-border pt-3 text-body-sm text-muted">
-            This job&apos;s link is already live. Anyone with it can apply.
-          </p>
-        </SectionCard>
-      )}
+      {/* The link is the primary artefact of this step — it is already live, so
+          it leads rather than sitting below the invite forms. */}
+      <section className="rounded-lg border border-border bg-surface p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-h3 text-heading">Your interview link</h3>
+            <p className="mt-1 text-body-sm text-muted">
+              Live now — anyone with this link can apply.
+            </p>
+          </div>
+          <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-caption font-medium text-muted">
+            <span className="h-1.5 w-1.5 rounded-full bg-success" aria-hidden />
+            Live
+          </span>
+        </div>
 
-      {/* Share a link */}
-      <SectionCard
-        title="Share a link"
-        description="Share this link on job boards, social media, or your careers page."
-        statusDot="success"
-        statusTooltip="Complete"
-      >
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <Input
             readOnly
             value={linkReady ? candidateUrl : ''}
@@ -340,146 +271,150 @@ export default function InvitePage() {
             )}
           </div>
         </div>
-      </SectionCard>
+      </section>
 
-      {/* Invite individually */}
-      <SectionCard
-        title="Invite individually"
-        description="Add candidates one by one. Each will receive an email invite."
-        statusDot={validCount > 0 ? 'success' : 'indigo'}
-        statusTooltip={validCount > 0 ? `${validCount} valid invite${validCount > 1 ? 's' : ''}` : 'No valid invites yet'}
-      >
-        {/* Column headers — the inputs are placeholder-only, which disappears
-            once a row is filled in. */}
-        <div className="mb-2 hidden gap-2 sm:flex">
-          <span className="flex-1 text-caption font-medium text-muted">First name</span>
-          <span className="flex-1 text-caption font-medium text-muted">Last name</span>
-          <span className="flex-[1.5] text-caption font-medium text-muted">Email address</span>
-          <span className="w-10 shrink-0" aria-hidden />
+      {/* Individual and bulk are two routes to the same outcome, so they are a
+          choice rather than two stacked sections to scroll past. */}
+      <section className="rounded-lg border border-border bg-surface p-5">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="text-h3 text-heading">Invite candidates</h3>
+            <p className="mt-1 text-body-sm text-muted">
+              They will each receive an email with the link.
+            </p>
+          </div>
+          <div className="w-full sm:w-[260px]">
+            <SegmentedControl
+              options={[
+                { value: 'individual', label: 'One by one' },
+                { value: 'bulk', label: 'Upload a file' },
+              ]}
+              value={mode}
+              onChange={(v) => setMode(v as 'individual' | 'bulk')}
+            />
+          </div>
         </div>
 
-        <div className="space-y-3">
-          {rows.map((row, index) => (
-            <div key={row.id}>
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
-                <div className="flex-1">
-                  <Input
-                    value={row.firstName}
-                    onChange={(e) => updateRow(row.id, 'firstName', e.target.value)}
-                    placeholder="First name"
-                    className={cn('h-10', row.error && 'border-error')}
-                    aria-label={`Row ${index + 1} first name`}
-                    aria-invalid={!!row.error}
-                    aria-describedby={row.error ? `${row.id}-error` : undefined}
-                  />
-                </div>
-                <div className="flex-1">
-                  <Input
-                    value={row.lastName}
-                    onChange={(e) => updateRow(row.id, 'lastName', e.target.value)}
-                    placeholder="Last name"
-                    className={cn('h-10', row.error && 'border-error')}
-                    aria-label={`Row ${index + 1} last name`}
-                    aria-invalid={!!row.error}
-                    aria-describedby={row.error ? `${row.id}-error` : undefined}
-                  />
-                </div>
-                <div className="flex-[1.5]">
-                  <Input
-                    value={row.email}
-                    onChange={(e) => updateRow(row.id, 'email', e.target.value)}
-                    placeholder="Email address"
-                    type="email"
-                    className={cn('h-10', row.error && 'border-error')}
-                    aria-label={`Row ${index + 1} email`}
-                    aria-invalid={!!row.error}
-                    aria-describedby={row.error ? `${row.id}-error` : undefined}
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeRow(row.id)}
-                  disabled={rows.length === 1}
-                  aria-label={`Remove row ${index + 1}`}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error disabled:pointer-events-none disabled:opacity-30"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              {row.error && (
-                <p id={`${row.id}-error`} role="alert" className="mt-1 text-body-sm text-error">
-                  {row.error}
-                </p>
-              )}
-            </div>
-          ))}
-        </div>
-        <button
-          type="button"
-          onClick={addRow}
-          className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline"
-        >
-          <Plus size={14} />
-          Add another
-        </button>
-        <div className="mt-4 flex items-center gap-3">
-          {/* Stays enabled while rows are only partly filled — handleSendInvites
-              validates and surfaces per-row errors. Disabling it here left the
-              user with a dead button and no explanation of what was wrong. */}
-          <button
-            type="button"
-            onClick={handleSendInvites}
-            disabled={!hasAnyInput || sending}
-            aria-busy={sending}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
-          >
-            {sending && (
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-            )}
-            {sending
-              ? 'Sending…'
-              : `Send ${validCount > 0 ? `${validCount} ` : ''}invite${validCount !== 1 ? 's' : ''}`}
-          </button>
-          {!hasAnyInput && (
-            <span className="text-body-sm text-muted">Add a candidate to send an invite.</span>
-          )}
-        </div>
-      </SectionCard>
-
-      {/* Invite in bulk */}
-      <SectionCard
-        title="Invite in bulk"
-        description="Upload a CSV or XLSX file with up to 50 candidates."
-        statusDot="success"
-        statusTooltip="Complete"
-      >
-        {planLimitReached ? (
-          <div className="rounded-lg border border-warning/30 bg-warning/5 p-5">
-            <p className="text-body text-heading">
-              You&apos;ve reached your plan&apos;s candidate limit ({plan?.candidatesUsed}/{plan?.candidateLimit}).
+        {planLimitReached && (
+          <div className="mt-4 rounded-md border border-warning/30 bg-warning/5 p-4">
+            <p className="text-body-sm text-heading">
+              You&apos;ve reached your plan&apos;s candidate limit ({plan?.candidatesUsed}/
+              {plan?.candidateLimit}).
             </p>
             <a
               href="/settings/billing"
-              className="mt-2 inline-block text-body-sm font-medium text-primary hover:underline"
+              className="mt-1 inline-block text-body-sm font-medium text-heading underline underline-offset-4"
             >
-              Upgrade your plan →
+              Upgrade your plan
             </a>
           </div>
-        ) : (
-          <>
-            {/* The effective cap is whichever is lower: the per-upload limit or
-                the seats left on the plan. */}
-            <p className="mb-4 text-body-sm text-muted">
-              Upload a .csv or .xlsx file with up to{' '}
-              {Math.min(MAX_BULK_ROWS, candidatesRemaining)} candidates.{' '}
-              <span className={cn(candidatesRemaining <= 10 && 'font-medium text-warning')}>
-                {candidatesRemaining} slot{candidatesRemaining === 1 ? '' : 's'} remaining on your plan.
-              </span>
-            </p>
+        )}
 
+        {mode === 'individual' ? (
+          <div className="mt-5">
+            {/* Column headers — the inputs are placeholder-only, which disappears
+                once a row is filled in. */}
+            <div className="mb-2 hidden gap-2 sm:flex">
+              <span className="flex-1 text-caption font-medium text-muted">First name</span>
+              <span className="flex-1 text-caption font-medium text-muted">Last name</span>
+              <span className="flex-[1.5] text-caption font-medium text-muted">Email address</span>
+              <span className="w-10 shrink-0" aria-hidden />
+            </div>
+
+            <div className="space-y-3">
+              {rows.map((row, index) => (
+                <div key={row.id}>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
+                    <div className="flex-1">
+                      <Input
+                        value={row.firstName}
+                        onChange={(e) => updateRow(row.id, 'firstName', e.target.value)}
+                        placeholder="First name"
+                        className={cn('h-10', row.error && 'border-error')}
+                        aria-label={`Row ${index + 1} first name`}
+                        aria-invalid={!!row.error}
+                        aria-describedby={row.error ? `${row.id}-error` : undefined}
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        value={row.lastName}
+                        onChange={(e) => updateRow(row.id, 'lastName', e.target.value)}
+                        placeholder="Last name"
+                        className={cn('h-10', row.error && 'border-error')}
+                        aria-label={`Row ${index + 1} last name`}
+                        aria-invalid={!!row.error}
+                        aria-describedby={row.error ? `${row.id}-error` : undefined}
+                      />
+                    </div>
+                    <div className="flex-[1.5]">
+                      <Input
+                        value={row.email}
+                        onChange={(e) => updateRow(row.id, 'email', e.target.value)}
+                        placeholder="Email address"
+                        type="email"
+                        className={cn('h-10', row.error && 'border-error')}
+                        aria-label={`Row ${index + 1} email`}
+                        aria-invalid={!!row.error}
+                        aria-describedby={row.error ? `${row.id}-error` : undefined}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeRow(row.id)}
+                      disabled={rows.length === 1}
+                      aria-label={`Remove row ${index + 1}`}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error disabled:pointer-events-none disabled:opacity-30"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  {row.error && (
+                    <p id={`${row.id}-error`} role="alert" className="mt-1 text-body-sm text-error">
+                      {row.error}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={addRow}
+              className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium text-heading transition-colors hover:text-muted"
+            >
+              <Plus size={14} />
+              Add another
+            </button>
+
+            <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+              {/* Stays enabled while rows are only partly filled — handleSendInvites
+                  validates and surfaces per-row errors. Disabling it here left the
+                  user with a dead button and no explanation of what was wrong. */}
+              <button
+                type="button"
+                onClick={handleSendInvites}
+                disabled={!hasAnyInput || sending}
+                aria-busy={sending}
+                className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
+              >
+                {sending && (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                )}
+                {sending
+                  ? 'Sending…'
+                  : `Send ${validCount > 0 ? `${validCount} ` : ''}invite${validCount !== 1 ? 's' : ''}`}
+              </button>
+              {!hasAnyInput && (
+                <span className="text-body-sm text-muted">Add a candidate to send an invite.</span>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-5">
             {bulkLoading ? (
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-surface p-6">
-                <Loader2 size={20} className="animate-spin text-primary" />
+              <div className="flex items-center gap-3 rounded-md border border-border p-6">
+                <Loader2 size={20} className="animate-spin text-muted" />
                 <span className="text-body text-muted">Processing upload…</span>
               </div>
             ) : (
@@ -488,25 +423,26 @@ export default function InvitePage() {
                 onDrop={(e) => {
                   e.preventDefault();
                   const file = e.dataTransfer.files?.[0];
-                  if (file) {
-                    if (fileInputRef.current) {
-                      const dt = new DataTransfer();
-                      dt.items.add(file);
-                      fileInputRef.current.files = dt.files;
-                      fileInputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
+                  if (file && fileInputRef.current) {
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    fileInputRef.current.files = dt.files;
+                    fileInputRef.current.dispatchEvent(new Event('change', { bubbles: true }));
                   }
                 }}
-                className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border-strong p-8 text-center transition-colors hover:border-primary/40"
+                className="flex flex-col items-center justify-center rounded-md border border-dashed border-border-strong px-6 py-10 text-center transition-colors hover:bg-card-hover"
               >
-                <Upload size={24} className="text-muted" />
-                <p className="mt-2 text-body text-bodyText">
-                  Drag and drop your file here, or
+                <Upload size={20} className="text-muted" />
+                <p className="mt-3 text-body font-medium text-heading">
+                  Drop a .csv or .xlsx file here
+                </p>
+                <p className="mt-1 text-body-sm text-muted">
+                  Columns: first name, last name, email.
                 </p>
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="mt-2 inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
+                  className="mt-4 inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
                 >
                   Choose file
                 </button>
@@ -520,11 +456,11 @@ export default function InvitePage() {
               </div>
             )}
 
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                const csv = 'First name,Last name,Email\nJane,Smith,jane.smith@example.com\nJohn,Doe,john.doe@example.com\n';
+            <button
+              type="button"
+              onClick={() => {
+                const csv =
+                  'First name,Last name,Email\nJane,Smith,jane.smith@example.com\nJohn,Doe,john.doe@example.com\n';
                 const blob = new Blob([csv], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -533,33 +469,36 @@ export default function InvitePage() {
                 a.click();
                 URL.revokeObjectURL(url);
               }}
-              className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium text-primary hover:underline"
+              className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium text-heading transition-colors hover:text-muted"
             >
               <FileDown size={14} />
               Download sample template
-            </a>
+            </button>
 
             {bulkResult && (
-              <div className="mt-4 rounded-lg border border-border bg-surface p-4">
+              <div className="mt-4 rounded-md border border-border p-4">
                 <p className="text-body text-heading">
                   <span className="font-medium text-success">{bulkResult.invited} invited</span>
                   {bulkResult.failed.length > 0 && (
                     <>
                       {' · '}
-                      <span className="font-medium text-error">{bulkResult.failed.length} failed</span>
+                      <span className="font-medium text-error">
+                        {bulkResult.failed.length} failed
+                      </span>
                     </>
                   )}
                 </p>
                 {bulkResult.failed.length > 0 && (
                   <p className="mt-1 text-body-sm text-muted">
-                    Failed rows are loaded into the individual form above, each flagged with its specific problem.
+                    Failed rows are loaded into the one-by-one form, each flagged with its
+                    specific problem.
                   </p>
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
-      </SectionCard>
+      </section>
 
       <StepFooter
         onCancel={() => jobId && router.push(`/jobs/${jobId}/edit/customisation`)}

@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { getJob, updateJob, type Job } from '@/lib/api/jobs';
+import { getJob, getQuestions, updateJob, type Job } from '@/lib/api/jobs';
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
 
@@ -19,6 +19,14 @@ interface WizardContextValue {
   isDirty: boolean;
   retrySave: () => void;
   hasJob: boolean;
+  /**
+   * How many questions the job has. Steps 3–5 unlock only once step 2 is
+   * genuinely done, which means at least one question exists — not merely
+   * that the user has visited the page.
+   */
+  questionCount: number;
+  /** Call after saving questions so the rail unlocks without a reload. */
+  refreshQuestionCount: () => void;
 }
 
 const WizardContext = React.createContext<WizardContextValue | null>(null);
@@ -47,6 +55,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = React.useState(false);
   const [saveState, setSaveState] = React.useState<SaveState>('idle');
   const [isDirty, setIsDirty] = React.useState(false);
+  const [questionCount, setQuestionCount] = React.useState(0);
   const pendingPatch = React.useRef<Partial<Job> | null>(null);
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -58,6 +67,25 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   const setJobId = React.useCallback((id: string | null) => {
     setJobIdState(id);
   }, []);
+
+  const loadQuestionCount = React.useCallback((id: string | null) => {
+    if (!id) {
+      setQuestionCount(0);
+      return;
+    }
+    getQuestions(id)
+      .then((qs) => setQuestionCount(qs.length))
+      .catch(() => setQuestionCount(0));
+  }, []);
+
+  React.useEffect(() => {
+    loadQuestionCount(jobId);
+  }, [jobId, loadQuestionCount]);
+
+  const refreshQuestionCount = React.useCallback(
+    () => loadQuestionCount(jobId),
+    [jobId, loadQuestionCount]
+  );
 
   const markDirty = React.useCallback(() => setIsDirty(true), []);
   const clearDirty = React.useCallback(() => setIsDirty(false), []);
@@ -132,6 +160,8 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
     isDirty,
     retrySave,
     hasJob: !!jobId,
+    questionCount,
+    refreshQuestionCount,
   };
 
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;

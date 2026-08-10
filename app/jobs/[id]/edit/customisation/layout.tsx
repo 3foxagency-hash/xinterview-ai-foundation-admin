@@ -38,7 +38,11 @@ export default function CustomisationLayout({
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
         <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-6 lg:overflow-hidden">
           {jobId && <CustomisationSubNav jobId={jobId} />}
-          <div className="min-w-0 flex-1 lg:h-full lg:overflow-y-auto lg:pr-1">
+          {/* Gives the content its own surface so it doesn't float between the
+              rail and the footer. The sections inside carry their own cards, so
+              this pane stays on background-200 rather than adding a third
+              stacked border. */}
+          <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:overflow-y-auto">
             {children}
           </div>
         </div>

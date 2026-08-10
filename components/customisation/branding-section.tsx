@@ -11,6 +11,7 @@ import {
   Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -44,47 +45,6 @@ const FONTS = [
   { value: 'poppins', label: 'Poppins', family: 'Poppins, sans-serif' },
   { value: 'sourcesans', label: 'Source Sans Pro', family: 'Source Sans Pro, sans-serif' },
 ];
-
-function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const m = hex.match(/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/);
-  if (!m) return null;
-  return { r: parseInt(m[1], 16), g: parseInt(m[2], 16), b: parseInt(m[3], 16) };
-}
-
-function relativeLuminance(r: number, g: number, b: number): number {
-  const toLinear = (c: number) => {
-    const s = c / 255;
-    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
-  };
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b);
-}
-
-function contrastRatio(fg: string, bg: string): number | null {
-  const fgRgb = hexToRgb(fg);
-  const bgRgb = hexToRgb(bg);
-  if (!fgRgb || !bgRgb) return null;
-  const l1 = relativeLuminance(fgRgb.r, fgRgb.g, fgRgb.b);
-  const l2 = relativeLuminance(bgRgb.r, bgRgb.g, bgRgb.b);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-function findNearestAccessible(hex: string, target = 4.5): string | null {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return null;
-  // Darken until contrast with white >= 4.5
-  for (let i = 0; i <= 100; i++) {
-    const factor = 1 - i * 0.01;
-    const r = Math.round(rgb.r * factor);
-    const g = Math.round(rgb.g * factor);
-    const b = Math.round(rgb.b * factor);
-    const h = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-    const ratio = contrastRatio('#FFFFFF', h);
-    if (ratio && ratio >= target) return h;
-  }
-  return null;
-}
 
 function MiniThemePreview({ theme }: { theme: 'light' | 'dark' | 'auto' }) {
   const isDark = theme === 'dark';
@@ -143,10 +103,6 @@ export function BrandingSection({
     return <div className="py-8 text-center text-muted">Loading…</div>;
   }
 
-  const ratio = contrastRatio('#FFFFFF', data.primaryColour);
-  const contrastFails = ratio !== null && ratio < 4.5;
-  const nearestAccessible = contrastFails ? findNearestAccessible(data.primaryColour) : null;
-
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -180,6 +136,11 @@ export function BrandingSection({
   const handleLogoDelete = () => {
     update({ logoUrl: '' } as Partial<BrandingInput>);
     track('branding_updated', { field: 'logo_removed' });
+  };
+
+  const handleSecondaryChange = (colour: string) => {
+    update({ secondaryColour: colour } as Partial<BrandingInput>);
+    track('branding_updated', { field: 'secondary_colour' });
   };
 
   const handleColourChange = (colour: string) => {
@@ -241,6 +202,7 @@ export function BrandingSection({
           label="Company title"
           helper="Shown beside your logo on candidate-facing pages."
           control={
+            <>
             <Input
               value={data.companyTitle ?? ''}
               onChange={(e) => {
@@ -252,6 +214,8 @@ export function BrandingSection({
               className="h-10 w-full"
               aria-label="Company title"
             />
+              <CharCount value={data.companyTitle ?? ''} max={60} />
+            </>
           }
         />
         {uploadError && (
@@ -292,6 +256,27 @@ export function BrandingSection({
             </div>
           }
         />
+        <SettingsRow
+          label="Secondary colour"
+          helper="Used for headings and accents beside the primary button colour."
+          control={
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={data.secondaryColour ?? '#1F242E'}
+                onChange={(e) => handleSecondaryChange(e.target.value)}
+                aria-label="Secondary colour picker"
+                className="h-10 w-10 cursor-pointer rounded-md border border-border bg-surface"
+              />
+              <Input
+                value={data.secondaryColour ?? '#1F242E'}
+                onChange={(e) => handleSecondaryChange(e.target.value)}
+                className="h-10 w-28 font-mono"
+                aria-label="Secondary hex colour value"
+              />
+            </div>
+          }
+        />
         <div className="border-t border-border px-4 py-4">
           <p className="mb-3 text-body-sm text-muted">Preset colours</p>
           <div className="flex flex-wrap gap-2">
@@ -316,27 +301,6 @@ export function BrandingSection({
             ))}
           </div>
         </div>
-        {contrastFails && (
-          <div className="border-t border-border bg-warning/5 px-4 py-4">
-            <div className="flex items-start gap-2">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
-              <div className="flex-1">
-                <p className="text-body-sm text-heading">
-                  Contrast ratio is {ratio?.toFixed(1)}:1 — below the recommended 4.5:1 for white text.
-                </p>
-                {nearestAccessible && (
-                  <button
-                    type="button"
-                    onClick={() => handleColourChange(nearestAccessible)}
-                    className="mt-2 inline-flex items-center gap-2 rounded-md border border-border-strong bg-surface px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
-                  >
-                    Use {nearestAccessible} instead
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </SettingsSection>
 
       {/* Theme */}

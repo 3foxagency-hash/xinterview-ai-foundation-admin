@@ -1,24 +1,21 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import {
   Plus,
   KeyRound,
-  Mail,
-  Globe,
   BadgeCheck,
   Zap,
   Trash2,
   Loader2,
+  type LucideIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { SettingsPage } from '@/components/settings';
-import { SettingsSection } from '@/components/settings/settings-section';
 import { Switch } from '@/components/ui/switch';
 import { ApiKeyDialog } from '@/components/settings/api-key-dialog';
-import { SmtpDialog } from '@/components/settings/smtp-dialog';
-import { CustomDomainDialog } from '@/components/settings/custom-domain-dialog';
 import { ZapierDialog } from '@/components/settings/zapier-dialog';
 import { DeleteApiKeyDialog } from '@/components/settings/delete-api-key-dialog';
 import { IntegrationsSkeleton } from '@/components/settings/integrations-skeleton';
@@ -27,16 +24,11 @@ import {
   createApiKey,
   deleteApiKey,
   getIntegrations,
-  saveSmtpConfig,
-  sendSmtpTestEmail,
-  disconnectSmtp,
-  saveCustomDomain,
   setBrandingRemoved,
   setZapierActive,
   getOrganization,
   type ApiKey,
   type IntegrationState,
-  type SmtpConfig,
 } from '@/lib/api/settings';
 import { getSettingsErrorMessage } from '@/lib/errors/settings-messages';
 
@@ -47,8 +39,6 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = React.useState(true);
 
   const [keyDialog, setKeyDialog] = React.useState(false);
-  const [smtpDialog, setSmtpDialog] = React.useState(false);
-  const [domainDialog, setDomainDialog] = React.useState(false);
   const [zapierDialog, setZapierDialog] = React.useState(false);
   const [deleteKey, setDeleteKey] = React.useState<ApiKey | null>(null);
   const [brandingBusy, setBrandingBusy] = React.useState(false);
@@ -97,32 +87,6 @@ export default function IntegrationsPage() {
     }
   };
 
-  const handleSaveSmtp = async (config: SmtpConfig) => {
-    const next = await saveSmtpConfig(config);
-    setState(next);
-    toast.success('SMTP settings saved');
-  };
-
-  const handleTestSmtp = async (to: string) => {
-    await sendSmtpTestEmail(to);
-  };
-
-  const handleDisconnectSmtp = async () => {
-    try {
-      const next = await disconnectSmtp();
-      setState(next);
-      toast.success('SMTP disconnected');
-    } catch (e) {
-      toast.error(getSettingsErrorMessage(e));
-    }
-  };
-
-  const handleSaveDomain = async (subdomain: string, domain: string) => {
-    const next = await saveCustomDomain(subdomain, domain);
-    setState(next);
-    toast.success('Domain saved — add the DNS record to finish');
-  };
-
   const handleBranding = async (removed: boolean) => {
     setBrandingBusy(true);
     try {
@@ -149,33 +113,10 @@ export default function IntegrationsPage() {
 
   if (loading || !state) return <IntegrationsSkeleton />;
 
-  const domainLabel = state.customDomain
-    ? `${state.customDomain.subdomain}.${state.customDomain.domain}`
-    : null;
-
+  // Email delivery and the custom domain used to live here. Both are workspace
+  // properties rather than third-party connections, so they moved to
+  // /workspace-settings/smtp and /workspace-settings/domain.
   const connections = [
-    {
-      id: 'smtp',
-      icon: Mail,
-      title: 'Email delivery',
-      description: 'Send candidate emails from your own mail server.',
-      active: state.smtpConnected,
-      detail: state.smtp?.fromEmail ?? null,
-      primaryLabel: state.smtpConnected ? 'Edit' : 'Set up',
-      onPrimary: () => setSmtpDialog(true),
-      onSecondary: state.smtpConnected ? handleDisconnectSmtp : undefined,
-      secondaryLabel: 'Disconnect',
-    },
-    {
-      id: 'domain',
-      icon: Globe,
-      title: 'Custom domain',
-      description: 'Serve application pages from your own web address.',
-      active: !!state.customDomain,
-      detail: domainLabel,
-      primaryLabel: state.customDomain ? 'Manage' : 'Connect',
-      onPrimary: () => setDomainDialog(true),
-    },
     {
       id: 'zapier',
       icon: Zap,
@@ -199,7 +140,7 @@ export default function IntegrationsPage() {
         title="Integrations"
         scope="company"
         companyName={companyName}
-        description="Connect XInterview to your own mail server, domain and the tools your team already uses."
+        description="Connect XInterview to the tools your team already uses, and manage the keys that authenticate them."
       >
         {/* ── Connections ── */}
         <section>
@@ -224,14 +165,33 @@ export default function IntegrationsPage() {
             </span>
           </div>
 
-          {/* One card per connection — a grid scans far better than a stack of
-              full-width rows. Three columns on desktop so all three sit on one
-              row; two at tablet; one on mobile. */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {/* One card per connection. Two columns rather than three: with the
+              mail and domain cards gone a third-width card reads as a stub. */}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {connections.map((c) => (
               <ConnectionCard key={c.id} {...c} />
             ))}
           </div>
+
+          {/* Both used to be cards on this page; a pointer costs one line and
+              saves anyone who still looks for them here. */}
+          <p className="mt-3 text-body-sm text-muted">
+            Email delivery and your custom domain now live in{' '}
+            <Link
+              href="/workspace-settings/smtp"
+              className="font-medium text-heading underline underline-offset-4 hover:text-primary"
+            >
+              SMTP settings
+            </Link>{' '}
+            and{' '}
+            <Link
+              href="/workspace-settings/domain"
+              className="font-medium text-heading underline underline-offset-4 hover:text-primary"
+            >
+              Domain settings
+            </Link>
+            .
+          </p>
         </section>
 
         {/* ── Branding: a preference, not a connection, so it sits apart ── */}
@@ -376,21 +336,6 @@ export default function IntegrationsPage() {
 
       <ApiKeyDialog open={keyDialog} onOpenChange={setKeyDialog} onCreate={handleCreateKey} />
 
-      <SmtpDialog
-        open={smtpDialog}
-        onOpenChange={setSmtpDialog}
-        initial={state.smtp}
-        onSave={handleSaveSmtp}
-        onTest={handleTestSmtp}
-      />
-
-      <CustomDomainDialog
-        open={domainDialog}
-        onOpenChange={setDomainDialog}
-        initial={state.customDomain}
-        onSave={handleSaveDomain}
-      />
-
       <ZapierDialog
         open={zapierDialog}
         onOpenChange={setZapierDialog}
@@ -430,7 +375,7 @@ function ConnectionCard({
   secondaryLabel,
   onSecondary,
 }: {
-  icon: typeof Mail;
+  icon: LucideIcon;
   title: string;
   description: string;
   active: boolean;

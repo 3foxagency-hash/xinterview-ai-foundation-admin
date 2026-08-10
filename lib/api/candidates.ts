@@ -100,6 +100,41 @@ export async function updateCandidateStage(
   return { ...c };
 }
 
+export type CandidateEdit = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  mobile: string;
+  stage: CandidateStage;
+};
+
+/**
+ * Edits the details captured on the candidate record. The live product splits
+ * the name into first/last in its edit modal even though the table shows one
+ * "Candidate" column, so the two halves are joined back on save.
+ */
+export async function updateCandidate(
+  id: string,
+  patch: CandidateEdit
+): Promise<CandidateRecord> {
+  await delay(500);
+  const c = store.find((x) => x.id === id);
+  if (!c) throw { code: 'candidate_not_found', message: 'candidate_not_found' };
+  const name = `${patch.firstName.trim()} ${patch.lastName.trim()}`.trim();
+  c.name = name;
+  c.initials = initials(name);
+  c.email = patch.email.trim();
+  c.mobile = patch.mobile.trim() || null;
+  c.stage = patch.stage;
+  return { ...c };
+}
+
+/** Splits a stored display name into the first/last halves the modal edits. */
+export function splitName(name: string): { firstName: string; lastName: string } {
+  const parts = name.trim().split(/\s+/);
+  return { firstName: parts[0] ?? '', lastName: parts.slice(1).join(' ') };
+}
+
 export async function deleteCandidate(id: string): Promise<{ success: boolean }> {
   await delay(500);
   store = store.filter((c) => c.id !== id);

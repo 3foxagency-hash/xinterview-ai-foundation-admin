@@ -370,7 +370,7 @@ export function EvaluationSection({
   const handleAutoEvalChange = (v: boolean) => {
     if (v) {
       // Must have human review
-      update({ automaticEvaluation: true, requireHumanReview: true });
+      update({ automaticEvaluation: true });
     } else {
       update({ automaticEvaluation: false });
     }
@@ -437,27 +437,6 @@ export function EvaluationSection({
             />
           }
         />
-        {data.automaticEvaluation && (
-          <div className="border-t border-border bg-active-menu-bg/30 px-4 py-4">
-            <SettingsRow
-              label="Require human review before any automatic rejection"
-              helper="AI scores inform your decision; a person confirms it."
-              control={
-                <Switch
-                  checked={data.requireHumanReview}
-                  onCheckedChange={(v) => update({ requireHumanReview: v })}
-                  aria-label="Require human review before rejection"
-                />
-              }
-            />
-            {!data.requireHumanReview && (
-              <p className="mt-2 flex items-center gap-2 text-body-sm text-error" role="alert">
-                <AlertCircle size={14} />
-                Automatic rejection cannot be enabled without a human review step.
-              </p>
-            )}
-          </div>
-        )}
       </SettingsSection>
 
       {/* Evaluation factors */}

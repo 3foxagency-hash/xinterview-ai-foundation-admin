@@ -146,9 +146,6 @@ export function WorkspaceSwitcher({ expanded }: { expanded: boolean }) {
               <span className="min-w-0 flex-1 truncate text-left text-body-sm font-medium text-heading">
                 {active.name}
               </span>
-              <span className="shrink-0 rounded-full bg-muted-bg px-2 py-0.5 text-caption font-medium text-muted">
-                {active.plan}
-              </span>
               <ChevronsUpDown size={14} strokeWidth={1.5} className="shrink-0 text-muted" />
             </>
           )}
@@ -179,11 +176,8 @@ export function WorkspaceSwitcher({ expanded }: { expanded: boolean }) {
                 className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-card-hover"
               >
                 <Monogram initials={ws.initials} />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-body-sm font-medium text-heading">
-                    {ws.name}
-                  </span>
-                  <span className="block text-caption text-muted">{ws.plan} plan</span>
+                <span className="min-w-0 flex-1 truncate text-body-sm font-medium text-heading">
+                  {ws.name}
                 </span>
                 {ws.id === active.id && (
                   <Check size={14} className="shrink-0 text-heading" aria-hidden />

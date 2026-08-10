@@ -38,6 +38,8 @@ interface QuestionCardProps {
   question: Question;
   index: number;
   expanded: boolean;
+  /** Set once Continue has been attempted with an empty title. */
+  titleError?: boolean;
   onToggleExpand: () => void;
   onChange: (q: Question) => void;
   onRemove: () => void;
@@ -55,6 +57,7 @@ export function QuestionCard({
   question,
   index,
   expanded,
+  titleError = false,
   onToggleExpand,
   onChange,
   onRemove,
@@ -142,7 +145,7 @@ export function QuestionCard({
     <div
       className={cn(
         'rounded-lg border bg-surface',
-        expanded ? 'border-primary/30 shadow-sm' : 'border-border'
+        titleError ? 'border-error' : expanded ? 'border-primary/30 shadow-sm' : 'border-border'
       )}
     >
       {/* Header strip */}
@@ -161,9 +164,21 @@ export function QuestionCard({
         <button
           type="button"
           onClick={onToggleExpand}
-          className="flex flex-1 items-center text-left"
+          className="flex min-w-0 flex-1 flex-col text-left"
         >
           <h3 className="text-h3 text-heading">Question {index + 1}</h3>
+          {/* Collapsed cards otherwise show nothing but a number, so a list of
+              them is unreadable. The title identifies each one at a glance. */}
+          {!expanded && (
+            <span
+              className={cn(
+                'mt-0.5 block max-w-full truncate text-body-sm',
+                titleError ? 'text-error' : question.title.trim() ? 'text-muted' : 'text-muted/70'
+              )}
+            >
+              {question.title.trim() || 'No title yet'}
+            </span>
+          )}
         </button>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -217,10 +232,19 @@ export function QuestionCard({
               onChange={(e) => update({ title: e.target.value })}
               maxLength={180}
               placeholder="Enter your question"
-              className="h-10"
+              aria-invalid={titleError}
+              aria-describedby={titleError ? `q-${question.id}-title-error` : undefined}
+              className={cn('h-10', titleError && 'border-error')}
             />
-            <div className="mt-1 flex justify-end">
-              <span className="text-caption text-muted">
+            <div className="mt-1 flex items-start justify-between gap-3">
+              <span
+                id={`q-${question.id}-title-error`}
+                role={titleError ? 'alert' : undefined}
+                className={cn('text-caption text-error', !titleError && 'invisible')}
+              >
+                Title cannot be empty.
+              </span>
+              <span className="shrink-0 text-caption text-muted">
                 {question.title.length}/180
               </span>
             </div>

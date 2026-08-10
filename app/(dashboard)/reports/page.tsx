@@ -17,6 +17,7 @@ import { SettingsSelect } from '@/components/settings/settings-select';
 import { ReportsSkeleton } from '@/components/reports/reports-skeleton';
 import {
   getReport,
+  getReportJobs,
   reportToCsv,
   REPORT_RANGES,
   type ReportData,
@@ -74,6 +75,8 @@ function ChartTooltip({
 
 export default function ReportsPage() {
   const [range, setRange] = React.useState<ReportRange>('30d');
+  const [job, setJob] = React.useState('');
+  const [jobs, setJobs] = React.useState<string[]>([]);
   const [data, setData] = React.useState<ReportData | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [dark, setDark] = React.useState(false);
@@ -88,12 +91,26 @@ export default function ReportsPage() {
     return () => mo.disconnect();
   }, []);
 
+  // The job list is fixed for the workspace, so it loads once rather than with
+  // every range change.
+  React.useEffect(() => {
+    let cancelled = false;
+    getReportJobs()
+      .then((j) => !cancelled && setJobs(j))
+      .catch(() => {
+        /* the filter is optional; the report still renders across all jobs */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   React.useEffect(() => {
     let cancelled = false;
     setLoading(true);
     (async () => {
       try {
-        const d = await getReport(range);
+        const d = await getReport(range, job);
         if (!cancelled) setData(d);
       } catch (e) {
         if (!cancelled) toast.error(getSettingsErrorMessage(e));
@@ -104,14 +121,15 @@ export default function ReportsPage() {
     return () => {
       cancelled = true;
     };
-  }, [range]);
+  }, [range, job]);
 
   const handleExport = () => {
     if (!data) return;
     const url = URL.createObjectURL(new Blob([reportToCsv(data)], { type: 'text/csv' }));
     const a = document.createElement('a');
     a.href = url;
-    a.download = `report-${range}.csv`;
+    const slug = job ? `-${job.toLowerCase().replace(/[^a-z0-9]+/g, '-')}` : '';
+    a.download = `report-${range}${slug}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('Report exported');
@@ -132,7 +150,25 @@ export default function ReportsPage() {
             How your hiring funnel is performing.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        {/* Job first, then range: you pick what you're looking at before you
+            pick the window. Both selects share a row on mobile so Export keeps
+            its own line rather than being squeezed to an icon. */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="min-w-0 flex-1 sm:w-48 sm:flex-none">
+            <label htmlFor="report-job" className="sr-only">
+              Filter by job
+            </label>
+            <SettingsSelect
+              id="report-job"
+              value={job}
+              onChange={setJob}
+              placeholder="All jobs"
+              options={[
+                { value: '', label: 'All jobs' },
+                ...jobs.map((j) => ({ value: j, label: j })),
+              ]}
+            />
+          </div>
           <div className="min-w-0 flex-1 sm:w-40 sm:flex-none">
             <label htmlFor="report-range" className="sr-only">
               Date range
@@ -184,7 +220,8 @@ export default function ReportsPage() {
             <h2 className="text-h3 text-heading">Overall progress</h2>
             <p className="mt-1 text-body-sm text-muted">
               Candidates invited versus those who responded,{' '}
-              {data.granularity === 'daily' ? 'per day' : 'per week'}.
+              {data.granularity === 'daily' ? 'per day' : 'per week'}
+              {job ? `, for ${job}` : ''}.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
@@ -272,7 +309,7 @@ export default function ReportsPage() {
       <div className="mt-10">
         <h2 className="text-h3 text-heading">By job</h2>
         <p className="mt-1 text-body-sm text-muted">
-          How each open role is converting.
+          {job ? `How ${job} is converting.` : 'How each open role is converting.'}
         </p>
         <div className="mt-4 overflow-x-auto rounded-md border border-border bg-surface">
           <table className="w-full min-w-[520px]">

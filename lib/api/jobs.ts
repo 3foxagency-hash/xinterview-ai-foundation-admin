@@ -418,6 +418,7 @@ import type {
   NotificationsInput,
   AiEvaluationInput,
   ScoringLabelsInput,
+  StagesInput,
   EvaluationFactor,
   QuestionScoring,
 } from '@/lib/validation/job';
@@ -436,6 +437,7 @@ export async function getBranding(jobId: string): Promise<BrandingInput> {
     companyTitle: '',
     logoUrl: '',
     primaryColour: '#5B4FE9',
+    secondaryColour: '#1F242E',
     theme: 'light',
     font: 'inter',
     modernInterface: false,
@@ -522,6 +524,7 @@ export async function getSocialPreview(jobId: string): Promise<SocialPreviewInpu
     faviconUrl: '',
     shareImageUrl: '',
     previewTitle: '',
+    previewDescription: '',
   };
 }
 
@@ -585,7 +588,6 @@ export async function getAiEvaluation(jobId: string): Promise<AiEvaluationInput>
     positionLevel: 'mid',
     strictness: 'moderate',
     automaticEvaluation: false,
-    requireHumanReview: true,
     factors: [],
     questionScoring: [],
   };
@@ -595,6 +597,39 @@ export async function saveAiEvaluation(jobId: string, input: AiEvaluationInput):
   await delay(400);
   const data = getCustom(jobId);
   data.aiEvaluation = input;
+  return input;
+}
+
+export async function getStages(jobId: string): Promise<StagesInput> {
+  await delay(300);
+  const data = getCustom(jobId);
+  return (data.stages as StagesInput) ?? {
+    stages: [
+      { id: 's1', name: 'Invited', locked: true },
+      { id: 's2', name: 'In progress', locked: true },
+      { id: 's3', name: 'Review', locked: true },
+      { id: 's4', name: 'Shortlisted', locked: false },
+      { id: 's5', name: 'Live interview', locked: false },
+      { id: 's6', name: 'Hired', locked: false },
+      { id: 's7', name: 'Rejected', locked: true },
+    ],
+  };
+}
+
+export async function saveStages(jobId: string, input: StagesInput): Promise<StagesInput> {
+  await delay(400);
+  const data = getCustom(jobId);
+  // Guard the invariant server-side too: a locked stage cannot be renamed or
+  // dropped, whatever the client sends.
+  const existing = ((data.stages as StagesInput) ?? null)?.stages ?? null;
+  if (existing) {
+    for (const prev of existing.filter((s) => s.locked)) {
+      const still = input.stages.find((s) => s.id === prev.id);
+      if (!still) throw { code: 'stage_locked_removed', message: 'stage_locked_removed' };
+      if (still.name !== prev.name) throw { code: 'stage_locked_renamed', message: 'stage_locked_renamed' };
+    }
+  }
+  data.stages = input;
   return input;
 }
 

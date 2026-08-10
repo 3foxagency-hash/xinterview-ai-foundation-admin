@@ -32,11 +32,18 @@ export default function QuestionsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
-  const { job, patchJob } = useWizard();
+  const { job, patchJob, refreshQuestionCount } = useWizard();
   const [questions, setQuestions] = React.useState<Question[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [expandedId, setExpandedId] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  /**
+   * Ids flagged by the last Continue attempt. Tracking *which* questions were
+   * empty — rather than a single global flag — means a question added
+   * afterwards starts clean, instead of being marked invalid before the user
+   * has had a chance to type in it.
+   */
+  const [titleErrorIds, setTitleErrorIds] = React.useState<Set<string>>(new Set());
   const [aiDialogOpen, setAiDialogOpen] = React.useState(false);
   const [templates, setTemplates] = React.useState<QuestionTemplate[]>([]);
   const [templateLoading, setTemplateLoading] = React.useState(false);
@@ -156,9 +163,25 @@ export default function QuestionsPage() {
 
   const handleSaveAndContinue = async () => {
     if (questions.length === 0 || !jobId) return;
+
+    const untitled = questions.filter((q) => !q.title.trim());
+    if (untitled.length > 0) {
+      setTitleErrorIds(new Set(untitled.map((q) => q.id)));
+      // Open the first offender so the error is visible, not hidden in a
+      // collapsed card.
+      setExpandedId(untitled[0].id);
+      toast.error(
+        untitled.length === 1
+          ? 'One question is missing a title.'
+          : `${untitled.length} questions are missing a title.`
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       await saveQuestions(jobId, questions);
+      refreshQuestionCount();
       patchJob({ description: job?.description ?? '' });
       router.push(`/jobs/${jobId}/edit/teams`);
     } catch {
@@ -253,6 +276,7 @@ export default function QuestionsPage() {
                   question={q}
                   index={index}
                   expanded={expandedId === q.id}
+                  titleError={titleErrorIds.has(q.id) && !q.title.trim()}
                   onToggleExpand={() =>
                     setExpandedId(expandedId === q.id ? null : q.id)
                   }

@@ -6,7 +6,7 @@ import { WsSectionPage, WORKSPACE_SCOPE } from '@/components/workspace/ws-sectio
 export default function Page() {
   return (
     <WsSectionPage
-      title="Emails & notifications"
+      title="Notifications"
       description="Which messages go out automatically during an interview."
     >
       <NotificationsSection scopeId={WORKSPACE_SCOPE} />

@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -66,6 +67,7 @@ export function ThankYouSection({
             maxLength={50}
             placeholder="Interview Complete"
           />
+          <CharCount value={data.title ?? ''} max={50} />
           <p className="mt-1.5 text-body-sm text-muted">
             The heading candidates see on the completion screen.
           </p>

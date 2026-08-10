@@ -1,7 +1,7 @@
 'use client';
 
 import { StagesSection } from '@/components/customisation/stages-section';
-import { WsSectionPage } from '@/components/workspace/ws-section-page';
+import { WsSectionPage, WORKSPACE_SCOPE } from '@/components/workspace/ws-section-page';
 
 export default function Page() {
   return (
@@ -9,7 +9,7 @@ export default function Page() {
       title="Stages"
       description="The pipeline every candidate moves through in this workspace."
     >
-      <StagesSection />
+      <StagesSection scopeId={WORKSPACE_SCOPE} />
     </WsSectionPage>
   );
 }

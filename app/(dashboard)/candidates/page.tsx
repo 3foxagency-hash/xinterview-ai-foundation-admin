@@ -1,26 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { Check, ChevronDown, Download, Search, Share2, Trash2, Users, X } from 'lucide-react';
+import { Download, Pencil, Search, Trash2, Users, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu';
 import { SettingsSelect } from '@/components/settings/settings-select';
 import { DeleteCandidateDialog } from '@/components/candidates/delete-candidate-dialog';
+import { EditCandidateDialog } from '@/components/candidates/edit-candidate-dialog';
 import { CandidatesSkeleton } from '@/components/candidates/candidates-skeleton';
 import {
   getCandidates,
   getJobTitles,
-  updateCandidateStage,
+  updateCandidate,
   deleteCandidate,
-  candidateShareLink,
   toCsv,
   CANDIDATE_STAGES,
+  type CandidateEdit,
   type CandidateRecord,
   type CandidateStage,
 } from '@/lib/api/candidates';
@@ -48,6 +43,7 @@ export default function CandidatesPage() {
   const [query, setQuery] = React.useState('');
   const [page, setPage] = React.useState(0);
   const [deleteTarget, setDeleteTarget] = React.useState<CandidateRecord | null>(null);
+  const [editTarget, setEditTarget] = React.useState<CandidateRecord | null>(null);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -88,13 +84,17 @@ export default function CandidatesPage() {
   const visible = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
   const hasFilters = !!job || !!stage || !!query.trim();
 
-  const handleStage = async (c: CandidateRecord, next: CandidateStage) => {
+  const handleEdit = async (patch: CandidateEdit) => {
+    if (!editTarget) return;
     try {
-      const updated = await updateCandidateStage(c.id, next);
+      const updated = await updateCandidate(editTarget.id, patch);
       setRows((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
-      toast.success(`${updated.name} moved to ${next}`);
+      toast.success(`${updated.name} updated`);
     } catch (e) {
       toast.error(getSettingsErrorMessage(e));
+      // Rethrown so the dialog keeps the edits on screen instead of closing
+      // over a failed save.
+      throw e;
     }
   };
 
@@ -108,15 +108,6 @@ export default function CandidatesPage() {
       toast.error(getSettingsErrorMessage(e));
     } finally {
       setDeleteTarget(null);
-    }
-  };
-
-  const handleShare = async (c: CandidateRecord) => {
-    try {
-      await navigator.clipboard.writeText(candidateShareLink(c.id));
-      toast.success('Share link copied');
-    } catch {
-      toast.error('Could not copy the link');
     }
   };
 
@@ -331,12 +322,7 @@ export default function CandidatesPage() {
                         {c.jobDeadline}
                       </td>
                       <td className="px-4 py-3">
-                        <RowActions
-                          candidate={c}
-                          onStage={handleStage}
-                          onShare={handleShare}
-                          onDelete={setDeleteTarget}
-                        />
+                        <RowActions candidate={c} onEdit={setEditTarget} onDelete={setDeleteTarget} />
                       </td>
                     </tr>
                   ))}
@@ -373,12 +359,7 @@ export default function CandidatesPage() {
                     </dl>
 
                     <div className="mt-3 pl-11">
-                      <RowActions
-                        candidate={c}
-                        onStage={handleStage}
-                        onShare={handleShare}
-                        onDelete={setDeleteTarget}
-                      />
+                      <RowActions candidate={c} onEdit={setEditTarget} onDelete={setDeleteTarget} />
                     </div>
                   </li>
                 ))}
@@ -416,6 +397,17 @@ export default function CandidatesPage() {
           </>
         )}
       </div>
+
+      {editTarget && (
+        <EditCandidateDialog
+          open={!!editTarget}
+          onOpenChange={(o) => {
+            if (!o) setEditTarget(null);
+          }}
+          candidate={editTarget}
+          onSave={handleEdit}
+        />
+      )}
 
       {deleteTarget && (
         <DeleteCandidateDialog
@@ -495,51 +487,25 @@ function StageChip({
   );
 }
 
-/** Stage dropdown, share and delete — shared by the table and the card list. */
+/** Edit and delete — shared by the table and the card list. */
 function RowActions({
   candidate: c,
-  onStage,
-  onShare,
+  onEdit,
   onDelete,
 }: {
   candidate: CandidateRecord;
-  onStage: (c: CandidateRecord, next: CandidateStage) => void;
-  onShare: (c: CandidateRecord) => void;
+  onEdit: (c: CandidateRecord) => void;
   onDelete: (c: CandidateRecord) => void;
 }) {
   return (
     <div className="flex items-center justify-end gap-1">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Change stage for ${c.name}`}
-            className="inline-flex h-8 items-center gap-1 rounded-md border border-border-strong px-2.5 text-body-sm font-medium text-heading transition-colors hover:bg-card-hover"
-          >
-            Move
-            <ChevronDown size={13} className="text-muted" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {CANDIDATE_STAGES.map((s) => (
-            <DropdownMenuItem
-              key={s}
-              onClick={() => onStage(c, s)}
-              className={cn('flex items-center justify-between gap-4', s === c.stage && 'text-primary')}
-            >
-              {s}
-              {s === c.stage && <Check size={14} />}
-            </DropdownMenuItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
       <button
         type="button"
-        onClick={() => onShare(c)}
-        aria-label={`Copy share link for ${c.name}`}
+        onClick={() => onEdit(c)}
+        aria-label={`Edit ${c.name}`}
         className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-muted-bg hover:text-heading"
       >
-        <Share2 size={14} />
+        <Pencil size={14} />
       </button>
       <button
         type="button"

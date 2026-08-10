@@ -95,6 +95,8 @@ export const brandingSchema = z.object({
   companyTitle: z.string().max(60, 'Company title must be 60 characters or fewer').optional().default(''),
   logoUrl: z.string().optional().default(''),
   primaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#5B4FE9'),
+  /** Used for headings and accents beside the primary button colour. */
+  secondaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#1F242E'),
   theme: z.enum(['light', 'dark', 'auto']).default('light'),
   font: z.enum(['inter', 'roboto', 'opendyslexic', 'lato', 'poppins', 'sourcesans']).default('inter'),
   modernInterface: z.boolean().default(false),
@@ -144,10 +146,15 @@ export const thankYouPageSchema = z.object({
 export type ThankYouPageInput = z.infer<typeof thankYouPageSchema>;
 
 // ─── Customisation — Social preview ───
+/** Limits match the live product, which mirrors search-engine truncation. */
+export const META_TITLE_MAX = 60;
+export const META_DESCRIPTION_MAX = 160;
+
 export const socialPreviewSchema = z.object({
   faviconUrl: z.string().optional().default(''),
   shareImageUrl: z.string().optional().default(''),
-  previewTitle: z.string().max(120).optional().default(''),
+  previewTitle: z.string().max(META_TITLE_MAX).optional().default(''),
+  previewDescription: z.string().max(META_DESCRIPTION_MAX).optional().default(''),
 });
 export type SocialPreviewInput = z.infer<typeof socialPreviewSchema>;
 
@@ -204,13 +211,36 @@ export const aiEvaluationSchema = z.object({
   positionLevel: z.enum(['entry', 'mid', 'senior', 'executive']).default('mid'),
   strictness: z.enum(['lenient', 'moderate', 'strict']).default('moderate'),
   automaticEvaluation: z.boolean().default(false),
-  requireHumanReview: z.boolean().default(true),
   factors: z.array(evaluationFactorSchema).max(4),
   questionScoring: z.array(questionScoringSchema),
 });
 export type AiEvaluationInput = z.infer<typeof aiEvaluationSchema>;
 
 // ─── Customisation — Scoring labels ───
+/**
+ * Pipeline stages.
+ *
+ * Four stage names are fixed because the product keys behaviour off them —
+ * `invited`, `in progress`, `review` and `rejected` are set by the system as a
+ * candidate moves through an interview, so renaming or removing them would
+ * break that wiring. This mirrors the live product, which disables those four
+ * inputs and offers no delete or drag handle on them.
+ */
+export const LOCKED_STAGE_NAMES = ['Invited', 'In progress', 'Review', 'Rejected'] as const;
+
+export const stageSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Stage name is required').max(30, 'Keep stage names under 30 characters'),
+  /** System stages cannot be renamed, reordered or deleted. */
+  locked: z.boolean().default(false),
+});
+export type Stage = z.infer<typeof stageSchema>;
+
+export const stagesSchema = z.object({
+  stages: z.array(stageSchema).min(1),
+});
+export type StagesInput = z.infer<typeof stagesSchema>;
+
 export const scoringBandSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Band name is required').max(30),
