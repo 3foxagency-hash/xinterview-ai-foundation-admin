@@ -51,20 +51,85 @@ Next.js loads these in order, first match wins:
 host/CI secrets, and `NEXT_PUBLIC_APP_ENV=production` forces mocking off no
 matter what any env file says.
 
-### Deploy previews
+### Deploying to Vercel / Netlify
 
-A preview build (Netlify, Vercel) runs `next build`, which does **not** load
-`.env.development` — so mocks are off and the app will call whatever
-`NEXT_PUBLIC_API_BASE_URL` points at. To get a preview with mocks on, set these
-in the host's environment for preview branches:
+**Deploying a mocked branch — the 3-step version**
+
+1. Push the branch. Vercel → *Add New Project* → import the repo (or it
+   auto-deploys if the project already exists).
+2. In **Settings → Environment Variables**, add these three. Tick **Preview**
+   (and **Production** too, if this project has no real backend yet):
+
+   ```
+   NEXT_PUBLIC_APP_ENV        = development
+   NEXT_PUBLIC_API_MOCKING    = enabled
+   NEXT_PUBLIC_API_BASE_URL   = https://xdev.xinterview.xyz
+   ```
+
+3. **Redeploy** — Vercel bakes `NEXT_PUBLIC_*` values in at build time, so
+   variables added after a build do not apply until the next one.
+
+The deployed link then runs entirely on mocks: sign in with
+`admin@xinterview.ai` / `password123`, no backend required. Verified against a
+real production build, not just `next dev`.
+
+> Set `NEXT_PUBLIC_APP_ENV=development`, **not** `production` — `production`
+> deliberately strips MSW from the bundle, and the deployed app would then call
+> an API that does not exist yet.
+
+Reference for all environments:
+
+#### Preview / branch deploys — mocked, no backend needed
+
+The setting that lets design and product review your branch without the backend
+being up.
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_APP_ENV` | `development` |
+| `NEXT_PUBLIC_API_MOCKING` | `enabled` |
+| `NEXT_PUBLIC_API_BASE_URL` | `https://xdev.xinterview.xyz` |
+| `NEXT_PUBLIC_MOCK_RESOURCES` | *(leave empty)* |
+
+`API_BASE_URL` is only a label here — **MSW intercepts before the request leaves
+the browser**, so nothing has to be reachable at that host. Set it to the real
+dev API anyway, so flipping `API_MOCKING` to `disabled` is the only change needed
+to go live.
+
+#### Preview against the real dev backend
+
+Same as above with `NEXT_PUBLIC_API_MOCKING=disabled`. Requires the backend to
+allow CORS from the preview origin — the usual reason this fails.
+
+Half-and-half, while endpoints go live one at a time:
 
 ```
-NEXT_PUBLIC_APP_ENV=development
-NEXT_PUBLIC_API_MOCKING=enabled
+NEXT_PUBLIC_API_MOCKING=partial
+NEXT_PUBLIC_MOCK_RESOURCES=jobs        # jobs mocked, auth hits the real API
 ```
 
-That is what lets design and product review a branch without backend
-availability.
+#### Production
+
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_APP_ENV` | `production` |
+| `NEXT_PUBLIC_API_MOCKING` | `disabled` |
+| `NEXT_PUBLIC_API_BASE_URL` | the production API origin |
+
+Two independent guards make a mocked production build impossible:
+
+1. `NEXT_PUBLIC_APP_ENV=production` strips MSW from the bundle at build time,
+   **even if `API_MOCKING` is left as `enabled`** — verified.
+2. `npm run guard:mocks` fails the build if `API_MOCKING` is not `disabled`.
+   Add it as a post-build step so the mistake is loud rather than silent.
+
+#### If you set nothing at all
+
+The build still succeeds — every variable has a default — but you get
+`APP_ENV=local`, `API_MOCKING=disabled` and `API_BASE_URL=http://localhost:8080`
+baked into the bundle. The deployed app then calls `localhost:8080` **from the
+visitor's machine**, which fails for everyone. Always set the three variables
+explicitly.
 
 ### Test credentials
 
