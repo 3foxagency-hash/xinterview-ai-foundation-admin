@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
       setSuccess(true);
     } catch (err) {
       const code = (err as ApiError).code;
-      if (code === 'invalid_reset_token') {
+      if (code === 'token_invalid' || code === 'token_expired') {
         setInvalidLink(true);
       }
       setAuthError(getAuthErrorMessage(err));

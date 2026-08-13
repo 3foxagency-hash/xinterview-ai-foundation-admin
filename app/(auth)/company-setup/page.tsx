@@ -26,7 +26,7 @@ import {
   type InviteInfo,
 } from '@/lib/api/auth';
 import { getAuthErrorMessage } from '@/lib/errors/auth-messages';
-import { COMPANY_TYPES } from '@/lib/constants/company-types';
+import { COMPANY_TYPES, type CompanyType } from '@/lib/constants/company-types';
 
 const SIZE_OPTIONS = [
   { value: '1-10', label: '1-10', description: 'Startup' },
@@ -95,7 +95,7 @@ function CompanySetupContent() {
       await createWorkspace(
         data.companyName,
         data.companySize,
-        data.companyType,
+        data.companyType as CompanyType,
         data.companyWebsite
       );
       setSuccess(true);

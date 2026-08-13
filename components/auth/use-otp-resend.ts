@@ -25,9 +25,10 @@ export interface UseOtpResendReturn {
 }
 
 const RESEND_MESSAGES: Record<string, string> = {
-  otp_attempts_exceeded:
+  validation_failed:
     'You have requested too many codes. Please contact support or try again later.',
-  rate_limited: 'Too many requests. Please wait a moment and try again.',
+  unauthenticated: 'Your session expired. Please sign in again.',
+  network_error: 'Could not reach the server. Check your connection.',
 };
 
 const FALLBACK = 'Something went wrong sending your code. Please try again.';
@@ -75,7 +76,9 @@ export function useOtpResend({
     } catch (err) {
       const code = (err as ApiError)?.code;
       setError(RESEND_MESSAGES[code ?? ''] ?? FALLBACK);
-      if (code === 'otp_attempts_exceeded') {
+      // A 429 from the backend means the cap is reached regardless of our
+      // local count, so stop offering a resend.
+      if ((err as { retryAfter?: number })?.retryAfter) {
         setResendsUsed(maxResends);
       }
     } finally {
