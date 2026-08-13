@@ -57,7 +57,7 @@ export default function SignUpPage() {
       router.push(`/verify-email?${params.toString()}`);
     } catch (err) {
       const error = err as ApiError & { retryAfter?: number };
-      if (error.code === 'rate_limited' && error.retryAfter) {
+      if (error.retryAfter) {
         setRateLimitSeconds(error.retryAfter);
         setAuthError(getAuthErrorMessage(err));
       } else {

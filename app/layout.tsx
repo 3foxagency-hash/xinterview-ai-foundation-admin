@@ -4,6 +4,8 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { Toaster } from '@/components/providers/app-toaster';
+import { MswProvider } from '@/components/providers/msw-provider';
+import { DevMockPanel } from '@/components/providers/dev-mock-panel';
 
 export const metadata: Metadata = {
   title: 'XInterview — Admin Dashboard',
@@ -35,7 +37,8 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <MswProvider>{children}</MswProvider>
+          <DevMockPanel />
           <Toaster />
         </ThemeProvider>
       </body>

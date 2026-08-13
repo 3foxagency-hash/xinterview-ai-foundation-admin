@@ -18,6 +18,7 @@ import {
 } from '@/components/auth';
 import { loginSchema, type LoginInput } from '@/lib/validation/auth';
 import { login, type ApiError } from '@/lib/api/auth';
+import { getAuthErrorMessage } from '@/lib/errors/auth-messages';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -54,14 +55,11 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (err) {
       const error = err as ApiError & { retryAfter?: number };
-      if (error.code === 'rate_limited' && error.retryAfter) {
-        setRateLimitSeconds(error.retryAfter);
-        setAuthError(error.message);
-      } else if (error.code === 'account_locked' || error.code === 'unverified') {
-        setAuthError(error.message);
-      } else {
-        setAuthError('Something went wrong. Please try again.');
-      }
+      if (error.retryAfter) setRateLimitSeconds(error.retryAfter);
+      // One mapping table owns the copy. The backend's own text ("Invalid
+      // credentials") is terse and written for developers, so it is only used
+      // where no mapped message exists.
+      setAuthError(getAuthErrorMessage(error));
     }
   };
 
