@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'msw';
 import { shouldMock } from '@/lib/config/env';
 import { authHandlers } from './auth';
+import { userManagementHandlers } from './user-management';
 import { jobHandlers } from './jobs';
 
 /**
@@ -13,6 +14,9 @@ import { jobHandlers } from './jobs';
  */
 const REGISTRY: Record<string, RequestHandler[]> = {
   auth: authHandlers,
+  // Registered after auth: /user-management/me/ must not be shadowed by a
+  // broader auth pattern, and MSW matches in array order.
+  'user-management': userManagementHandlers,
   jobs: jobHandlers,
 };
 

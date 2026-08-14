@@ -286,6 +286,61 @@ documented exception: you cannot know the org until the user is identified, so
 
 ---
 
+## The backend OpenAPI spec
+
+`backend-schema/xinterview-schema.yaml` is the backend's published spec —
+**231 paths, 341 operations, 330 component schemas, 85% with response shapes.**
+It covers the whole product, not just auth: jobs, candidates, social, payments,
+phone-screen, shareable links.
+
+```bash
+npm run api:types    # regenerate lib/api/generated/schema.ts from the spec
+npm run api:check    # regenerate + fail if the committed types are stale (CI)
+```
+
+### What it is for
+
+**1. Writing new mocks from the real shape.** Instead of guessing a response,
+read it out of the spec:
+
+```bash
+python3 - <<'EOS'
+import yaml
+d = yaml.safe_load(open('backend-schema/xinterview-schema.yaml'))
+op = d['paths']['/jobs/']['get']
+print(op['responses']['200']['content']['application/json']['schema'])
+EOS
+```
+
+**2. Catching drift at compile time.** `lib/api/contract-drift.ts` asserts that
+the hand-written types in `auth-contract.ts` still match the spec. If the backend
+changes an enum, `npm run api:types` followed by `tsc` fails and names the
+mismatch — instead of the app breaking in production.
+
+That guard is not theoretical: renaming `CO` → `CORPORATE` in `auth-contract.ts`
+produces
+
+```
+lib/api/contract-drift.ts(40,7): error TS2322: Type 'true' is not assignable to type 'never'.
+```
+
+### Keeping it current
+
+The spec is a **snapshot**, committed deliberately so builds are reproducible.
+When the backend ships changes, re-download it, run `npm run api:types`, and
+commit both files together. `npm run api:check` fails the build if the generated
+types are out of date with the spec.
+
+### The spec confirmed the live captures
+
+Auth mocks were built by calling the dev API directly, before this spec existed.
+The spec independently confirms every finding — `access` vs `access_token`, the
+unused fields, the `CO`/`AG` enum. Where the two disagree, the **live API wins**:
+it is what the app actually talks to, and the spec omits at least one field the
+API really returns (`last_seen_monitor`).
+
+---
+
 ## Adding an endpoint
 
 1. Add the request/response types to `lib/api/contract.ts`.

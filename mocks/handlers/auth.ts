@@ -305,27 +305,10 @@ export const authHandlers = [
     return HttpResponse.json({ message: 'Password changed successfully' });
   }),
 
-  // ─── GET /user-management/me/ ───
-  http.get(`*${AUTH_PATHS.me}`, async ({ request }) => {
-    const scenario = await applyScenario();
-    if (scenario) return scenario;
-
-    const user = authenticate(request);
-    if (!user) return unauthenticated();
-
-    return HttpResponse.json(authRepo.currentUser(user));
-  }),
-
-  // ─── GET /user-management/my-companies/ ───
-  http.get(`*${AUTH_PATHS.myCompanies}`, async ({ request }) => {
-    const scenario = await applyScenario();
-    if (scenario) return scenario;
-
-    const user = authenticate(request);
-    if (!user) return unauthenticated();
-
-    return HttpResponse.json(authRepo.myCompanies(user));
-  }),
+  // GET /user-management/me/ and /my-companies/ live in the user-management
+  // handlers, which own that resource. Defining them here too would shadow
+  // those (MSW matches in array order, and auth is registered first) and split
+  // ownership of one endpoint across two files.
 
   // ─── POST /companies/ ───
   http.post(`*${AUTH_PATHS.createCompany}`, async ({ request }) => {
