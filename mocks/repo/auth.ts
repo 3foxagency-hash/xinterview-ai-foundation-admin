@@ -144,6 +144,7 @@ export const authRepo = {
       // New signups are unverified and have no company, matching the real API.
       emailVerified: false,
       companyCreated: false,
+      notificationSkipped: false,
       failedAttempts: 0,
       lockedUntil: null,
     };
@@ -210,7 +211,7 @@ export const authRepo = {
       language: user.locale,
       profile_pic: null,
       is_verified: user.emailVerified,
-      notification_skipped: false,
+      notification_skipped: user.notificationSkipped,
       company_created: user.companyCreated,
       has_zoom_account: false,
       has_google_account: false,
