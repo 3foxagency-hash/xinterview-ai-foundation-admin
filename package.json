@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:live": "NEXT_PUBLIC_API_MOCKING=disabled next dev --turbopack",
+    "dev:bolt": "next dev",
+    "dev:live:bolt": "NEXT_PUBLIC_API_MOCKING=disabled next dev",
     "build": "next build",
     "build:prod": "next build && node scripts/assert-no-mocks.mjs",
     "start": "next start",
@@ -85,3 +87,4 @@
     ]
   }
 }
+ 
