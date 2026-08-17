@@ -22,7 +22,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Target paths — what the mocks serve and the client calls.
+ * Target paths — what the client calls.
  *
  * The consistent shape the legacy docs argue for is
  * `/user-management/company/{companyId}/<sub-resource>/`: the ID precedes its

@@ -17,10 +17,6 @@ import type {
 /**
  * Jobs API — the create-job wizard flow.
  *
- * Every function crosses the network. In development MSW intercepts (see
- * mocks/handlers/jobs.ts); against a real backend the same code runs unchanged.
- * There is no `if (isMock)` branch anywhere.
- *
  * Exported types and signatures are unchanged from the previous in-memory
  * implementation, so all existing call sites keep working. The customisation
  * section below (branding, welcome page, stages, …) is still in-memory and is
@@ -396,11 +392,8 @@ export async function getTemplateQuestions(templateId: string): Promise<Question
 //
 // The customisation sections (branding, welcome page, form, thank-you, social,
 // experience, notifications, AI evaluation, stages, scoring) have not been
-// migrated to MSW yet. They are reused verbatim in Workspace settings, so
-// moving them is its own change with its own verification.
-//
-// `delay` exists only for these; the migrated functions above get their latency
-// from the mock handlers instead.
+// migrated to a real backend yet. They are reused verbatim in Workspace
+// settings, so moving them is its own change with its own verification.
 // ─────────────────────────────────────────────────────────────────────────────
 
 function delay(ms = 800) {

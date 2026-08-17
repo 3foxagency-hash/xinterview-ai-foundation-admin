@@ -61,9 +61,9 @@ export const AVATAR_MAX_BYTES = 800 * 1024;
 const AVATAR_TYPES = ['image/png', 'image/jpeg'];
 
 /**
- * Reads the file to a data URL so the mock can actually display the avatar.
- * The real endpoint will return a hosted URL instead; callers only care that
- * they get back something assignable to `avatarUrl`.
+ * Reads the file to a data URL so this in-memory store can actually display
+ * the avatar. The real endpoint will return a hosted URL instead; callers
+ * only care that they get back something assignable to `avatarUrl`.
  */
 export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
   if (!AVATAR_TYPES.includes(file.type)) throw err('avatar_type_invalid');
@@ -95,7 +95,7 @@ export async function changePassword(
     throw err('password_too_weak');
   }
   if (current === next) throw err('password_same_as_current');
-  // The mock treats anything other than this as the wrong current password.
+  // Anything other than this is treated as the wrong current password.
   if (current !== 'Passw0rd!x') throw err('password_current_wrong');
   return { success: true };
 }

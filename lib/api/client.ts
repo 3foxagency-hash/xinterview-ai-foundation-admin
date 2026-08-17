@@ -11,11 +11,6 @@ import {
 /**
  * The single fetch path for all API calls.
  *
- * Everything crosses the network, which is what lets MSW intercept in dev and
- * tests while production code stays byte-for-byte identical. There is no
- * `if (isMock)` branch here or anywhere downstream — that absence is the whole
- * reason for choosing MSW over mock functions.
- *
  * Applied in order: correlation → rate limit → circuit breaker → fetch →
  * error normalization.
  */

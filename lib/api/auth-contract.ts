@@ -13,15 +13,14 @@
  *  2. FIELDS listed as unused in the doc are omitted from the types below, so
  *     no component can start depending on them before they are removed.
  *
- * Everything else mirrors the real API exactly, including its inconsistencies —
- * a mock that quietly "fixes" the backend teaches the UI the wrong lesson.
+ * Everything else mirrors the real API exactly, including its inconsistencies.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Paths
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Target paths — what the mocks serve and the client calls. */
+/** Target paths — what the client calls. */
 export const AUTH_PATHS = {
   login: '/auth/tokens',
   register: '/auth/register',
@@ -123,7 +122,7 @@ export type RegisterRequestBody = {
  *
  * The live API returns a bare `access` here while login returns `access_token`.
  * The doc calls for standardising on `access_token`, so that is what this
- * contract — and the mock — use.
+ * contract uses.
  */
 export type RefreshResponse = {
   access_token: string;
@@ -324,8 +323,8 @@ export type JoinCompanyResponse = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * The live API uses three different error envelopes. All three are reproduced
- * in the mocks, because code that only handles one will break on the others.
+ * The live API uses three different error envelopes. Code that only handles
+ * one will break on the others.
  *
  *  1. Detail      `{ "detail": "Invalid credentials" }`
  *  2. Field       `{ "email": ["Email is already registered."] }`

@@ -1,9 +1,8 @@
 /**
- * The wire contract, shared by the real client and the mock handlers.
+ * The wire contract used by the API client.
  *
- * Both sides import these types, so a handler that returns the wrong shape
- * fails to compile. When the backend publishes an OpenAPI spec, this file is
- * replaced by the generated types and everything downstream keeps working.
+ * When the backend publishes an OpenAPI spec, this file is replaced by the
+ * generated types and everything downstream keeps working.
  */
 
 /** Every response is wrapped, single resources included. */
