@@ -9,6 +9,7 @@ import {
   Calendar,
   HelpCircle,
   Bell,
+  TestTube,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -33,6 +34,7 @@ export const primaryNavGroups: NavGroup[] = [
       { label: 'Create New Job', href: '/create-job', icon: Plus },
       { label: 'Jobs', href: '/jobs', icon: Briefcase },
       { label: 'Candidates', href: '/candidates', icon: Users, count: 12 },
+      { label: 'Test', href: '/test', icon: TestTube },
     ],
   },
   {
