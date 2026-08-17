@@ -1,26 +1,14 @@
 import type { InterviewFormat } from '@/lib/validation/job';
-import { api, request } from './client';
-import { isApiError } from './errors';
-import type {
-  WireJob,
-  WireQuestion,
-  WireQuestionTemplate,
-  WireOrgMember,
-  WireJobTeamMember,
-  WirePlanInfo,
-  InviteReadiness,
-  BulkInviteResponse,
-  PagedEnvelope,
-  PublishJobResponse,
-} from './contract';
 
 /**
  * Jobs API — the create-job wizard flow.
  *
- * Exported types and signatures are unchanged from the previous in-memory
- * implementation, so all existing call sites keep working. The customisation
- * section below (branding, welcome page, stages, …) is still in-memory and is
- * migrated separately.
+ * There is no backend wired up yet, so this is an in-memory store: state
+ * lives in module-level variables and resets on reload. Exported names,
+ * signatures and error codes match what a real backend-shaped client would
+ * expose, so swapping this module for a real one later touches no call
+ * sites. The customisation section below (branding, welcome page, stages, …)
+ * follows the same pattern and is migrated separately.
  */
 
 export type ApiError = {
@@ -96,63 +84,14 @@ export type BulkInviteResult = {
   failed: { firstName: string; lastName: string; email: string; reason: string }[];
 };
 
-// ─── Error normalization ───
+// ─── Error helper ───
 
-/**
- * Wire code → the lowercase code existing call sites branch on. Mapping lives
- * here so the UI does not churn now and can migrate to wire codes in one sweep
- * later.
- */
-const CODE_MAP: Record<string, string> = {
-  JOB_NOT_FOUND: 'not_found',
-  VALIDATION_FAILED: 'validation_failed',
-  FORMAT_NOT_AVAILABLE: 'format_not_available',
-  CANDIDATE_LIMIT_REACHED: 'candidate_limit_reached',
-  STAGE_LOCKED_REMOVED: 'stage_locked_removed',
-  STAGE_LOCKED_RENAMED: 'stage_locked_renamed',
-  TEMPLATE_NOT_FOUND: 'not_found',
-  CLIENT_RATE_LIMITED: 'rate_limited',
-  TOO_MANY_ATTEMPTS: 'rate_limited',
-  NETWORK_ERROR: 'network_error',
-  CIRCUIT_OPEN: 'network_error',
-};
-
-function toApiError(error: unknown): ApiError {
-  if (isApiError(error)) {
-    return {
-      code: CODE_MAP[error.code] ?? error.code.toLowerCase(),
-      message: error.message,
-      ...(error.retryAfter !== undefined ? { retryAfter: error.retryAfter } : {}),
-    };
-  }
-  if (error instanceof Error) return { code: 'unknown', message: error.message };
-  return { code: 'unknown', message: 'Something went wrong. Please try again.' };
+function err(code: string, message = code): ApiError {
+  return { code, message };
 }
 
-async function call<T>(fn: () => Promise<T>): Promise<T> {
-  try {
-    return await fn();
-  } catch (error) {
-    // Deliberate cancellation is not an API error — let callers ignore it.
-    if (error instanceof DOMException && error.name === 'AbortError') throw error;
-    throw toApiError(error);
-  }
-}
-
-/** Drops wire-only fields the UI does not model. */
-function toJob(wire: WireJob): Job {
-  return {
-    id: wire.id,
-    title: wire.title,
-    format: wire.format as InterviewFormat,
-    timezone: wire.timezone,
-    applicationDeadline: wire.applicationDeadline,
-    interviewLanguage: wire.interviewLanguage,
-    description: wire.description,
-    status: wire.status,
-    candidateUrl: wire.candidateUrl,
-    createdAt: wire.createdAt,
-  };
+function delay(ms = 500) {
+  return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
 function ulid(): string {
@@ -163,38 +102,70 @@ function ulid(): string {
   return `${Date.now().toString(36).toUpperCase()}${rand}`.slice(0, 26);
 }
 
+// ─── In-memory store ───
+
+const jobStore = new Map<string, Job>();
+const questionStore = new Map<string, Question[]>();
+const teamStore = new Map<string, JobTeamMember[]>();
+
+const COMPANY_MEMBERS: CompanyMember[] = [
+  { id: 'mem_1', name: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', role: 'Admin', initials: 'SC' },
+  { id: 'mem_2', name: 'James Patel', email: 'james.patel@xinterview.ai', role: 'Manager', initials: 'JP' },
+  { id: 'mem_3', name: 'Ava Thompson', email: 'ava.thompson@xinterview.ai', role: 'Member', initials: 'AT' },
+  { id: 'mem_4', name: 'Diego Morales', email: 'diego.morales@xinterview.ai', role: 'Executive', initials: 'DM' },
+];
+
+const QUESTION_TEMPLATES: QuestionTemplate[] = [
+  { id: 'tpl_frontend', name: 'Frontend Engineer', questionCount: 5 },
+  { id: 'tpl_backend', name: 'Backend Engineer', questionCount: 5 },
+  { id: 'tpl_product', name: 'Product Manager', questionCount: 4 },
+];
+
+function sampleQuestions(count = 5): Question[] {
+  const bank: Question[] = [
+    { id: 'q_1', type: 'video', title: 'Tell us about yourself', description: 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '00:30', answerTime: '02:00' },
+    { id: 'q_2', type: 'video', title: 'Describe a challenging project', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '00:30', answerTime: '03:00' },
+    { id: 'q_3', type: 'text', title: 'Why this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
+    { id: 'q_4', type: 'audio', title: 'Describe your ideal team', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '00:20', answerTime: '01:30' },
+    { id: 'q_5', type: 'single_choice', title: 'Preferred working style', description: 'Which best describes how you like to work?', options: [
+      { id: 'opt_1', text: 'Independently, with clear goals', isCorrect: false },
+      { id: 'opt_2', text: 'Collaboratively, in constant sync', isCorrect: false },
+      { id: 'opt_3', text: 'A mix of both', isCorrect: false },
+    ] },
+  ];
+  return bank.slice(0, count);
+}
+
+function toTeamMember(m: CompanyMember, overrides: Partial<JobTeamMember> = {}): JobTeamMember {
+  return { ...m, notifyOnComplete: true, isCreator: false, ...overrides };
+}
+
 // ─── API functions ───
 
-/**
- * Previously-used job titles, offered as suggestions.
- *
- * Derived from the org's existing jobs rather than a hardcoded list, so the
- * suggestions reflect real data. Failure is non-fatal: this only powers a
- * convenience affordance, so an empty list is a better outcome than a blocked
- * form.
- */
+/** Previously-used job titles, offered as suggestions. */
 export async function getPreviousJobTitles(): Promise<string[]> {
-  try {
-    const page = await request<PagedEnvelope<WireJob>>({
-      path: '/jobs',
-      query: { pageSize: 100, sort: 'createdAt:desc' },
-    });
-    return [...new Set(page.data.map((j) => j.title))];
-  } catch {
-    return [];
-  }
+  await delay(150);
+  return [...new Set([...jobStore.values()].map((j) => j.title))];
 }
 
 export async function getQuestionTemplates(): Promise<QuestionTemplate[]> {
-  return call(() => api.get<WireQuestionTemplate[]>('/jobs/templates'));
+  await delay(200);
+  return QUESTION_TEMPLATES;
 }
 
 export async function getCompanyMembers(): Promise<CompanyMember[]> {
-  return call(() => api.get<WireOrgMember[]>('/organisation/members'));
+  await delay(200);
+  return COMPANY_MEMBERS;
 }
 
 export async function getPlanInfo(): Promise<PlanInfo> {
-  return call(() => api.get<WirePlanInfo>('/organisation/plan'));
+  await delay(150);
+  return {
+    emailNotifications: true,
+    smsEnabled: true,
+    candidateLimit: 100,
+    candidatesUsed: jobStore.size * 3,
+  };
 }
 
 export async function createJob(input: {
@@ -205,86 +176,102 @@ export async function createJob(input: {
   interviewLanguage: string;
   description: string;
 }): Promise<Job> {
-  const wire = await call(() =>
-    api.post<WireJob>('/jobs', {
-      body: input,
-      // Creating a job is not idempotent on the server without a key, and the
-      // wizard's submit button is exactly where a double-click happens.
-      idempotencyKey: ulid(),
-    })
-  );
-  return toJob(wire);
+  await delay(500);
+  if (!input.title.trim()) throw err('validation_failed', 'Title is required');
+
+  const id = `job_${ulid()}`;
+  const job: Job = {
+    id,
+    title: input.title,
+    format: input.format,
+    timezone: input.timezone,
+    applicationDeadline: input.applicationDeadline,
+    interviewLanguage: input.interviewLanguage,
+    description: input.description,
+    status: 'draft',
+    candidateUrl: `https://apply.xinterview.ai/j/${id}`,
+    createdAt: new Date().toISOString(),
+  };
+  jobStore.set(id, job);
+  teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true })]);
+  return job;
 }
 
 export async function getJob(id: string): Promise<Job> {
-  const wire = await call(() => api.get<WireJob>(`/jobs/${encodeURIComponent(id)}`));
-  return toJob(wire);
+  await delay(200);
+  const job = jobStore.get(id);
+  if (!job) throw err('not_found', 'Job not found');
+  return job;
 }
 
 export async function updateJob(id: string, patch: Partial<Job>): Promise<Job> {
+  await delay(400);
+  const existing = jobStore.get(id);
+  if (!existing) throw err('not_found', 'Job not found');
+
   // `format`, `status` and identity fields are server-owned after creation;
-  // sending them would be rejected or silently ignored.
+  // patching them here would be rejected or silently ignored by a real API.
   const { title, timezone, applicationDeadline, interviewLanguage, description } =
     patch;
-  const body = Object.fromEntries(
-    Object.entries({
-      title,
-      timezone,
-      applicationDeadline,
-      interviewLanguage,
-      description,
-    }).filter(([, v]) => v !== undefined)
-  );
-
-  const wire = await call(() =>
-    api.patch<WireJob>(`/jobs/${encodeURIComponent(id)}`, { body })
-  );
-  return toJob(wire);
+  const next: Job = {
+    ...existing,
+    ...(title !== undefined ? { title } : {}),
+    ...(timezone !== undefined ? { timezone } : {}),
+    ...(applicationDeadline !== undefined ? { applicationDeadline } : {}),
+    ...(interviewLanguage !== undefined ? { interviewLanguage } : {}),
+    ...(description !== undefined ? { description } : {}),
+  };
+  jobStore.set(id, next);
+  return next;
 }
 
 export async function getQuestions(jobId: string): Promise<Question[]> {
-  return call(() =>
-    api.get<WireQuestion[]>(`/jobs/${encodeURIComponent(jobId)}/questions`)
-  );
+  await delay(250);
+  return questionStore.get(jobId) ?? [];
 }
 
 export async function saveQuestions(
   jobId: string,
   questions: Question[]
 ): Promise<Question[]> {
-  return call(() =>
-    api.put<WireQuestion[]>(`/jobs/${encodeURIComponent(jobId)}/questions`, {
-      body: { questions },
-    })
-  );
+  await delay(400);
+  questionStore.set(jobId, questions);
+  return questions;
 }
 
 export async function getJobTeam(jobId: string): Promise<JobTeamMember[]> {
-  return call(() =>
-    api.get<WireJobTeamMember[]>(`/jobs/${encodeURIComponent(jobId)}/team`)
-  );
+  await delay(200);
+  return teamStore.get(jobId) ?? [];
 }
 
 export async function addJobTeamMembers(
   jobId: string,
   memberIds: string[]
 ): Promise<JobTeamMember[]> {
-  return call(() =>
-    api.post<WireJobTeamMember[]>(`/jobs/${encodeURIComponent(jobId)}/team`, {
-      body: { memberIds },
-    })
-  );
+  await delay(400);
+  const current = teamStore.get(jobId) ?? [];
+  const existingIds = new Set(current.map((m) => m.id));
+  const additions = memberIds
+    .filter((id) => !existingIds.has(id))
+    .map((id) => COMPANY_MEMBERS.find((m) => m.id === id))
+    .filter((m): m is CompanyMember => m !== undefined)
+    .map((m) => toTeamMember(m));
+  const next = [...current, ...additions];
+  teamStore.set(jobId, next);
+  return next;
 }
 
 export async function removeJobTeamMember(
   jobId: string,
   memberId: string
 ): Promise<JobTeamMember[]> {
-  return call(() =>
-    api.delete<WireJobTeamMember[]>(
-      `/jobs/${encodeURIComponent(jobId)}/team/${encodeURIComponent(memberId)}`
-    )
-  );
+  await delay(300);
+  const current = teamStore.get(jobId) ?? [];
+  const target = current.find((m) => m.id === memberId);
+  if (target?.isCreator) throw err('validation_failed', 'The job creator cannot be removed');
+  const next = current.filter((m) => m.id !== memberId);
+  teamStore.set(jobId, next);
+  return next;
 }
 
 export async function updateTeamMemberNotification(
@@ -292,12 +279,13 @@ export async function updateTeamMemberNotification(
   memberId: string,
   notifyOnComplete: boolean
 ): Promise<JobTeamMember[]> {
-  return call(() =>
-    api.patch<WireJobTeamMember[]>(
-      `/jobs/${encodeURIComponent(jobId)}/team/${encodeURIComponent(memberId)}`,
-      { body: { notifyOnComplete } }
-    )
+  await delay(300);
+  const current = teamStore.get(jobId) ?? [];
+  const next = current.map((m) =>
+    m.id === memberId ? { ...m, notifyOnComplete } : m
   );
+  teamStore.set(jobId, next);
+  return next;
 }
 
 export async function getInviteReadiness(jobId: string): Promise<{
@@ -306,64 +294,50 @@ export async function getInviteReadiness(jobId: string): Promise<{
   teamCount: number;
   brandingReady: boolean;
 }> {
-  return call(() =>
-    api.get<InviteReadiness>(
-      `/jobs/${encodeURIComponent(jobId)}/invite-readiness`
-    )
-  );
+  await delay(200);
+  const job = jobStore.get(jobId);
+  const questionCount = (questionStore.get(jobId) ?? []).length;
+  const teamCount = (teamStore.get(jobId) ?? []).length;
+  return {
+    jobDetailsReady: Boolean(job),
+    questionCount,
+    teamCount,
+    brandingReady: true,
+  };
 }
 
 export async function sendInvites(
-  jobId: string,
+  _jobId: string,
   invites: { firstName: string; lastName: string; email: string }[]
 ): Promise<{ sent: number }> {
-  const result = await call(() =>
-    api.post<BulkInviteResponse>(
-      `/jobs/${encodeURIComponent(jobId)}/invitations`,
-      { body: { invites }, idempotencyKey: ulid() }
-    )
-  );
-  return { sent: result.invited };
+  await delay(600);
+  return { sent: invites.length };
 }
 
 export async function bulkInvite(
-  jobId: string,
+  _jobId: string,
   rows: { firstName: string; lastName: string; email: string }[]
 ): Promise<BulkInviteResult> {
-  return call(() =>
-    api.post<BulkInviteResponse>(
-      `/jobs/${encodeURIComponent(jobId)}/invitations`,
-      { body: { invites: rows }, idempotencyKey: ulid() }
-    )
-  );
+  await delay(600);
+  return { invited: rows.length, failed: [] };
 }
 
 export async function generateJobDescription(
   title: string,
   _language: string
 ): Promise<string> {
-  const result = await call(() =>
-    api.post<{ description: string }>('/jobs/descriptions:generate', {
-      body: { title, language: _language },
-    })
-  );
-  return result.description;
+  await delay(1000);
+  return `We are looking for a ${title} to join our team. You will collaborate closely with cross-functional partners, own key initiatives end to end, and help raise the bar for quality across the organisation. This role suits someone who is curious, detail-oriented, and energised by solving hard problems with a team.`;
 }
 
 export async function generateAiQuestions(
   counts: { video: number; audio: number; text: number; singleChoice: number },
-  jobTitle: string,
-  jobId?: string
+  _jobTitle: string,
+  _jobId?: string
 ): Promise<Question[]> {
-  // Generation is scoped to a job on the wire; the seeded job stands in when a
-  // caller has no id yet, so the signature stays backwards compatible.
-  const target = jobId ?? 'job_01hxseed';
-  return call(() =>
-    api.post<WireQuestion[]>(
-      `/jobs/${encodeURIComponent(target)}/questions:generate`,
-      { body: { jobTitle, counts } }
-    )
-  );
+  await delay(1200);
+  const total = counts.video + counts.audio + counts.text + counts.singleChoice;
+  return sampleQuestions(Math.max(1, Math.min(total, 5)));
 }
 
 export async function publishJob(jobId: string): Promise<{
@@ -371,20 +345,19 @@ export async function publishJob(jobId: string): Promise<{
   status: JobStatus;
   publishedAt: string;
 }> {
-  return call(() =>
-    api.post<PublishJobResponse>(
-      `/jobs/${encodeURIComponent(jobId)}/publish`,
-      { idempotencyKey: ulid() }
-    )
-  );
+  await delay(500);
+  const job = jobStore.get(jobId);
+  if (!job) throw err('not_found', 'Job not found');
+  const publishedAt = new Date().toISOString();
+  jobStore.set(jobId, { ...job, status: 'active' });
+  return { id: jobId, status: 'active', publishedAt };
 }
 
 export async function getTemplateQuestions(templateId: string): Promise<Question[]> {
-  return call(() =>
-    api.get<WireQuestion[]>(
-      `/jobs/templates/${encodeURIComponent(templateId)}/questions`
-    )
-  );
+  await delay(300);
+  const template = QUESTION_TEMPLATES.find((t) => t.id === templateId);
+  if (!template) throw err('not_found', 'Template not found');
+  return sampleQuestions(template.questionCount);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -395,10 +368,6 @@ export async function getTemplateQuestions(templateId: string): Promise<Question
 // migrated to a real backend yet. They are reused verbatim in Workspace
 // settings, so moving them is its own change with its own verification.
 // ─────────────────────────────────────────────────────────────────────────────
-
-function delay(ms = 800) {
-  return new Promise<void>((resolve) => setTimeout(resolve, ms));
-}
 
 // ─── Customisation API ───
 import type {
