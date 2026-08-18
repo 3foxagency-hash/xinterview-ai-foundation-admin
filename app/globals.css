@@ -4,10 +4,273 @@
 
 @layer base {
   :root {
-    /* ─── Geist scales ─── */
-    --background-100: #ffffff;
-    --background-200: #fafafa;
+    /* ═══════════════════════════════════════════════════════════
+       XInterview Design System v2.0 — CSS Token Layer (§24)
+       Multicolor module system · disciplined color contract
+       ═══════════════════════════════════════════════════════════ */
 
+    /* ─── Surfaces (§3.1) ─── */
+    --canvas: #fafafa;
+    --surface-page: #ffffff;
+    --surface-2: #f4f4f5;
+    --surface-hover: #f0f0f0;
+    --surface-sunken: #f5f5f5;
+    --overlay: rgba(10, 10, 10, 0.45);
+
+    /* ─── Text (§3.1) — darkened in v2.0 for higher contrast ─── */
+    --text-1: #171717;
+    --text-2: #404040;
+    --text-3: #595959;
+    --text-4: #6e6e6e;
+    /* chart axis labels only */
+    --text-disabled: #a3a3a3;
+    --text-inverse: #ffffff;
+
+    /* ─── Borders (§3.1) ─── */
+    --border-hairline: #e5e5e5;
+    --border-strong-token: #d4d4d4;
+    --border-hover-token: #a3a3a3;
+
+    /* ─── Brand indigo (§3.2) — action layer, never a wash ─── */
+    --brand-primary: #5b4fe9;
+    --brand-primary-hover: #4338ca;
+    --brand-primary-active: #3730a3;
+    --brand-primary-ink: #4338ca;
+    --brand-primary-ring: rgba(91, 79, 233, 0.12);
+
+    /* ─── AI coral (§3.2, §16) — evaluations module + AI identity ─── */
+    --ai: #ff6b4a;
+    --ai-hover: #ff8261;
+    --ai-pressed: #ff9a7d;
+    --ai-ink: #c2410c;
+    --ai-ink-strong: #9a3412;
+    --ai-wash: #fef1ec;
+    --ai-wash-2: #fde2d7;
+    --ai-border: #f5bfa8;
+
+    /* ─── Module color families (§3.3) — territory, 6 tokens each ─── */
+    --jobs-base: #1b8fd1;
+    --jobs-ink: #0e6fa8;
+    --jobs-ink-strong: #0a5580;
+    --jobs-wash: #eef7fc;
+    --jobs-wash-2: #dceef9;
+    --jobs-border: #a9d4ec;
+
+    --candidates-base: #0e9f6e;
+    --candidates-ink: #087a54;
+    --candidates-ink-strong: #065f46;
+    --candidates-wash: #ecf8f2;
+    --candidates-wash-2: #d7f0e4;
+    --candidates-border: #a3dbc2;
+
+    --interviews-base: #e08a1e;
+    --interviews-ink: #a96300;
+    --interviews-ink-strong: #7c4a02;
+    --interviews-wash: #fef6e8;
+    --interviews-wash-2: #fcebcf;
+    --interviews-border: #f0d2a0;
+
+    --reports-base: #159f96;
+    --reports-ink: #0f766e;
+    --reports-ink-strong: #0b5f59;
+    --reports-wash: #ecf7f6;
+    --reports-wash-2: #d9efed;
+    --reports-border: #a8d8d3;
+
+    --settings-base: #525252;
+    --settings-ink: #404040;
+    --settings-ink-strong: #171717;
+    --settings-wash: #f4f4f5;
+    --settings-wash-2: #e9e9ea;
+    --settings-border: #d4d4d4;
+
+    /* Dashboard is indigo, fill only — no wash, no wash-2 (§3.3) */
+
+    /* ─── Semantic state colors (§3.4) ─── */
+    --success: #059669;
+    --success-ink: #047857;
+    --success-wash: #edf7f1;
+    --success-border: #bbe5cd;
+
+    --info: #0284c7;
+    --info-ink: #0369a1;
+    --info-wash: #eff6fc;
+    --info-border: #bddcf0;
+
+    --warning: #d97706;
+    --warning-ink: #b45309;
+    --warning-wash: #fdf6ea;
+    --warning-border: #f5daa8;
+
+    --error-token: #dc2626;
+    --error-ink: #b91c1c;
+    --error-active-token: #991b1b;
+    --error-wash: #fdf0f0;
+    --error-border: #f5c2c2;
+
+    /* ─── Chart categorical order (§18.1) ─── */
+    --chart-1: #5b4fe9;
+    --chart-2: #159f96;
+    --chart-3: #e08a1e;
+    --chart-4: #1b8fd1;
+    --chart-5: #0e9f6e;
+    --chart-6: #a3a3a3;
+    --chart-ai: #ff6b4a;
+    --chart-grid: #ebebeb;
+    --chart-axis-line: #e5e5e5;
+    --chart-seq-1: #5b4fe9;
+    --chart-seq-2: #7a70ee;
+    --chart-seq-3: #9c95f3;
+    --chart-seq-4: #c0bbf8;
+
+    /* ─── Radius (§5.2) ─── */
+    --r-xs: 4px;
+    --r-sm: 6px;
+    --r-md: 8px;
+    --r-lg: 12px;
+    --r-xl: 16px;
+    --r-pill: 9999px;
+
+    /* ─── Elevation (§5.3) — borders define edges, shadow is rare ─── */
+    --shadow-token-sm: 0 1px 2px rgba(16, 24, 40, 0.05);
+    --shadow-token-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+    --shadow-token-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
+    --shadow-token-xl: 0 16px 48px rgba(16, 24, 40, 0.16);
+
+    /* ─── Z-index scale (§5.4) — every layered element uses one of these ─── */
+    --z-base: 0;
+    --z-sticky: 10;
+    --z-savebar: 20;
+    --z-sidebar: 30;
+    --z-topbar: 40;
+    --z-dropdown: 50;
+    --z-drawer-backdrop: 55;
+    --z-drawer: 60;
+    --z-modal-backdrop: 70;
+    --z-modal: 71;
+    --z-toast: 80;
+    --z-tooltip: 90;
+    --z-command: 100;
+
+    /* ─── Motion (§20) ─── */
+    --dur-fast: 120ms;
+    --dur-snap: 160ms;
+    --dur-base: 200ms;
+    --dur-slow: 240ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+    /* ─── Spacing (§5.1) — strict 4px scale ─── */
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 20px;
+    --sp-6: 24px;
+    --sp-8: 32px;
+    --sp-10: 40px;
+    --sp-16: 64px;
+
+    /* ─── Type (§4) ─── */
+    --font-sans-token: 'Geist Sans', -apple-system, system-ui, sans-serif;
+    --font-mono-token: 'Geist Mono', 'SF Mono', ui-monospace, monospace;
+
+    /* ═══════════════════════════════════════════════════════════
+       Compatibility aliases — every token name already consumed
+       across the app resolves onto the v2.0 values above, so no
+       component needs to change to inherit the new system.
+       ═══════════════════════════════════════════════════════════ */
+
+    --background-100: var(--surface-page);
+    --background-200: var(--canvas);
+    --background: var(--canvas);
+    --surface: var(--surface-page);
+    --surface-foreground: var(--text-1);
+    --foreground: var(--text-1);
+    --heading: var(--text-1);
+    --body: var(--text-1);
+    --muted: var(--text-2);
+    --muted-foreground: var(--text-2);
+    --muted-bg: var(--surface-2);
+
+    --border: var(--border-hairline);
+    --border-strong: var(--border-strong-token);
+    --border-hover: var(--border-hover-token);
+    --input: var(--border-strong-token);
+    --ring: var(--brand-primary);
+
+    /* "Primary" is brand indigo — the action layer (§1.1, §3.2). */
+    --primary: var(--brand-primary);
+    --primary-hover: var(--brand-primary-hover);
+    --primary-active: var(--brand-primary-active);
+    --primary-ink: var(--brand-primary-ink);
+    --primary-foreground: var(--text-inverse);
+    /* No primary-light token by design — a soft background is always
+       neutral --surface-2, never a tinted indigo (§2, "no lavender"). */
+    --primary-soft: var(--surface-2);
+
+    --secondary: var(--surface-page);
+    --secondary-foreground: var(--text-1);
+
+    /* AI is coral, not purple (§3.2, §16). */
+    --accent-ai: var(--ai);
+    --accent-ai-hover: var(--ai-hover);
+
+    --indigo-900: var(--brand-primary-active);
+    --indigo-700: var(--brand-primary);
+    --indigo-500: var(--chart-seq-2);
+    --indigo-300: var(--chart-seq-3);
+    --indigo-100: var(--chart-seq-4);
+
+    --success-foreground: var(--text-inverse);
+    --warning-foreground: var(--text-inverse);
+    --error: var(--error-token);
+    --error-active: var(--error-active-token);
+    --error-foreground: var(--text-inverse);
+    --info-foreground: var(--text-inverse);
+
+    --card-hover: var(--surface-2);
+    --active-menu-bg: var(--surface-2);
+    --error-banner-bg: var(--error-wash);
+    --success-toast-bg: var(--success-wash);
+
+    --panel-gradient-1: #000000;
+    --panel-gradient-2: #0a0a0a;
+    --panel-gradient-3: #171717;
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-bg-strong: rgba(255, 255, 255, 0.12);
+
+    --hero-from: var(--canvas);
+    --hero-via: var(--surface-2);
+    --hero-to: var(--canvas);
+
+    --radius-xs: var(--r-xs);
+    --radius-sm: var(--r-sm);
+    --radius-md: var(--r-md);
+    --radius-lg: var(--r-lg);
+    --radius-xl: var(--r-xl);
+    --radius-full: var(--r-pill);
+
+    --shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    --shadow-card: var(--shadow-token-sm);
+    --shadow-sm: var(--shadow-token-sm);
+    --shadow-md: var(--shadow-token-md);
+    --shadow-lg: var(--shadow-token-lg);
+    --shadow-xl: var(--shadow-token-xl);
+    --shadow-glow: none;
+    /* Focus (§21.2) — 2px outline at 2px offset, achieved with a double
+       box-shadow so the outline-killing rules below (needed for
+       :focus/:focus-visible parity) still produce a visible indigo ring. */
+    --focus-ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--brand-primary);
+
+    --height-sm: 32px;
+    --height-md: 40px;
+    --height-lg: 48px;
+    --nav-item-height: 36px;
+
+    /* Retained raw ramps (styleguide reference only — no component reads
+       these for state or territory; module and semantic tokens above are
+       the source of truth for meaning). */
     --gray-100: #f2f2f2;
     --gray-200: #ebebeb;
     --gray-300: #e6e6e6;
@@ -58,115 +321,181 @@
     --purple-700: #8e4ec6;
     --purple-900: #793aaf;
 
-    /* ─── Semantic aliases (§21 migration) ───
-       Existing component classes keep working; only the values change. */
-
-    /* "Primary" is now the ink, not a brand hue. */
-    --primary: var(--gray-1000);
-    --primary-hover: var(--gray-900);
-    --primary-soft: var(--gray-300);
-    --primary-foreground: var(--background-100);
-    --secondary: var(--gray-1000);
-    --secondary-foreground: var(--background-100);
-
-    /* AI is marked by form, not hue (§16). Purple only as dot/numeral. */
-    --accent-ai: var(--purple-700);
-    --accent-ai-hover: var(--purple-900);
-
-    --indigo-900: var(--gray-1000);
-    --indigo-700: var(--gray-900);
-    --indigo-500: var(--gray-700);
-    --indigo-300: var(--gray-500);
-    --indigo-100: var(--gray-100);
-
-    /* Surfaces — the page and sidebar share one surface (§11). */
-    --background: var(--background-100);
-    --surface: var(--background-100);
-    --surface-foreground: var(--gray-1000);
-    --border: var(--gray-400);
-    --border-strong: var(--gray-500);
-    --input: var(--gray-400);
-    --ring: var(--blue-700);
-
-    /* Text — three tiers only (§4). */
-    --heading: var(--gray-1000);
-    --body: var(--gray-1000);
-    --muted: var(--gray-900);
-
-    --success: var(--green-700);
-    --success-foreground: #ffffff;
-    --warning: var(--amber-700);
-    --warning-foreground: #ffffff;
-    --error: var(--red-700);
-    --error-foreground: #ffffff;
-    --info: var(--blue-700);
-    --info-foreground: #ffffff;
-
-    --card-hover: var(--gray-100);
-    --active-menu-bg: var(--gray-100);
-    --error-banner-bg: var(--red-100);
-    --success-toast-bg: var(--green-100);
-
-    --panel-gradient-1: #000000;
-    --panel-gradient-2: #0a0a0a;
-    --panel-gradient-3: #171717;
-    --glass-bg: rgba(255, 255, 255, 0.08);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-bg-strong: rgba(255, 255, 255, 0.12);
-
-    /* Hero bands are tonal, not brand-tinted. */
-    --hero-from: var(--background-200);
-    --hero-via: var(--gray-100);
-    --hero-to: var(--background-200);
-
-    /* Shape — 6px on nearly everything (§6). */
-    --radius-sm: 6px;
-    --radius-md: 6px;
-    --radius-lg: 6px;
-    --radius-xl: 8px;
-    --radius-full: 9999px;
-
-    /* Elevation — hairline ring carries the edge (§7). */
-    --shadow-border: 0 0 0 1px rgba(0, 0, 0, 0.08);
-    --shadow-card: 0 2px 2px rgba(0, 0, 0, 0.04);
-    --shadow-sm: 0 2px 2px rgba(0, 0, 0, 0.04);
-    --shadow-md:
-      0 1px 1px rgba(0, 0, 0, 0.02), 0 4px 8px -4px rgba(0, 0, 0, 0.04),
-      0 16px 24px -8px rgba(0, 0, 0, 0.06);
-    --shadow-lg: var(--shadow-md);
-    --shadow-xl:
-      0 1px 1px rgba(0, 0, 0, 0.02), 0 8px 16px -4px rgba(0, 0, 0, 0.04),
-      0 24px 32px -8px rgba(0, 0, 0, 0.06);
-    --shadow-glow: none;
-    /* The ring is the ink, not blue. The doc's §8 default is blue-700, but the
-       achromatic shell reads better with a near-black ring — it matches the
-       primary button and the rich-text editor's focused frame. */
-    --focus-ring: 0 0 0 2px var(--background-100), 0 0 0 4px var(--gray-1000);
-
-    /* Sizing */
-    --height-sm: 32px;
-    --height-md: 40px;
-    --height-lg: 48px;
-    --nav-item-height: 36px;
-
     /* shadcn compat */
-    --foreground: var(--heading);
-    --muted-foreground: var(--muted);
-    --muted-bg: var(--gray-100);
-    --card: var(--surface);
-    --card-foreground: var(--surface-foreground);
-    --popover: var(--surface);
-    --popover-foreground: var(--surface-foreground);
-    --accent: var(--active-menu-bg);
-    --accent-foreground: var(--gray-1000);
+    --card: var(--surface-page);
+    --card-foreground: var(--text-1);
+    --popover: var(--surface-page);
+    --popover-foreground: var(--text-1);
+    --accent: var(--surface-hover);
+    --accent-foreground: var(--primary);
     --destructive: var(--error);
     --destructive-foreground: var(--error-foreground);
-    --radius: var(--radius-sm);
+    --radius: var(--r-md);
   }
 
   .dark {
-    --background-100: #0a0a0a;
-    --background-200: #000000;
+    /* ─── Dark mode (§22) — full token remap, not an inversion ─── */
+    --canvas: #0a0a0a;
+    --surface-page: #141414;
+    --surface-2: #1c1c1c;
+    --surface-hover: #232323;
+    --surface-sunken: #181818;
+    --overlay: rgba(0, 0, 0, 0.65);
+
+    --border-hairline: #2a2a2a;
+    --border-strong-token: #3a3a3a;
+    --border-hover-token: #52525b;
+
+    --text-1: #f5f5f5;
+    --text-2: #c4c4c4;
+    --text-3: #9e9e9e;
+    --text-4: #8a8a8a;
+    --text-disabled: #5c5c5c;
+    --text-inverse: #0a0a0a;
+
+    --brand-primary: #7c71f0;
+    --brand-primary-hover: #9188f3;
+    --brand-primary-active: #a79ef6;
+    --brand-primary-ink: #a79ef6;
+    --brand-primary-ring: rgba(124, 113, 240, 0.18);
+
+    --ai: #ff8266;
+    --ai-hover: #ff9b84;
+    --ai-pressed: #ffb09c;
+    --ai-ink: #ffa98f;
+    --ai-ink-strong: #ffc4b0;
+    --ai-wash: #2a1710;
+    --ai-wash-2: #371b0c;
+    --ai-border: #45210f;
+
+    --jobs-base: #7fc4ee;
+    --jobs-ink: #7fc4ee;
+    --jobs-ink-strong: #a9d9f4;
+    --jobs-wash: #0c1d28;
+    --jobs-wash-2: #12293a;
+    --jobs-border: #1c3a4d;
+
+    --candidates-base: #6edbb0;
+    --candidates-ink: #6edbb0;
+    --candidates-ink-strong: #9fe8cb;
+    --candidates-wash: #0a1f18;
+    --candidates-wash-2: #0f2c22;
+    --candidates-border: #16382c;
+
+    --interviews-base: #f0b95c;
+    --interviews-ink: #f0b95c;
+    --interviews-ink-strong: #f5d191;
+    --interviews-wash: #241a08;
+    --interviews-wash-2: #30240c;
+    --interviews-border: #3d2e10;
+
+    --reports-base: #5fd3ca;
+    --reports-ink: #5fd3ca;
+    --reports-ink-strong: #93e2db;
+    --reports-wash: #08201e;
+    --reports-wash-2: #0d2d2a;
+    --reports-border: #123a36;
+
+    --settings-base: #c4c4c4;
+    --settings-ink: #c4c4c4;
+    --settings-ink-strong: #f5f5f5;
+    --settings-wash: #1c1c1c;
+    --settings-wash-2: #232323;
+    --settings-border: #2a2a2a;
+
+    --success: #10b981;
+    --success-ink: #6ee7b7;
+    --success-wash: #0a2018;
+    --success-border: #14452f;
+
+    --info: #38bdf8;
+    --info-ink: #7dd3fc;
+    --info-wash: #08202e;
+    --info-border: #0e3d57;
+
+    --warning: #f59e0b;
+    --warning-ink: #fcd34d;
+    --warning-wash: #241a08;
+    --warning-border: #4a3410;
+
+    --error-token: #ef4444;
+    --error-ink: #fca5a5;
+    --error-active-token: #b91c1c;
+    --error-wash: #2a0e0e;
+    --error-border: #571c1c;
+
+    --chart-1: #7c71f0;
+    --chart-2: #5fd3ca;
+    --chart-3: #f0b95c;
+    --chart-4: #7fc4ee;
+    --chart-5: #6edbb0;
+    --chart-6: #5c5c5c;
+    --chart-ai: #ff8266;
+    --chart-grid: #262626;
+    --chart-axis-line: #2a2a2a;
+
+    /* Compat aliases, dark values */
+    --background-100: var(--surface-page);
+    --background-200: var(--canvas);
+    --background: var(--canvas);
+    --surface: var(--surface-page);
+    --surface-foreground: var(--text-1);
+    --foreground: var(--text-1);
+    --heading: var(--text-1);
+    --body: var(--text-1);
+    --muted: var(--text-2);
+    --muted-foreground: var(--text-2);
+    --muted-bg: var(--surface-2);
+
+    --border: var(--border-hairline);
+    --border-strong: var(--border-strong-token);
+    --border-hover: var(--border-hover-token);
+    --input: var(--border-strong-token);
+    --ring: var(--brand-primary);
+
+    --primary: var(--brand-primary);
+    --primary-hover: var(--brand-primary-hover);
+    --primary-active: var(--brand-primary-active);
+    --primary-ink: var(--brand-primary-ink);
+    --primary-foreground: var(--text-inverse);
+    --primary-soft: var(--surface-2);
+
+    --secondary: var(--surface-page);
+    --secondary-foreground: var(--text-1);
+
+    --accent-ai: var(--ai);
+    --accent-ai-hover: var(--ai-hover);
+
+    --success-foreground: var(--text-inverse);
+    --warning-foreground: var(--text-inverse);
+    --error: var(--error-token);
+    --error-active: var(--error-active-token);
+    --error-foreground: var(--text-inverse);
+    --info-foreground: var(--text-inverse);
+
+    --card-hover: var(--surface-2);
+    --active-menu-bg: var(--surface-2);
+    --error-banner-bg: var(--error-wash);
+    --success-toast-bg: var(--success-wash);
+
+    --panel-gradient-1: #000000;
+    --panel-gradient-2: #0a0a0a;
+    --panel-gradient-3: #1a1a1a;
+
+    --hero-from: var(--surface-2);
+    --hero-via: var(--surface-hover);
+    --hero-to: var(--surface-2);
+
+    /* Shadows do less on near-black; borders matter more (§22, "do not
+       simply invert light mode" — half the opacity, keep the border). */
+    --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --shadow-card: none;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
+    --shadow-glow: none;
+    --focus-ring: 0 0 0 2px var(--surface-page), 0 0 0 4px var(--brand-primary);
 
     --gray-100: #1a1a1a;
     --gray-200: #1f1f1f;
@@ -200,32 +529,6 @@
     --green-900: #62c073;
     --purple-700: #8e4ec6;
     --purple-900: #bf7af0;
-
-    /* Polarity flips: the primary button is near-white ink (§3.1). */
-    --primary: var(--gray-1000);
-    --primary-hover: var(--gray-900);
-    --primary-foreground: var(--background-100);
-    --secondary: var(--gray-1000);
-    --secondary-foreground: var(--background-100);
-
-    --success-foreground: var(--background-100);
-    --warning-foreground: var(--background-100);
-    --error-foreground: #ffffff;
-    --info-foreground: #ffffff;
-
-    --panel-gradient-1: #000000;
-    --panel-gradient-2: #0a0a0a;
-    --panel-gradient-3: #1a1a1a;
-
-    --hero-from: var(--gray-100);
-    --hero-via: var(--gray-200);
-    --hero-to: var(--gray-100);
-
-    /* Shadows do nothing on near-black; the hairline defines every edge. */
-    --shadow-border: 0 0 0 1px rgba(255, 255, 255, 0.08);
-    --shadow-card: none;
-    --shadow-sm: none;
-    --shadow-glow: none;
   }
 }
 
@@ -240,7 +543,7 @@
   body {
     background-color: var(--background);
     color: var(--body);
-    /* Geist ships no cv11/ss01 alternates; ligatures only (§5). */
+    /* Geist ships no cv11/ss01 alternates; ligatures only (§4). */
     font-feature-settings: "liga" 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -256,22 +559,29 @@
     font-weight: 600;
   }
   ::selection {
-    background-color: var(--gray-200);
+    background-color: var(--surface-2);
   }
 
-  /* §8: a disabled button is a gray-100 fill with gray-700 text — not the
-     solid ink fill at reduced opacity, which still reads as the main action. */
+  /* §9.2: a disabled filled button is a surface-2 fill with disabled text —
+     not the variant's own fill at reduced opacity, which still reads as
+     the main action. Scoped to .bg-primary/.bg-ai/.bg-error so Radix
+     controls that render as <button> (switch, checkbox, tab) keep their
+     own disabled treatment instead of being forced into a flat fill. */
   button:disabled.bg-primary,
   button[disabled].bg-primary,
-  a[aria-disabled="true"].bg-primary {
-    background-color: var(--gray-100) !important;
-    color: var(--gray-700) !important;
+  a[aria-disabled="true"].bg-primary,
+  button:disabled.bg-ai,
+  button[disabled].bg-ai,
+  button:disabled.bg-error,
+  button[disabled].bg-error {
+    background-color: var(--surface-2) !important;
+    color: var(--text-disabled) !important;
     box-shadow: none !important;
     opacity: 1 !important;
     cursor: not-allowed;
   }
 
-  /* ── One focus treatment, everywhere (§8, §9, §19) ──
+  /* ── One focus treatment, everywhere (§21.2) ──
      Components had drifted into two competing patterns — buttons used
      `ring-primary`, while inputs used `ring-primary/10` plus `border-primary`,
      which rendered as a washed-out halo. Driving focus from the token here
@@ -321,33 +631,44 @@
     border-color: var(--border);
   }
 
-  /* An invalid field keeps its red border under the blue ring. */
+  /* An invalid field keeps its red border under the indigo ring. */
   :where(input, select, textarea)[aria-invalid="true"]:focus-visible {
-    border-color: var(--red-700);
+    border-color: var(--error-token);
+  }
+
+  /* §11.1: a white card on the near-identical --canvas background is easy
+     to lose entirely if it carries only a hairline border and no shadow —
+     the two surfaces sit within 2% luminance of each other. A shadow-sm
+     lift (an explicitly allowed treatment) is what actually separates the
+     two in practice; this is one rule instead of touching every card
+     wrapper in the app individually. */
+  .border-border.bg-surface {
+    box-shadow: var(--shadow-sm);
   }
 }
 
 @layer utilities {
-  /* Numbers that must align vertically down a column (§2). */
+  /* Numbers that must align vertically down a column (§4 KPI/score values). */
   .tabular {
     font-variant-numeric: tabular-nums;
   }
-  /* Identifiers, scores, timestamps — never a whole sentence. */
+  /* Identifiers, scores, timestamps — never a whole sentence (§4, §5). */
   .mono {
     font-family:
       var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
   }
-  /* The one decorative typographic move the system allows (§5). */
+  /* The one decorative typographic move the system allows — 11px uppercase
+     micro-labels, +0.04em tracking (§4, §8.1). */
   .eyebrow {
-    font-family: var(--font-geist-mono), ui-monospace, monospace;
-    font-size: 12px;
+    font-family: var(--font-geist-sans), -apple-system, sans-serif;
+    font-size: 11px;
     line-height: 16px;
     font-weight: 500;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: var(--gray-900);
+    color: var(--text-3);
   }
-  /* Hairline ring instead of a CSS border — no layout shift on hover (§7). */
+  /* Hairline ring instead of a CSS border — no layout shift on hover (§5.3). */
   .ring-hairline {
     box-shadow: var(--shadow-border);
   }
@@ -370,6 +691,18 @@
   }
   to {
     transform: translateX(0);
+  }
+}
+
+/* AI processing indicator (§15, §16) — a 2px coral top border animating
+   left to right, the only gradient-style animation in the system, and
+   only while a job is genuinely running. */
+@keyframes aiProcessing {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 200% 0;
   }
 }
 

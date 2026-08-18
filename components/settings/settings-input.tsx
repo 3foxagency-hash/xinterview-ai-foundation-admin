@@ -21,7 +21,7 @@ export const SettingsInput = React.forwardRef<HTMLInputElement, SettingsInputPro
             {label}
           </label>
         )}
-        <div className="flex h-10 w-full items-center rounded-md border border-border bg-background transition-all focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 hover:border-border-strong">
+        <div className="flex h-10 w-full items-center rounded-md border border-border-strong bg-surface transition-all focus-within:border-primary focus-within:ring-[3px] focus-within:ring-primary/[0.12] hover:border-border-hover">
           {prefix && (
             <span className="flex h-full shrink-0 items-center border-r border-border bg-muted-bg px-3 text-body-sm text-muted">
               {prefix}

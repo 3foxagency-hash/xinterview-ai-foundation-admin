@@ -334,10 +334,10 @@ export default function CareerPage() {
                 aria-invalid={metaDescOver}
                 aria-describedby="meta-description-count"
                 className={cn(
-                  'w-full rounded-lg border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all',
+                  'w-full rounded-lg border bg-surface px-3 py-2 text-body text-heading placeholder:text-muted transition-all',
                   metaDescOver
                     ? 'border-error'
-                    :'border-border hover:border-border-strong'
+                    :'border-border-strong hover:border-border-hover'
                 )}
               />
               {metaDescOver && (
@@ -420,7 +420,7 @@ function ShareField({
   return (
     <div className="min-w-0">
       <p className="mb-1.5 text-body-sm font-medium text-heading">{label}</p>
-      <div className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2">
+      <div className="flex items-center gap-2 rounded-lg border border-border-strong bg-surface-sunken px-3 py-2">
         <Icon size={14} className="shrink-0 text-muted" aria-hidden />
         <span
           className={cn(

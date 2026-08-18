@@ -25,12 +25,12 @@ import {
 } from '@/lib/api/reports';
 import { getSettingsErrorMessage } from '@/lib/errors/settings-messages';
 
-// §14: charts default to a gray monochrome ramp with one blue focal series.
-// "Responded" is the series that carries the argument, so it takes the blue;
-// "Invited" is the context line in near-black/near-white.
+// §18: "Responded" is the series that carries the argument, so it takes
+// --chart-1 (indigo, the default first series); "Invited" is the context
+// line and stays on --text (near-black/near-white across themes).
 const SERIES = {
-  invited: { light: '#171717', dark: '#ededed', label: 'Invited' },
-  responded: { light: '#006bff', dark: '#0072f5', label: 'Responded' },
+  invited: { var: '--text-1', label: 'Invited' },
+  responded: { var: '--chart-1', label: 'Responded' },
 };
 
 type TooltipPayload = { name?: string; value?: number; color?: string };
@@ -79,14 +79,22 @@ export default function ReportsPage() {
   const [jobs, setJobs] = React.useState<string[]>([]);
   const [data, setData] = React.useState<ReportData | null>(null);
   const [loading, setLoading] = React.useState(true);
-  const [dark, setDark] = React.useState(false);
+  const [chartColors, setChartColors] = React.useState({ invited: '#171717', responded: '#5b4fe9' });
 
-  // Recharts needs concrete colours, so read the active theme rather than
-  // relying on CSS custom properties inside the SVG.
+  // Recharts needs concrete colours, not `var(--x)` strings, so this reads
+  // the tokens' live computed values instead of duplicating their hex here.
+  // A theme flip (or any future change to the tokens themselves) is picked
+  // up automatically — there is nothing in this file to keep in sync.
   React.useEffect(() => {
-    const check = () => setDark(document.documentElement.classList.contains('dark'));
-    check();
-    const mo = new MutationObserver(check);
+    const readColors = () => {
+      const styles = getComputedStyle(document.documentElement);
+      setChartColors({
+        invited: styles.getPropertyValue(SERIES.invited.var).trim(),
+        responded: styles.getPropertyValue(SERIES.responded.var).trim(),
+      });
+    };
+    readColors();
+    const mo = new MutationObserver(readColors);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
     return () => mo.disconnect();
   }, []);
@@ -138,8 +146,8 @@ export default function ReportsPage() {
   if (loading && !data) return <ReportsSkeleton />;
   if (!data) return null;
 
-  const invitedColor = dark ? SERIES.invited.dark : SERIES.invited.light;
-  const respondedColor = dark ? SERIES.responded.dark : SERIES.responded.light;
+  const invitedColor = chartColors.invited;
+  const respondedColor = chartColors.responded;
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1100px] px-4 py-8 sm:px-6 lg:px-8">

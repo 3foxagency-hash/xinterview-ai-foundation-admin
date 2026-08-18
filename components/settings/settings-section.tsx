@@ -19,8 +19,8 @@ export function SettingsSection({ title, description, danger, children }: Settin
       )}
       <div
         className={cn(
-          'mt-4 overflow-hidden rounded-lg border bg-surface',
-          danger ? 'border-error' : 'border-border'
+          'mt-4 overflow-hidden rounded-lg border bg-surface shadow-sm',
+          danger ? 'border-error' : 'border-border-strong'
         )}
       >
         {children}

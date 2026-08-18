@@ -152,7 +152,7 @@ export function ApiKeyDialog({ open, onOpenChange, onCreate }: ApiKeyDialogProps
                   type="date"
                   value={expiresAt}
                   onChange={(e) => setExpiresAt(e.target.value)}
-                  className="h-10 w-full rounded-md border border-border bg-background px-3 text-body text-heading transition-all hover:border-border-strong"
+                  className="h-10 w-full rounded-md border border-border-strong bg-surface px-3 text-body text-heading transition-all hover:border-border-hover"
                 />
                 <p className="mt-1 text-body-sm text-muted">
                   Leave blank for a key that never expires.

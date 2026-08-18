@@ -17,8 +17,8 @@ const brandSwatches: Swatch[] = [
 ];
 
 const aiSwatches: Swatch[] = [
-  { name: 'Accent AI (AI-only)', varName: '--accent-ai', className: 'bg-accent-ai', textOn: 'text-white' },
-  { name: 'Accent AI Hover', varName: '--accent-ai-hover', className: 'bg-accent-ai-hover', textOn: 'text-white' },
+  { name: 'Accent AI (AI-only)', varName: '--accent-ai', className: 'bg-accent-ai', textOn: 'text-text-inverse' },
+  { name: 'Accent AI Hover', varName: '--accent-ai-hover', className: 'bg-accent-ai-hover', textOn: 'text-text-inverse' },
 ];
 
 const surfaceSwatches: Swatch[] = [
@@ -32,9 +32,9 @@ const surfaceSwatches: Swatch[] = [
 ];
 
 const textSwatches: Swatch[] = [
-  { name: 'Heading', varName: '--heading', className: 'bg-heading', textOn: 'text-white' },
-  { name: 'Body', varName: '--body', className: 'bg-body', textOn: 'text-white' },
-  { name: 'Muted', varName: '--muted', className: 'bg-muted', textOn: 'text-white' },
+  { name: 'Heading', varName: '--heading', className: 'bg-heading', textOn: 'text-text-inverse' },
+  { name: 'Body', varName: '--body', className: 'bg-body', textOn: 'text-text-inverse' },
+  { name: 'Muted', varName: '--muted', className: 'bg-muted', textOn: 'text-text-inverse' },
 ];
 
 const statusSwatches: Swatch[] = [

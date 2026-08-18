@@ -167,7 +167,7 @@ export default function ProfilePage() {
                     value={profile.bio}
                     onChange={(e) => update('bio', e.target.value)}
                     placeholder="A short introduction for your teammates."
-                    className="w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
+                    className="w-full resize-y rounded-lg border border-border-strong bg-surface px-3 py-2 text-body text-heading placeholder:text-muted transition-all hover:border-border-hover"
                   />
                 </Field>
               </div>
@@ -270,7 +270,7 @@ function IdentityCard({
             )}
             {busy && (
               <span className="absolute inset-0 flex items-center justify-center bg-heading/40">
-                <Loader2 size={20} className="animate-spin text-white" />
+                <Loader2 size={20} className="animate-spin text-text-inverse" />
               </span>
             )}
           </div>
@@ -413,7 +413,7 @@ function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-strong"
+      className="h-10 w-full rounded-lg border border-border-strong bg-surface px-3 text-body text-heading placeholder:text-muted transition-all hover:border-border-hover"
     />
   );
 }

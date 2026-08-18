@@ -73,10 +73,10 @@ export function SettingsSubNav({
                         ? 'h-10 w-10 justify-center'
                         : 'h-9 w-full gap-2 px-3',
                       isActive
-                        ? 'bg-active-menu-bg font-medium text-primary'
+                        ? 'bg-primary font-medium text-primary-foreground hover:bg-primary-hover'
                         : item.danger
                           ? 'text-error hover:bg-card-hover'
-                          : 'text-bodyText hover:bg-card-hover'
+                          : 'text-muted hover:bg-surface-hover hover:text-heading'
                     )}
                   >
                     <Icon size={16} strokeWidth={isActive ? 2 : 1.5} className="shrink-0" />
@@ -137,10 +137,10 @@ function StripNav({ pathname, groups }: { pathname: string; groups: SettingsNavG
               className={cn(
                 'inline-flex shrink-0 items-center gap-1.5 rounded-md px-3 py-1.5 text-body-sm font-medium transition-colors',
                 isActive
-                  ? 'bg-active-menu-bg text-primary'
+                  ? 'bg-primary text-primary-foreground hover:bg-primary-hover'
                   : item.danger
                     ? 'text-error hover:bg-card-hover'
-                    : 'text-bodyText hover:bg-card-hover hover:text-heading'
+                    : 'text-muted hover:bg-surface-hover hover:text-heading'
               )}
             >
               <Icon size={14} strokeWidth={isActive ? 2 : 1.5} className="shrink-0" />

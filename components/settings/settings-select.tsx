@@ -54,9 +54,9 @@ export function SettingsSelect({
           }
         }}
         className={cn(
-          'flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 text-body transition-all',
-          'hover:border-border-strong',
-          error ? 'border-error' : 'border-border',
+          'flex h-10 w-full items-center justify-between rounded-md border bg-surface px-3 text-body transition-all',
+          'hover:border-border-hover',
+          error ? 'border-error' : 'border-border-strong',
           !selectedOption && 'text-muted'
         )}
       >

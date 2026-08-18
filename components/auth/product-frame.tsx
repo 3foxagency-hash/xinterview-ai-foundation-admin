@@ -32,9 +32,9 @@ function AnimatedScore({ target }: { target: number }) {
 }
 
 const stats = [
-  { icon: Users, label: 'Active candidates', value: '1,247', color: 'text-indigo-200' },
-  { icon: CheckCircle2, label: 'Interviews this week', value: '89', color: 'text-emerald-200' },
-  { icon: Clock, label: 'Avg. time to hire', value: '11 days', color: 'text-blue-200' },
+  { icon: Users, label: 'Active candidates', value: '1,247', color: 'text-chart-seq-3' },
+  { icon: CheckCircle2, label: 'Interviews this week', value: '89', color: 'text-success' },
+  { icon: Clock, label: 'Avg. time to hire', value: '11 days', color: 'text-info' },
 ];
 
 export function ProductFrame() {
@@ -57,7 +57,7 @@ export function ProductFrame() {
           >
             <stat.icon size={20} strokeWidth={1.5} className={stat.color} />
             <p className="mt-3 text-h3 font-bold text-white">{stat.value}</p>
-            <p className="mt-0.5 text-[13px] leading-tight text-indigo-100/60">{stat.label}</p>
+            <p className="mt-0.5 text-[13px] leading-tight text-white/60">{stat.label}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -76,16 +76,16 @@ export function ProductFrame() {
             </div>
             <div>
               <span className="block text-body font-semibold text-white">AI Evaluation Engine</span>
-              <span className="text-[13px] text-indigo-100/60">Real-time candidate analysis</span>
+              <span className="text-[13px] text-white/60">Real-time candidate analysis</span>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1">
+          <div className="flex items-center gap-1.5 rounded-full bg-success/20 px-3 py-1">
             <motion.span
               animate={{ scale: [1, 1.2, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="h-1.5 w-1.5 rounded-full bg-emerald-300"
+              className="h-1.5 w-1.5 rounded-full bg-success"
             />
-            <span className="text-[13px] font-medium text-emerald-100">Live</span>
+            <span className="text-[13px] font-medium text-success">Live</span>
           </div>
         </div>
 
@@ -98,7 +98,7 @@ export function ProductFrame() {
               transition={{ duration: 0.4, delay: 0.5 + idx * 0.1 }}
             >
               <div className="mb-2 flex items-center justify-between">
-                <span className="text-[14px] text-indigo-100/80">{item.label}</span>
+                <span className="text-[14px] text-white/80">{item.label}</span>
                 <span className="text-[14px] font-semibold text-white">
                   <AnimatedScore target={item.score} />
                 </span>
@@ -108,7 +108,7 @@ export function ProductFrame() {
                   initial={{ width: 0 }}
                   animate={{ width: `${item.score}%` }}
                   transition={{ duration: 1.5, delay: 0.6 + idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                  className="h-full rounded-full bg-gradient-to-r from-indigo-400 to-indigo-300"
+                  className="h-full rounded-full bg-gradient-to-r from-chart-seq-2 to-chart-seq-3"
                 />
               </div>
             </motion.div>
@@ -122,14 +122,14 @@ export function ProductFrame() {
           className="mt-6 flex items-center justify-between border-t border-white/10 pt-5"
         >
           <div className="flex items-center gap-2">
-            <TrendingUp size={16} strokeWidth={1.5} className="text-indigo-200" />
-            <span className="text-[14px] text-indigo-100/80">Overall Match Score</span>
+            <TrendingUp size={16} strokeWidth={1.5} className="text-chart-seq-3" />
+            <span className="text-[14px] text-white/80">Overall Match Score</span>
           </div>
           <div className="flex items-baseline gap-1">
             <span className="text-h2 font-bold text-white">
               <AnimatedScore target={90} />
             </span>
-            <span className="text-[14px] text-indigo-100/50">/ 100</span>
+            <span className="text-[14px] text-white/50">/ 100</span>
           </div>
         </motion.div>
       </motion.div>

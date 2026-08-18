@@ -34,12 +34,13 @@ export function NavItem({ item, expanded, showTooltip }: NavItemProps) {
         expanded
           ? 'h-9 w-full gap-2.5 px-3'
           : 'h-10 w-10 justify-center',
-        // Active  → tinted pill + indigo text, matching the settings sub-nav so
-        //           the two navigation levels read the same way.
+        // Active  → solid indigo pill, matching the settings sub-nav so the
+        //           two navigation levels read the same way (§8.1: active
+        //           navigation is a solid fill, never a tinted pill).
         // Hover   → subtle grey wash, no hue shift.
         isActive
-          ? 'bg-active-menu-bg text-primary'
-          : 'text-bodyText hover:bg-muted-bg hover:text-heading'
+          ? 'bg-primary text-primary-foreground hover:bg-primary-hover'
+          : 'text-muted hover:bg-surface-hover hover:text-heading'
       )}
     >
       <Icon
@@ -48,19 +49,16 @@ export function NavItem({ item, expanded, showTooltip }: NavItemProps) {
         className="shrink-0"
       />
       {expanded && (
-        <span className={cn(
-          'truncate text-body',
-          isActive ? 'font-semibold' : 'font-normal'
-        )}>
+        <span className="truncate text-body font-medium">
           {item.label}
         </span>
       )}
 
-      {/* Count badge — expanded: pill on right */}
+      {/* Count badge — expanded: pill on right (§8.1) */}
       {expanded && item.count !== undefined && item.count > 0 && (
         <span className={cn(
-          'ml-auto rounded-full px-2 py-0.5 text-caption font-semibold tabular-nums',
-          isActive ? 'bg-primary/10 text-primary' : 'bg-muted-bg text-muted-foreground'
+          'ml-auto flex h-[18px] items-center rounded-full px-2 text-[11px] font-medium tabular-nums',
+          isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-muted'
         )}>
           {item.count}
         </span>

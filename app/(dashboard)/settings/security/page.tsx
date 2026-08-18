@@ -357,8 +357,8 @@ function PasswordInput({
       autoComplete={autoComplete}
       aria-invalid={invalid || undefined}
       className={cn(
-        'h-10 w-full rounded-lg border bg-background px-3 text-body text-heading transition-all hover:border-border-strong',
-        invalid ? 'border-error' : 'border-border'
+        'h-10 w-full rounded-lg border bg-surface px-3 text-body text-heading transition-all hover:border-border-hover',
+        invalid ? 'border-error' : 'border-border-strong'
       )}
     />
   );

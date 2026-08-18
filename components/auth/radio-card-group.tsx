@@ -72,7 +72,7 @@ export function RadioCardGroup({
                 'relative flex flex-col items-start rounded-lg border px-3 py-3 text-left transition-all',
                 selected
                   ? 'border-primary bg-active-menu-bg'
-                  : 'border-border bg-background hover:border-border-strong'
+                  : 'border-border-strong bg-surface hover:border-border-hover'
               )}
             >
               {selected && (

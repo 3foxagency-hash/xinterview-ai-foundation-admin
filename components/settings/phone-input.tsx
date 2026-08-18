@@ -106,8 +106,8 @@ export function PhoneInput({
     <div className="w-full">
       <div
         className={cn(
-          'flex h-10 w-full items-center rounded-md border bg-background transition-all focus-within:ring-2 focus-within:ring-primary/10',
-          error ? 'border-error' : 'border-border focus-within:border-primary hover:border-border-strong'
+          'flex h-10 w-full items-center rounded-md border bg-surface transition-all focus-within:ring-[3px] focus-within:ring-primary/[0.12]',
+          error ? 'border-error' : 'border-border-strong focus-within:border-primary hover:border-border-hover'
         )}
       >
         {/* Country selector */}
@@ -146,7 +146,7 @@ export function PhoneInput({
                       placeholder="Search country or code"
                       aria-label="Search country"
                       autoFocus
-                      className="h-8 w-full rounded-md border border-border bg-background pl-8 pr-2 text-body-sm text-heading placeholder:text-muted"
+                      className="h-8 w-full rounded-md border border-border-strong bg-surface pl-8 pr-2 text-body-sm text-heading placeholder:text-muted"
                     />
                   </div>
                 </div>
