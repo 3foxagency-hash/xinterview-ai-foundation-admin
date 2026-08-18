@@ -1,4 +1,3 @@
-import { AUTH_ERROR_CODE } from './auth-contract';
 import type { AccountType, BusinessType } from './auth-contract';
 
 /**
@@ -106,10 +105,6 @@ let profile: UserProfile = {
   execCompanies: [],
 };
 
-export function getSession(): Session | null {
-  return session;
-}
-
 export function setSession(next: Session | null): void {
   session = next;
 }
@@ -183,30 +178,9 @@ export async function register(
   };
 }
 
-/** Exchanges the refresh token for a new access token. */
-export async function refreshSession(): Promise<string> {
-  await delay(200);
-  if (!session) throw { code: AUTH_ERROR_CODE.UNAUTHENTICATED, message: 'No session' };
-  session = { ...session, accessToken: ulid() };
-  return session.accessToken;
-}
-
 export async function getProfile(): Promise<UserProfile> {
   await delay(200);
   return { ...profile };
-}
-
-export async function getMyCompanies(): Promise<{
-  adminCompany: Company | null;
-  managedCompanies: Company[];
-  execCompanies: Company[];
-}> {
-  await delay(200);
-  return {
-    adminCompany: profile.adminCompany,
-    managedCompanies: profile.managedCompanies,
-    execCompanies: profile.execCompanies,
-  };
 }
 
 export async function forgotPassword(
@@ -231,10 +205,6 @@ export async function verifyOtp(
 }
 
 let pendingResetToken: string | null = null;
-
-export function getPendingResetToken(): string | null {
-  return pendingResetToken;
-}
 
 export async function resendOtp(
   email: string,
@@ -287,13 +257,6 @@ export async function joinWorkspace(
   await delay(500);
   profile = { ...profile, companyCreated: true };
   return { success: true };
-}
-
-/** Upserts the last-seen monitor. */
-export async function touchLastSeen(): Promise<{ expired: boolean }> {
-  await delay(100);
-  if (session) session.lastSeenMonitor = ulid();
-  return { expired: false };
 }
 
 /** Logout is client-side: the session is simply dropped. */

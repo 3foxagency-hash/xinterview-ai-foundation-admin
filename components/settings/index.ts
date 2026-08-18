@@ -5,7 +5,6 @@ export { SaveBar } from './save-bar';
 export { DangerZoneCard } from './danger-zone-card';
 export { RoleBadge } from './role-badge';
 export { StatusBadge } from './status-badge';
-export { ScopeIndicator } from './scope-indicator';
 export { SettingsSubNav } from './settings-sub-nav';
 export { SegmentedControl } from './segmented-control';
 export { SettingsInput } from './settings-input';
