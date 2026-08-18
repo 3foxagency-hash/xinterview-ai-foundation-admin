@@ -90,6 +90,8 @@ const config: Config = {
         muted: 'var(--muted)',
         'muted-bg': 'var(--muted-bg)',
         'muted-foreground': 'var(--muted-foreground)',
+        'text-3': 'var(--text-3)',
+        'text-4': 'var(--text-4)',
         'text-disabled': 'var(--text-disabled)',
         'text-inverse': 'var(--text-inverse)',
         primary: {
