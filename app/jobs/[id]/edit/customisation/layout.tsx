@@ -4,21 +4,13 @@ import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { CustomisationSubNav } from '@/components/wizard/customisation-subnav';
 import { StepFooter } from '@/components/wizard/step-footer';
+import { CandidatePreviewPanel } from '@/components/wizard/candidate-preview-panel';
 import {
   CustomisationSaveProvider,
   useCustomisationRegistry,
 } from '@/components/wizard/customisation-save-registry';
+import { Monitor, Eye } from 'lucide-react';
 
-/**
- * Customisation renders INSIDE app/jobs/[id]/edit/layout.tsx, which already
- * provides the WizardProvider, step rail, mobile header, top bar and the
- * content column. This layout contributes the section sub-nav and the single
- * step footer.
- *
- * The footer belongs here rather than in each section: customisation is one
- * wizard step made of many panels, so it gets one commit action like Questions
- * and Team do, not a Save button per panel.
- */
 export default function CustomisationLayout({
   children,
 }: {
@@ -29,21 +21,26 @@ export default function CustomisationLayout({
 
   return (
     <CustomisationSaveProvider>
-      {/* Column stack: the two panes on top, then one footer spanning both.
-          Keeping the footer outside the scrolling content column means it sits
-          on the page's own baseline rather than tracking the right pane. */}
-      {/* min-h-0 on the stack and the row is what makes the columns scroll
-          themselves instead of stretching the page: without it a tall right
-          pane grows past the viewport and <main> takes over the scrolling. */}
       <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
         <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-6 lg:overflow-hidden">
           {jobId && <CustomisationSubNav jobId={jobId} />}
-          {/* Gives the content its own surface so it doesn't float between the
-              rail and the footer. The sections inside carry their own cards, so
-              this pane stays on background-200 rather than adding a third
-              stacked border. */}
+          {/* Editor pane */}
           <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:overflow-y-auto">
             {children}
+          </div>
+          {/* Live preview pane — desktop only */}
+          <div className="hidden shrink-0 flex-col xl:flex xl:w-[360px]">
+            <div className="mb-2 flex items-center gap-2 px-1">
+              <Eye size={15} className="text-primary" strokeWidth={1.5} />
+              <span className="text-body-sm font-semibold text-heading">Live preview</span>
+              <span className="ml-auto flex items-center gap-1 text-caption text-muted">
+                <Monitor size={13} strokeWidth={1.5} />
+                Candidate view
+              </span>
+            </div>
+            <div className="flex-1 overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+              <CandidatePreviewPanel />
+            </div>
           </div>
         </div>
         {jobId && <CustomisationFooter jobId={jobId} />}
@@ -60,8 +57,6 @@ function CustomisationFooter({ jobId }: { jobId: string }) {
   const handleNext = async () => {
     setSaving(true);
     try {
-      // Commits whatever is pending across the customisation step. When the
-      // real API lands this becomes the single batched request.
       await registry?.saveAll();
       router.push(`/jobs/${jobId}/edit/invite`);
     } finally {
