@@ -36,7 +36,7 @@ export default function DashboardLayout({
   const expanded = showRail ? sidebar.expanded : true;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex min-h-screen bg-background">
       {/* Desktop sidebar — fixed, does not scroll with page */}
       {showRail && (
         <div className="fixed inset-y-0 left-0 z-30 h-screen">
@@ -62,9 +62,9 @@ export default function DashboardLayout({
         className={
           showRail
             ? expanded
-              ? 'ml-[260px] flex h-screen min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
-              : 'ml-[72px] flex h-screen min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
-            : 'flex h-screen min-w-0 flex-1 flex-col overflow-hidden'
+              ? 'ml-[260px] flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 motion-reduce:transition-none'
+              : 'ml-[72px] flex min-h-screen min-w-0 flex-1 flex-col transition-[margin] duration-200 motion-reduce:transition-none'
+            : 'flex min-h-screen min-w-0 flex-1 flex-col'
         }
       >
         {/* Mobile top bar — menu button + logo */}
@@ -87,7 +87,7 @@ export default function DashboardLayout({
           </div>
         )}
 
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</main>
+        <main className="flex-1">{children}</main>
       </div>
     </div>
   );
