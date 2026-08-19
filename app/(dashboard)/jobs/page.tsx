@@ -208,7 +208,7 @@ export default function JobsPage() {
   const handleStageSelect = (job: Job, stage: string) => router.push(`/jobs/${job.id}?stage=${encodeURIComponent(stage)}`);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8">
+    <div className="bg-background px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div><p className="eyebrow text-jobs-ink">Hiring workspace</p><h1 className="mt-1 text-display text-heading">Jobs</h1><p className="mt-1 text-body-lg text-muted">Manage your job openings and track candidate progress.</p></div>
