@@ -156,24 +156,22 @@ function FormatCardView({
       onClick={() => onSelect(card.id)}
       aria-pressed={selected}
       className={cn(
-        'group flex w-full items-start gap-4 rounded-lg border p-5 text-left transition-all duration-200',
+        'flex w-full items-start gap-4 rounded-lg border p-5 text-left transition-all',
         selected
-          ? 'border-primary bg-active-menu-bg shadow-md'
-          : 'border-border bg-surface hover:border-primary/40 hover:shadow-sm hover:-translate-y-0.5'
+          ? 'border-primary bg-active-menu-bg shadow-sm'
+          : 'border-border bg-surface hover:border-primary/30 hover:shadow-sm'
       )}
     >
       <div
         className={cn(
-          'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-all duration-200',
-          selected
-            ? 'border-primary bg-primary/10'
-            : 'border-border bg-card-hover group-hover:border-primary/30'
+          'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-colors',
+          selected ? 'border-primary bg-primary/10' : 'border-border bg-card-hover'
         )}
       >
         <Icon
-          size={22}
+          size={20}
           strokeWidth={1.5}
-          className={cn('transition-colors', selected ? 'text-primary' : 'text-bodyText group-hover:text-primary')}
+          className={selected ? 'text-primary' : 'text-bodyText'}
         />
       </div>
       <div className="flex-1">
@@ -189,8 +187,8 @@ function FormatCardView({
       </div>
       <div
         className={cn(
-          'mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-200',
-          selected ? 'border-primary bg-primary scale-110' : 'border-border-strong group-hover:border-primary/40'
+          'mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
+          selected ? 'border-primary bg-primary' : 'border-border-strong'
         )}
         aria-hidden
       >
