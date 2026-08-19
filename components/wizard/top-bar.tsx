@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CircleCheck as CheckCircle, Loader as Loader2, CircleAlert as AlertCircle, Eye } from 'lucide-react';
+import { CheckCircle, ExternalLink, Loader2, AlertCircle } from 'lucide-react';
 import { useWizard, type SaveState } from './wizard-context';
 import {
   Tooltip,
@@ -9,7 +9,6 @@ import {
   TooltipContent,
   TooltipProvider,
 } from '@/components/ui/tooltip';
-import { CandidatePreviewDialog } from './candidate-preview-dialog';
 
 function SaveIndicator({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
   if (state === 'saving') {
@@ -51,8 +50,8 @@ function SaveIndicator({ state, onRetry }: { state: SaveState; onRetry: () => vo
 }
 
 export function TopBar() {
-  const { job, saveState, retrySave, hasJob } = useWizard();
-  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const { job, saveState, retrySave } = useWizard();
+  const candidateUrl = job?.candidateUrl;
 
   return (
     <header
@@ -61,15 +60,16 @@ export function TopBar() {
     >
       <SaveIndicator state={saveState} onRetry={retrySave} />
 
-      {hasJob ? (
-        <button
-          type="button"
-          onClick={() => setPreviewOpen(true)}
+      {candidateUrl ? (
+        <a
+          href={candidateUrl}
+          target="_blank"
+          rel="noopener noreferrer"
           className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
         >
-          <Eye size={16} strokeWidth={1.5} />
+          <ExternalLink size={16} strokeWidth={1.5} />
           <span className="hidden sm:inline">Preview landing page</span>
-        </button>
+        </a>
       ) : (
         <TooltipProvider delayDuration={300}>
           <Tooltip>
@@ -80,7 +80,7 @@ export function TopBar() {
                 aria-label="Preview landing page (disabled until job is created)"
                 className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-muted opacity-50"
               >
-                <Eye size={16} strokeWidth={1.5} />
+                <ExternalLink size={16} strokeWidth={1.5} />
                 <span className="hidden sm:inline">Preview landing page</span>
               </button>
             </TooltipTrigger>
@@ -90,8 +90,6 @@ export function TopBar() {
           </Tooltip>
         </TooltipProvider>
       )}
-
-      <CandidatePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} />
     </header>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import {
   Check,
   Copy,
-  Eye,
+  ExternalLink,
   Plus,
   X,
   Upload,
@@ -27,7 +27,6 @@ import { inviteRowSchema } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { CandidatePreviewDialog } from '@/components/wizard/candidate-preview-dialog';
 
 type InviteRow = {
   id: string;
@@ -58,7 +57,6 @@ export default function InvitePage() {
   const [bulkResult, setBulkResult] = React.useState<BulkInviteResult | null>(null);
   const [finishing, setFinishing] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
-  const [previewOpen, setPreviewOpen] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -252,15 +250,25 @@ export default function InvitePage() {
               {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
               {copied ? 'Copied' : 'Copy'}
             </button>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-              disabled={!linkReady}
-              className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover disabled:pointer-events-none disabled:opacity-50"
-            >
-              <Eye size={14} />
-              Preview
-            </button>
+            {linkReady ? (
+              <a
+                href={candidateUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
+              >
+                <ExternalLink size={14} />
+                Preview
+              </a>
+            ) : (
+              <span
+                aria-disabled="true"
+                className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md border border-border-strong px-4 text-button text-muted opacity-50"
+              >
+                <ExternalLink size={14} />
+                Preview
+              </span>
+            )}
           </div>
         </div>
       </section>
@@ -498,8 +506,6 @@ export default function InvitePage() {
         nextLabel="Finish"
         nextLoading={finishing}
       />
-
-      <CandidatePreviewDialog open={previewOpen} onOpenChange={setPreviewOpen} jobTitle={job?.title} />
     </div>
   );
 }
