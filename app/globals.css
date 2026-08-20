@@ -884,6 +884,50 @@
   }
 }
 
+@layer components {
+  /* ── Video scrubber ──
+     A real <input type="range"> so seeking is keyboard-operable and exposed
+     to assistive tech, restyled to read as the player's progress bar. The
+     filled portion is a gradient stop at --progress, set inline from playback
+     state, because track and thumb cannot be styled as one element. */
+  .video-scrubber {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: linear-gradient(
+      to right,
+      var(--brand-primary) 0%,
+      var(--brand-primary) var(--progress, 0%),
+      rgba(255, 255, 255, 0.25) var(--progress, 0%),
+      rgba(255, 255, 255, 0.25) 100%
+    );
+    cursor: pointer;
+  }
+
+  .video-scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--r-pill);
+    background: var(--surface-page);
+    border: 2px solid var(--brand-primary);
+  }
+
+  .video-scrubber::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--brand-primary);
+    border-radius: var(--r-pill);
+    background: var(--surface-page);
+  }
+
+  .video-scrubber::-moz-range-track {
+    background: transparent;
+  }
+}
+
 @layer utilities {
   /* Numbers that must align vertically down a column (§4 KPI/score values). */
   .tabular {

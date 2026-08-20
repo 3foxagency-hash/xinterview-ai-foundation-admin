@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Archive, ArrowDown, ArrowUp, BriefcaseBusiness, Calendar, ChartNoAxesColumn, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Code, Copy, Eye, Filter, Grid2x2 as Grid2X2, List, MoveHorizontal as MoreHorizontal, Palette, Pause, Plus, RotateCcw, Search, Settings2, Users, Activity } from 'lucide-react';
+import { Activity, Archive, ArrowDown, ArrowUp, Bot, BriefcaseBusiness, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Copy, EllipsisVertical, Eye, Grid2x2 as Grid2X2, Layers, List, Mic, Pause, Phone, Plus, RotateCcw, Search, Users, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,14 +29,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { archivedJobs, activeJobs, type Job, type JobAccent, type JobStatus } from '@/lib/jobs-mock';
+import { archivedJobs, activeJobs, type InterviewFormat, type Job, type JobStatus } from '@/lib/jobs-mock';
 
 /* Each tile is one module family from §3.3 — wash background, ink glyph —
    so the strip reads as five distinct measures instead of one blue block. */
 const summaryItems = [
   { label: 'Jobs', value: '8', delta: '+12%', direction: 'up', icon: BriefcaseBusiness, tone: 'jobs' },
   { label: 'Candidates', value: '128', delta: '+8%', direction: 'up', icon: Users, tone: 'candidates' },
-  { label: 'In progress', value: '45', delta: '+15%', direction: 'up', icon: Activity, tone: 'ai' },
+  { label: 'Review', value: '45', delta: '+15%', direction: 'up', icon: Activity, tone: 'ai' },
+  { label: 'Extra stages', value: '19', delta: '+9%', direction: 'up', icon: Layers, tone: 'interviews' },
   { label: 'Hired', value: '12', delta: '+20%', direction: 'up', icon: CircleCheckBig, tone: 'info' },
   { label: 'Rejected', value: '23', delta: '-5%', direction: 'down', icon: CircleX, tone: 'error' },
 ] as const;
@@ -52,13 +53,14 @@ const toneTile: Record<string, string> = {
   settings: 'bg-settings-wash text-settings-ink',
 };
 
-const accentIcon: Record<JobAccent, React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>> = {
-  jobs: BriefcaseBusiness,
-  candidates: ChartNoAxesColumn,
-  interviews: Users,
-  reports: Palette,
-  ai: Code,
-  settings: Settings2,
+/* The four interview formats offered by the create-job wizard, with the same
+   icons that wizard uses — the tile tells you how a job interviews, and the
+   colour keeps the formats distinguishable at a glance. */
+const formatMeta: Record<InterviewFormat, { icon: React.ComponentType<{ className?: string }>; label: string; tone: string }> = {
+  ai_video: { icon: Video, label: 'AI Video Interview', tone: 'jobs' },
+  ai_avatar: { icon: Bot, label: 'AI Avatar Interview', tone: 'ai' },
+  ai_voice: { icon: Mic, label: 'AI Voice Interview', tone: 'reports' },
+  ai_phone: { icon: Phone, label: 'AI Phone Screening', tone: 'interviews' },
 };
 
 const statusStyles: Record<JobStatus, string> = {
@@ -80,36 +82,35 @@ function StatusBadge({ status }: { status: JobStatus }) {
 
 function SummaryStrip() {
   return (
-    <section aria-label="Jobs summary" className="grid grid-cols-1 rounded-lg border border-border bg-surface sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+    <section aria-label="Jobs summary" className="grid grid-cols-2 rounded-lg border border-border bg-surface lg:grid-cols-3 xl:grid-cols-6">
       {summaryItems.map((item, index) => {
         const Icon = item.icon;
         return (
           <div
             key={item.label}
             className={cn(
-              'flex min-w-0 items-center gap-3 border-border px-5 py-5',
+              'flex min-w-0 items-center gap-2.5 border-border px-3 py-3 sm:gap-3 sm:px-4 sm:py-4',
               /* One divider rule per breakpoint: a cell draws a left hairline
                  unless it starts a row, and a top hairline unless it sits in
                  the first row. Column counts are 1 / 2 / 3 / 5, so the row
                  position is derived from the index at each breakpoint. */
-              index > 0 && 'border-t',
-              index % 2 === 0 ? 'sm:border-l-0' : 'sm:border-l',
-              index < 2 ? 'sm:border-t-0' : 'sm:border-t',
+              index % 2 === 0 ? 'border-l-0' : 'border-l',
+              index < 2 ? 'border-t-0' : 'border-t',
               index % 3 === 0 ? 'lg:border-l-0' : 'lg:border-l',
               index < 3 ? 'lg:border-t-0' : 'lg:border-t',
               index === 0 ? 'xl:border-l-0' : 'xl:border-l',
               'xl:border-t-0'
             )}
           >
-            <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', toneTile[item.tone])}>
-              <Icon className="h-5 w-5" aria-hidden={true} />
+            <span className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-lg sm:h-11 sm:w-11', toneTile[item.tone])}>
+              <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden={true} />
             </span>
             <div className="min-w-0">
-              <p className="text-h1 tabular leading-none text-heading">{item.value}</p>
+              <p className="text-h2 tabular leading-none text-heading sm:text-h1">{item.value}</p>
               <p className="mt-1.5 truncate text-body-sm text-muted">{item.label}</p>
               <p className={cn('mt-1.5 flex items-center gap-1 text-caption', item.direction === 'down' ? 'text-error-ink' : 'text-success-ink')}>
                 {item.direction === 'down' ? <ArrowDown className="h-3 w-3" aria-hidden="true" /> : <ArrowUp className="h-3 w-3" aria-hidden="true" />}
-                {item.delta} <span className="truncate font-normal text-muted">vs last 30 days</span>
+                {item.delta} <span className="hidden truncate font-normal text-muted 2xl:inline">vs last 30 days</span>
               </p>
             </div>
           </div>
@@ -134,7 +135,7 @@ function SummaryStrip() {
    both the grid track and the row-start divider rules. */
 function stageColumns(total: number) {
   return {
-    base: Math.min(total, 4),
+    base: Math.min(total, 3),
     sm: Math.min(total, 5),
     lg: Math.min(total, 7),
     xl: total,
@@ -156,7 +157,7 @@ function PipelineStages({ job, archived, onSelect }: { job: Job; archived: boole
     >
       {job.stages.map((stage) => {
         const content = (
-          <span className="flex w-full min-w-0 flex-col items-center gap-1 px-1 py-1 text-center">
+          <span className="flex w-full min-w-0 flex-col items-center gap-1 px-1 py-2 text-center sm:py-1">
             <span className="text-h3 tabular text-heading">{stage.count}</span>
             <span className="w-full truncate text-caption font-normal text-muted" title={stage.label}>{stage.label}</span>
             <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', stage.tone)} aria-hidden="true" />
@@ -183,11 +184,11 @@ function PipelineStages({ job, archived, onSelect }: { job: Job; archived: boole
 
 function JobActions({ job, archived, onAction }: { job: Job; archived: boolean; onAction: (action: string, job: Job) => void }) {
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="flex shrink-0 items-center gap-2 max-sm:w-full">
       {archived ? (
         <Button variant="secondary" size="sm" onClick={() => onAction('restore', job)}><RotateCcw className="h-4 w-4" aria-hidden="true" />Restore</Button>
       ) : (
-        <Button variant="secondary" size="sm" className="text-primary-ink" onClick={() => onAction('invite', job)}><Plus className="h-4 w-4" aria-hidden="true" />Invite candidate</Button>
+        <Button variant="secondary" size="sm" className="text-primary-ink max-sm:flex-1" onClick={() => onAction('invite', job)}><Plus className="h-4 w-4" aria-hidden="true" />Invite candidate</Button>
       )}
       {!archived && (
         <Button variant="secondary" size="icon-sm" className="text-primary-ink" aria-label={`Preview ${job.title}`} onClick={() => onAction('preview', job)}>
@@ -207,7 +208,7 @@ function JobActions({ job, archived, onAction }: { job: Job; archived: boolean; 
       )}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon-sm" aria-label={`More actions for ${job.title}`}><MoreHorizontal className="h-4 w-4" aria-hidden="true" /></Button>
+          <Button variant="secondary" size="icon-sm" aria-label={`More actions for ${job.title}`}><EllipsisVertical className="h-4 w-4" aria-hidden="true" /></Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           {!archived && <><DropdownMenuItem onSelect={() => onAction('edit', job)}>Edit job</DropdownMenuItem><DropdownMenuItem onSelect={() => onAction('clone', job)}><Copy className="mr-2 h-4 w-4" />Clone job</DropdownMenuItem><DropdownMenuSeparator /></>}
@@ -219,37 +220,37 @@ function JobActions({ job, archived, onAction }: { job: Job; archived: boolean; 
 }
 
 function JobCard({ job, archived, view, onAction, onStageSelect }: { job: Job; archived: boolean; view: 'list' | 'grid'; onAction: (action: string, job: Job) => void; onStageSelect: (job: Job, stage: string) => void }) {
-  const Icon = accentIcon[job.accent];
+  const format = formatMeta[job.format];
+  const Icon = format.icon;
   return (
-    <article className={cn('group rounded-lg border border-border bg-surface px-5 py-4 transition-colors hover:border-border-hover', view === 'grid' && 'flex h-full flex-col')}>
+    <article className={cn('group rounded-lg border border-border bg-surface px-4 py-4 transition-colors hover:border-border-hover sm:px-5', view === 'grid' && 'flex h-full flex-col')}>
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', toneTile[job.accent])}>
+        <div className="flex min-w-0 items-start gap-3 xl:items-center">
+          <span className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', toneTile[format.tone])} title={format.label}>
             <Icon className="h-5 w-5" aria-hidden={true} />
+            <span className="sr-only">{format.label}</span>
           </span>
           <div className="min-w-0">
             <h2 className="truncate text-h2 text-heading" title={job.title}>{job.title}</h2>
-            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-body-sm text-muted">
-              <span>{job.mode}</span><span aria-hidden="true">·</span><span className="truncate">{job.location}</span><span aria-hidden="true">·</span><StatusBadge status={job.status} />
+            <div className="mt-1 flex flex-col gap-y-0.5 text-body-sm text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2">
+              <span className="flex items-center gap-2"><span>{job.mode}</span><span aria-hidden="true">·</span><span className="truncate">{job.location}</span></span>
+              <span aria-hidden="true" className="hidden sm:inline">·</span>
+              <span className="flex items-center gap-2"><span className="truncate">{format.label}</span><span aria-hidden="true">·</span><StatusBadge status={job.status} /></span>
             </div>
           </div>
         </div>
         <JobActions job={job} archived={archived} onAction={onAction} />
       </div>
       <div className="mt-4"><PipelineStages job={job} archived={archived} onSelect={onStageSelect} /></div>
-      <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-2 border-t border-border pt-3 text-caption font-normal text-muted">
-        <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" aria-hidden="true" />Created on {job.created}</span>
-        <span aria-hidden="true" className="text-border-strong">•</span>
-        <span>{job.responded} responded</span>
-        <span aria-hidden="true" className="text-border-strong">•</span>
-        <span className={cn('font-medium', job.responseRate === '100%' ? 'text-success-ink' : 'text-warning-ink')}>{job.responseRate} response rate</span>
-        <span className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span>{job.candidates} candidates</span>
+      <div className="mt-4 flex flex-col gap-y-1.5 border-t border-border pt-3 text-caption font-normal text-muted sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-2">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="flex items-center gap-1.5"><Calendar className="h-3.5 w-3.5" aria-hidden="true" />Created on {job.created}</span>
           <span aria-hidden="true" className="text-border-strong">•</span>
-          <span>{job.active} active in pipeline</span>
+          <span>{job.responded} responded</span>
           <span aria-hidden="true" className="text-border-strong">•</span>
-          <span>Last candidate on {job.lastActivity}</span>
+          <span className={cn('font-medium', job.responseRate === '100%' ? 'text-success-ink' : 'text-warning-ink')}>{job.responseRate} response rate</span>
         </span>
+        <span className="sm:ml-auto">Created by {job.createdBy}</span>
       </div>
     </article>
   );
@@ -292,7 +293,6 @@ export default function OverviewPage() {
   const [tab, setTab] = React.useState<'active' | 'archived'>('active');
   const [search, setSearch] = React.useState('');
   const [status, setStatus] = React.useState('all');
-  const [department, setDepartment] = React.useState('all');
   const [dateRange, setDateRange] = React.useState('Last 30 days');
   const [sort, setSort] = React.useState('updated');
   const [view, setView] = React.useState<'list' | 'grid'>('list');
@@ -302,19 +302,18 @@ export default function OverviewPage() {
   const [dialog, setDialog] = React.useState<{ action: string; job: Job } | null>(null);
 
   React.useEffect(() => { const timer = window.setTimeout(() => setLoading(false), 700); return () => window.clearTimeout(timer); }, []);
-  React.useEffect(() => { setPage(1); }, [tab, search, status, department, sort, pageSize]);
+  React.useEffect(() => { setPage(1); }, [tab, search, status, sort, pageSize]);
 
   const jobs = tab === 'active' ? activeJobs : archivedJobs;
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch = `${job.title} ${job.location} ${job.department}`.toLowerCase().includes(search.toLowerCase());
-    return matchesSearch && (status === 'all' || job.status === status) && (department === 'all' || job.department === department);
+    return matchesSearch && (status === 'all' || job.status === status);
   });
   const sortedJobs = [...filteredJobs].sort((a, b) => sort === 'candidates' ? b.candidates - a.candidates : sort === 'oldest' ? a.created.localeCompare(b.created) : b.created.localeCompare(a.created));
   const perPage = Number(pageSize);
   const pageCount = Math.max(1, Math.ceil(sortedJobs.length / perPage));
   const safePage = Math.min(page, pageCount);
   const shownJobs = sortedJobs.slice((safePage - 1) * perPage, safePage * perPage);
-  const activeFilterCount = (status === 'all' ? 0 : 1) + (department === 'all' ? 0 : 1);
 
   function handleAction(action: string, job: Job) {
     if (['pause', 'reactivate', 'archive', 'restore', 'delete', 'clone'].includes(action)) setDialog({ action, job });
@@ -356,20 +355,6 @@ export default function OverviewPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             <Button onClick={() => toast('Create new job opened')}><Plus className="h-4 w-4" aria-hidden="true" />Create new job</Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary">
-                  <Filter className="h-4 w-4 text-muted" aria-hidden="true" />Filters
-                  {activeFilterCount > 0 && <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary-soft px-1 text-caption text-primary-ink">{activeFilterCount}</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onSelect={() => setStatus(status === 'Active' ? 'all' : 'Active')}><span className={cn('mr-2 flex h-4 w-4 items-center justify-center rounded-xs border', status === 'Active' && 'border-primary bg-primary text-primary-foreground')}>{status === 'Active' && <Check className="h-3 w-3" aria-hidden="true" />}</span>Active jobs</DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setDepartment(department === 'Engineering' ? 'all' : 'Engineering')}><span className={cn('mr-2 flex h-4 w-4 items-center justify-center rounded-xs border', department === 'Engineering' && 'border-primary bg-primary text-primary-foreground')}>{department === 'Engineering' && <Check className="h-3 w-3" aria-hidden="true" />}</span>Engineering</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => { setStatus('all'); setDepartment('all'); }}>Clear filters</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="secondary"><Calendar className="h-4 w-4 text-muted" aria-hidden="true" />{dateRange}<ChevronDown className="h-4 w-4 text-muted" aria-hidden="true" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -416,7 +401,9 @@ export default function OverviewPage() {
               <SelectTrigger className="w-full sm:w-56" aria-label="Sort jobs"><SelectValue placeholder="Sort" /></SelectTrigger>
               <SelectContent><SelectItem value="updated">Sort by: Recently updated</SelectItem><SelectItem value="oldest">Sort by: Oldest</SelectItem><SelectItem value="candidates">Sort by: Most candidates</SelectItem></SelectContent>
             </Select>
-            <div className="ml-auto flex items-center gap-1">
+            {/* The two-up grid needs width a phone does not have, so the view
+                toggle is desktop-only and mobile always renders the list. */}
+            <div className="ml-auto hidden items-center gap-1 md:flex">
               <Button variant={view === 'list' ? 'default' : 'secondary'} size="icon" aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List className="h-4 w-4" aria-hidden="true" /></Button>
               <Button variant={view === 'grid' ? 'default' : 'secondary'} size="icon" aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><Grid2X2 className="h-4 w-4" aria-hidden="true" /></Button>
             </div>
@@ -427,12 +414,12 @@ export default function OverviewPage() {
           {loading ? (
             <div className="space-y-3"><JobCardSkeleton /><JobCardSkeleton /><JobCardSkeleton /></div>
           ) : sortedJobs.length === 0 ? (
-            search || status !== 'all' || department !== 'all' ? (
+            search || status !== 'all' ? (
               <div className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-dashed border-border-strong bg-surface px-6 text-center">
                 <CircleAlert className="h-6 w-6 text-muted" aria-hidden="true" />
                 <h2 className="mt-3 text-h2 text-heading">No jobs match your search</h2>
                 <p className="mt-2 text-body text-muted">Try a different search or clear the filters.</p>
-                <Button variant="secondary" className="mt-5" onClick={() => { setSearch(''); setStatus('all'); setDepartment('all'); }}>Clear filters</Button>
+                <Button variant="secondary" className="mt-5" onClick={() => { setSearch(''); setStatus('all'); }}>Clear filters</Button>
               </div>
             ) : (
               <EmptyState archived={tab === 'archived'} onCreate={() => toast('Create new job opened')} />
