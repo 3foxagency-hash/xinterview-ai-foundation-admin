@@ -647,6 +647,287 @@
   }
 }
 
+@layer components {
+  /* ── Pipeline stage track (jobs list) ──
+     A job's pipeline is configured per job, so the number of stages varies
+     (5–9 today; nothing here is pinned to that range). The track lays out
+     from a column count resolved per breakpoint into data-cols-* attributes
+     on the element, rather than a fixed grid-cols-N utility — the count is
+     only known at runtime, and Tailwind cannot emit a class it never sees
+     as a literal string.
+
+     Two things force the shape of this block:
+
+     1. Counts are enumerated, not variable-driven. `grid-template-columns:
+        repeat(var(--n), …)` works, but `:nth-child(var(--n) n + 1)` does
+        NOT — An+B accepts no var(), and the whole rule is dropped as a
+        parse error (verified in Chrome: every divider vanished silently).
+
+     2. Each breakpoint is bounded on BOTH sides. Every one of these rules
+        has the same specificity (0,2,0), so an unbounded mobile rule would
+        not merely apply at desktop — being defined earlier it would still
+        lose to nothing and keep zeroing borders mid-row. Bounding each
+        range means exactly one column rule is ever live, which is also why
+        the dividers cannot be computed in JS: "is this cell first in its
+        row?" has a different answer per breakpoint, and one element cannot
+        carry three index-derived classes at once. */
+  .stage-track {
+    display: grid;
+  }
+
+  .stage-track > .stage-cell {
+    border-left: 1px solid var(--border);
+  }
+
+  @media (max-width: 639.98px) {
+    .stage-track[data-cols="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="2"] > .stage-cell:nth-child(2n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="3"] > .stage-cell:nth-child(3n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="4"] > .stage-cell:nth-child(4n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="5"] {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="5"] > .stage-cell:nth-child(5n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="6"] {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="6"] > .stage-cell:nth-child(6n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="7"] {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="7"] > .stage-cell:nth-child(7n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="8"] {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="8"] > .stage-cell:nth-child(8n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols="9"] {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .stage-track[data-cols="9"] > .stage-cell:nth-child(9n + 1) {
+      border-left: 0;
+    }
+  }
+
+  @media (min-width: 640px) and (max-width: 1023.98px) {
+    .stage-track[data-cols-sm="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="2"] > .stage-cell:nth-child(2n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="3"] > .stage-cell:nth-child(3n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="4"] > .stage-cell:nth-child(4n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="5"] {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="5"] > .stage-cell:nth-child(5n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="6"] {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="6"] > .stage-cell:nth-child(6n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="7"] {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="7"] > .stage-cell:nth-child(7n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="8"] {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="8"] > .stage-cell:nth-child(8n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-sm="9"] {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-sm="9"] > .stage-cell:nth-child(9n + 1) {
+      border-left: 0;
+    }
+  }
+
+  @media (min-width: 1024px) and (max-width: 1279.98px) {
+    .stage-track[data-cols-lg="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="2"] > .stage-cell:nth-child(2n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="3"] > .stage-cell:nth-child(3n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="4"] > .stage-cell:nth-child(4n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="5"] {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="5"] > .stage-cell:nth-child(5n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="6"] {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="6"] > .stage-cell:nth-child(6n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="7"] {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="7"] > .stage-cell:nth-child(7n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="8"] {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="8"] > .stage-cell:nth-child(8n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-lg="9"] {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-lg="9"] > .stage-cell:nth-child(9n + 1) {
+      border-left: 0;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .stage-track[data-cols-xl="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="2"] > .stage-cell:nth-child(2n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="3"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="3"] > .stage-cell:nth-child(3n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="4"] {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="4"] > .stage-cell:nth-child(4n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="5"] {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="5"] > .stage-cell:nth-child(5n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="6"] {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="6"] > .stage-cell:nth-child(6n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="7"] {
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="7"] > .stage-cell:nth-child(7n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="8"] {
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="8"] > .stage-cell:nth-child(8n + 1) {
+      border-left: 0;
+    }
+    .stage-track[data-cols-xl="9"] {
+      grid-template-columns: repeat(9, minmax(0, 1fr));
+    }
+    .stage-track[data-cols-xl="9"] > .stage-cell:nth-child(9n + 1) {
+      border-left: 0;
+    }
+  }
+}
+
+@layer components {
+  /* ── Video scrubber ──
+     A real <input type="range"> so seeking is keyboard-operable and exposed
+     to assistive tech, restyled to read as the player's progress bar. The
+     filled portion is a gradient stop at --progress, set inline from playback
+     state, because track and thumb cannot be styled as one element. */
+  .video-scrubber {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    border-radius: var(--r-pill);
+    background: linear-gradient(
+      to right,
+      var(--brand-primary) 0%,
+      var(--brand-primary) var(--progress, 0%),
+      rgba(255, 255, 255, 0.25) var(--progress, 0%),
+      rgba(255, 255, 255, 0.25) 100%
+    );
+    cursor: pointer;
+  }
+
+  .video-scrubber::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: var(--r-pill);
+    background: var(--surface-page);
+    border: 2px solid var(--brand-primary);
+  }
+
+  .video-scrubber::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--brand-primary);
+    border-radius: var(--r-pill);
+    background: var(--surface-page);
+  }
+
+  .video-scrubber::-moz-range-track {
+    background: transparent;
+  }
+}
+
 @layer utilities {
   /* Numbers that must align vertically down a column (§4 KPI/score values). */
   .tabular {
