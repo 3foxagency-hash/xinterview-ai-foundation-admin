@@ -1,4 +1,11 @@
+import type { InterviewFormat } from '@/lib/validation/job';
+
 export type JobStatus = 'Active' | 'Paused' | 'Expired';
+
+/* A job's interview format is shared with the create-job wizard
+   (lib/validation/job.ts) — the list's icon tile is driven by it, so a
+   recruiter can tell a phone screen from a video interview at a glance. */
+export type { InterviewFormat };
 
 export type PipelineStage = {
   label: string;
@@ -10,6 +17,7 @@ export type Job = {
   id: string;
   title: string;
   department: string;
+  format: InterviewFormat;
   mode: 'Remote' | 'Hybrid' | 'On-site';
   location: string;
   status: JobStatus;
@@ -18,32 +26,65 @@ export type Job = {
   responseRate: string;
   candidates: number;
   active: number;
-  lastActivity: string;
+  createdBy: string;
   stages: PipelineStage[];
 };
 
-const stages = (counts: number[]): PipelineStage[] => [
-  { label: 'Sourced', count: counts[0], tone: 'bg-primary' },
-  { label: 'Applied', count: counts[1], tone: 'bg-jobs' },
-  { label: 'Phone screen', count: counts[2], tone: 'bg-reports' },
-  { label: 'Assessment', count: counts[3], tone: 'bg-interviews' },
-  { label: 'Interview', count: counts[4], tone: 'bg-warning' },
-  { label: 'Offer', count: counts[5], tone: 'bg-success' },
-  { label: 'Hired', count: counts[6], tone: 'bg-success' },
-  { label: 'Rejected', count: counts[7], tone: 'bg-error' },
-];
+/* Every stage a pipeline can contain, with its dot colour fixed here rather
+   than at the call site — a job picks the subset it runs, so "Offer" is the
+   same green whether it is the 5th stage of one job or the 8th of another.
+   Real pipelines are configured per job, so the list is intentionally open:
+   nothing downstream assumes a particular length or a particular member. */
+export type StageKey =
+  | 'sourced'
+  | 'applied'
+  | 'screening'
+  | 'phone'
+  | 'assessment'
+  | 'interview'
+  | 'final'
+  | 'offer'
+  | 'hired'
+  | 'rejected';
+
+const STAGE_CATALOGUE: Record<StageKey, { label: string; tone: string }> = {
+  sourced: { label: 'Sourced', tone: 'bg-primary' },
+  applied: { label: 'Applied', tone: 'bg-jobs' },
+  screening: { label: 'Screening', tone: 'bg-chart-4' },
+  phone: { label: 'Phone screen', tone: 'bg-reports' },
+  assessment: { label: 'Assessment', tone: 'bg-interviews' },
+  interview: { label: 'Interview', tone: 'bg-warning' },
+  final: { label: 'Final round', tone: 'bg-ai' },
+  offer: { label: 'Offer', tone: 'bg-success' },
+  hired: { label: 'Hired', tone: 'bg-candidates' },
+  rejected: { label: 'Rejected', tone: 'bg-error' },
+};
+
+/* A job's pipeline is declared as [stage, count] pairs, so the length varies
+   per job exactly as it will once pipelines come from the API. */
+const pipeline = (entries: [StageKey, number][]): PipelineStage[] =>
+  entries.map(([key, count]) => ({ ...STAGE_CATALOGUE[key], count }));
 
 export const activeJobs: Job[] = [
-  { id: 'job-1', title: 'Account Executive', department: 'Sales', mode: 'On-site', location: 'London, United Kingdom', status: 'Active', created: '01 May 2026', responded: '5/5', responseRate: '100%', candidates: 41, active: 41, lastActivity: '13 May 2026', stages: stages([6, 18, 10, 4, 1, 1, 1, 0]) },
-  { id: 'job-2', title: 'Marketing Manager', department: 'Marketing', mode: 'Remote', location: 'Paris, France', status: 'Active', created: '20 Apr 2026', responded: '5/5', responseRate: '100%', candidates: 67, active: 67, lastActivity: '14 May 2026', stages: stages([9, 23, 18, 10, 5, 1, 1, 0]) },
-  { id: 'job-3', title: 'Frontend Developer', department: 'Engineering', mode: 'Hybrid', location: 'Berlin, Germany', status: 'Paused', created: '15 Apr 2026', responded: '4/5', responseRate: '80%', candidates: 76, active: 63, lastActivity: '12 May 2026', stages: stages([18, 26, 15, 8, 3, 2, 1, 3]) },
-  { id: 'job-4', title: 'People Operations Lead', department: 'People', mode: 'Hybrid', location: 'New York, United States', status: 'Active', created: '08 Apr 2026', responded: '8/10', responseRate: '80%', candidates: 29, active: 22, lastActivity: '11 May 2026', stages: stages([4, 11, 7, 3, 2, 1, 1, 1]) },
-  { id: 'job-5', title: 'Product Designer', department: 'Design', mode: 'Remote', location: 'Amsterdam, Netherlands', status: 'Active', created: '02 Apr 2026', responded: '6/8', responseRate: '75%', candidates: 38, active: 30, lastActivity: '09 May 2026', stages: stages([7, 15, 9, 4, 2, 1, 1, 2]) },
-  { id: 'job-6', title: 'Customer Success Manager', department: 'Customer Success', mode: 'On-site', location: 'Dublin, Ireland', status: 'Active', created: '28 Mar 2026', responded: '7/9', responseRate: '78%', candidates: 33, active: 26, lastActivity: '07 May 2026', stages: stages([5, 14, 8, 4, 2, 1, 1, 1]) },
+  // 8 stages
+  { id: 'job-1', format: 'ai_phone', title: 'Account Executive', department: 'Sales', mode: 'On-site', location: 'London, United Kingdom', status: 'Active', created: '01 May 2026', responded: '5/5', responseRate: '100%', candidates: 41, active: 41, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 6], ['applied', 18], ['phone', 10], ['assessment', 4], ['interview', 1], ['offer', 1], ['hired', 1], ['rejected', 0]]) },
+  // 6 stages
+  { id: 'job-2', format: 'ai_video', title: 'Marketing Manager', department: 'Marketing', mode: 'Remote', location: 'Paris, France', status: 'Active', created: '20 Apr 2026', responded: '5/5', responseRate: '100%', candidates: 67, active: 67, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 23], ['screening', 18], ['interview', 10], ['offer', 5], ['hired', 1], ['rejected', 0]]) },
+  // 9 stages — the maximum a pipeline can run
+  { id: 'job-3', format: 'ai_video', title: 'Frontend Developer', department: 'Engineering', mode: 'Hybrid', location: 'Berlin, Germany', status: 'Paused', created: '15 Apr 2026', responded: '4/5', responseRate: '80%', candidates: 76, active: 63, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 18], ['applied', 26], ['screening', 15], ['phone', 12], ['assessment', 8], ['interview', 3], ['final', 2], ['offer', 2], ['hired', 1]]) },
+  // 5 stages — the minimum
+  { id: 'job-4', format: 'ai_voice', title: 'People Operations Lead', department: 'People', mode: 'Hybrid', location: 'New York, United States', status: 'Active', created: '08 Apr 2026', responded: '8/10', responseRate: '80%', candidates: 29, active: 22, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 11], ['phone', 7], ['interview', 3], ['offer', 1], ['hired', 1]]) },
+  // 7 stages
+  { id: 'job-5', format: 'ai_avatar', title: 'Product Designer', department: 'Design', mode: 'Remote', location: 'Amsterdam, Netherlands', status: 'Active', created: '02 Apr 2026', responded: '6/8', responseRate: '75%', candidates: 38, active: 30, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 7], ['applied', 15], ['assessment', 9], ['interview', 4], ['final', 2], ['offer', 1], ['hired', 1]]) },
+  // 6 stages
+  { id: 'job-6', format: 'ai_phone', title: 'Customer Success Manager', department: 'Customer Success', mode: 'On-site', location: 'Dublin, Ireland', status: 'Active', created: '28 Mar 2026', responded: '7/9', responseRate: '78%', candidates: 33, active: 26, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 14], ['phone', 8], ['assessment', 4], ['interview', 2], ['offer', 1], ['hired', 1]]) },
 ];
 
 export const archivedJobs: Job[] = [
-  { id: 'job-7', title: 'Senior Data Analyst', department: 'Analytics', mode: 'Remote', location: 'London, United Kingdom', status: 'Expired', created: '12 Feb 2026', responded: '8/12', responseRate: '67%', candidates: 52, active: 0, lastActivity: '21 Mar 2026', stages: stages([10, 20, 12, 5, 3, 1, 1, 0]) },
-  { id: 'job-8', title: 'Talent Acquisition Partner', department: 'People', mode: 'Hybrid', location: 'Toronto, Canada', status: 'Expired', created: '08 Jan 2026', responded: '4/7', responseRate: '57%', candidates: 24, active: 0, lastActivity: '02 Mar 2026', stages: stages([3, 9, 6, 3, 2, 1, 1, 1]) },
-  { id: 'job-9', title: 'Implementation Specialist', department: 'Operations', mode: 'On-site', location: 'Austin, United States', status: 'Expired', created: '19 Dec 2025', responded: '5/6', responseRate: '83%', candidates: 31, active: 0, lastActivity: '14 Feb 2026', stages: stages([6, 13, 7, 3, 1, 1, 1, 0]) },
+  // 7 stages
+  { id: 'job-7', format: 'ai_video', title: 'Senior Data Analyst', department: 'Analytics', mode: 'Remote', location: 'London, United Kingdom', status: 'Expired', created: '12 Feb 2026', responded: '8/12', responseRate: '67%', candidates: 52, active: 0, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 10], ['applied', 20], ['screening', 12], ['assessment', 5], ['interview', 3], ['offer', 1], ['hired', 1]]) },
+  // 5 stages
+  { id: 'job-8', format: 'ai_voice', title: 'Talent Acquisition Partner', department: 'People', mode: 'Hybrid', location: 'Toronto, Canada', status: 'Expired', created: '08 Jan 2026', responded: '4/7', responseRate: '57%', candidates: 24, active: 0, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 9], ['phone', 6], ['interview', 3], ['offer', 1], ['hired', 1]]) },
+  // 8 stages
+  { id: 'job-9', format: 'ai_avatar', title: 'Implementation Specialist', department: 'Operations', mode: 'On-site', location: 'Austin, United States', status: 'Expired', created: '19 Dec 2025', responded: '5/6', responseRate: '83%', candidates: 31, active: 0, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 6], ['applied', 13], ['phone', 7], ['assessment', 3], ['interview', 1], ['final', 1], ['offer', 1], ['hired', 1]]) },
 ];
