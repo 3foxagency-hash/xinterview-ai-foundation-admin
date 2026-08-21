@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, CalendarDays, StickyNote, Maximize2, Pause, Volume2, VolumeX, CircleCheck, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Clock3, Download, FileText, Flag, FolderOpen, Headphones, List, Mail, MessageCircle, MoveHorizontal as MoreHorizontal, EllipsisVertical, MoveRight, Paperclip, Phone, Play, Search, Share2, ShieldAlert, Sparkles, Star, Trash2, UserRound, UserRoundPlus, Video, X } from 'lucide-react';
+import { ArrowLeft, CalendarDays, StickyNote, Copy, ExternalLink, Link as LinkIcon, Maximize2, Pause, Volume2, VolumeX, CircleCheck, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Clock3, Download, FileText, Flag, FolderOpen, Headphones, KeyRound, List, Mail, MessageCircle, MoveHorizontal as MoreHorizontal, EllipsisVertical, MoveRight, Paperclip, Phone, Play, Search, Settings2, Share2, ShieldAlert, Sparkles, Star, Trash2, UserRound, UserRoundPlus, Users, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { activeJobs, archivedJobs, type Job } from '@/lib/jobs-mock';
-import { aiOverview, candidateComments, candidateReviews, interviewQuestions, workflowCandidates, workflowStages, MATCH_LABEL, MATCH_LEVELS, RESUME_META, RESUME_URL, type Candidate, type FlagSeverity, type InterviewQuestion, type MatchLevel, type TeamNote, type WorkflowStage } from '@/lib/workflow-mock';
+import { aiOverview, candidateComments, candidateReviews, createJobLink, updateJobLink, getJobLinks, interviewQuestions, workflowCandidates, workflowStages, DEFAULT_SHARE_SETTINGS, MATCH_LABEL, MATCH_LEVELS, RESUME_META, RESUME_URL, SHARE_OPTIONS, type JobLink, type ShareOption, type ShareSettings, type Candidate, type FlagSeverity, type InterviewQuestion, type MatchLevel, type TeamNote, type WorkflowStage } from '@/lib/workflow-mock';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -13,10 +13,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
+import { AnswerModal, FlagDot, QuestionNav, QuestionRail, Stars, VideoPlayer, formatTime } from '@/components/interview/interview-parts';
 
 type CandidateView = 'Interview' | 'Resume' | 'Comments' | 'Reviews' | 'Activity';
-type DialogState = 'comment' | 'note' | 'share' | 'report' | 'delete' | 'compare' | null;
+type DialogState = 'comment' | 'note' | 'share' | 'share-bulk' | 'report' | 'delete' | 'compare' | 'create-link' | 'edit-link' | 'manage-link' | null;
 
 function scoreTone(score: number) {
   return score >= 75 ? 'bg-success-wash text-success-ink' : score >= 50 ? 'bg-warning-wash text-warning-ink' : 'bg-surface-2 text-muted';
@@ -127,7 +129,7 @@ function HeaderAction({ icon: Icon, label, onClick }: { icon: React.ComponentTyp
   return <button type="button" onClick={onClick} className="flex min-w-0 flex-col items-center gap-1.5 rounded-md px-2 py-2 text-caption font-normal text-muted transition-colors hover:bg-surface-hover hover:text-heading sm:min-w-[68px]"><span className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-surface"><Icon className="h-4 w-4" /></span>{label}</button>;
 }
 
-function CandidateHeader({ candidate, onDialog }: { candidate: Candidate; onDialog: (dialog: DialogState) => void }) {
+function CandidateHeader({ candidate, onDialog, hasLinks }: { candidate: Candidate; onDialog: (dialog: DialogState) => void; hasLinks: boolean }) {
   return <div className="flex flex-col items-start gap-4 border-b border-border bg-surface px-4 py-4 sm:px-6 xl:flex-row xl:flex-wrap xl:items-start xl:justify-between xl:gap-x-6">
     <div className="flex w-full min-w-0 items-start gap-4 xl:flex-1 xl:min-w-[280px]">
       <div className="min-w-0">
@@ -164,87 +166,11 @@ function CandidateHeader({ candidate, onDialog }: { candidate: Candidate; onDial
             <DropdownMenuItem onSelect={() => toast('Invite resent')}>Resend invite</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => toast('Deadline extension opened')}>Extend deadline</DropdownMenuItem>
             <DropdownMenuItem onSelect={() => toast('Export options opened')}><Download className="mr-2 h-4 w-4" />Export candidate</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onDialog(hasLinks ? 'manage-link' : 'create-link')}><LinkIcon className="mr-2 h-4 w-4" />{hasLinks ? 'Manage Link' : 'Create Link'}</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-error-ink focus:text-error-ink" onSelect={() => onDialog('delete')}><Trash2 className="mr-2 h-4 w-4" />Delete candidate</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
-    </div>
-  </div>;
-}
-
-function formatTime(seconds: number) {
-  const safe = Math.max(0, Math.floor(seconds));
-  return `${String(Math.floor(safe / 60)).padStart(2, '0')}:${String(safe % 60).padStart(2, '0')}`;
-}
-
-/* A real player rather than a decorative poster: it drives an actual <video>,
-   so play/pause, seek, mute, speed and fullscreen do what they say. No media
-   ships with the mock data, so it falls back to the poster plus a synthetic
-   clock — every readout comes from element state (or that fallback), so the
-   moment `src` is a real URL the same controls drive real media unchanged. */
-function VideoPlayer({ duration, seconds }: { duration: string; seconds: number }) {
-  const videoRef = React.useRef<HTMLVideoElement>(null);
-  const frameRef = React.useRef<HTMLDivElement>(null);
-  const [playing, setPlaying] = React.useState(false);
-  const [muted, setMuted] = React.useState(false);
-  const [rate, setRate] = React.useState(1);
-  const [captions, setCaptions] = React.useState(true);
-  const [elapsed, setElapsed] = React.useState(0);
-
-  React.useEffect(() => { setElapsed(0); setPlaying(false); }, [duration]);
-
-  React.useEffect(() => {
-    if (!playing) return;
-    const id = window.setInterval(() => {
-      setElapsed((current) => {
-        const video = videoRef.current;
-        if (video && video.duration) return video.currentTime;
-        if (current + 0.25 >= seconds) { setPlaying(false); return seconds; }
-        return current + 0.25;
-      });
-    }, 250);
-    return () => window.clearInterval(id);
-  }, [playing, seconds]);
-
-  React.useEffect(() => { const v = videoRef.current; if (v) v.playbackRate = rate; }, [rate]);
-  React.useEffect(() => { const v = videoRef.current; if (v) v.muted = muted; }, [muted]);
-
-  const togglePlay = () => setPlaying((current) => {
-    const next = !current;
-    const v = videoRef.current;
-    if (v?.currentSrc) { if (next) void v.play(); else v.pause(); }
-    return next;
-  });
-
-  const seek = (value: number) => { setElapsed(value); const v = videoRef.current; if (v?.currentSrc) v.currentTime = value; };
-
-  const toggleFullscreen = () => {
-    const frame = frameRef.current;
-    if (!frame) return;
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void frame.requestFullscreen?.().catch(() => toast('Fullscreen is unavailable here'));
-  };
-
-  return <div ref={frameRef} className="overflow-hidden rounded-lg border border-border bg-black">
-    <div className="relative aspect-video w-full">
-      <video ref={videoRef} className="h-full w-full object-cover" poster="/candidate-aarav-portrait.webp" playsInline onTimeUpdate={(event) => setElapsed(event.currentTarget.currentTime)} onEnded={() => setPlaying(false)} />
-      {!playing && <button type="button" onClick={togglePlay} aria-label="Play answer" className="absolute inset-0 flex items-center justify-center transition-colors hover:bg-black/10"><span className="flex h-16 w-16 items-center justify-center rounded-full bg-glass-bg-strong backdrop-blur"><Play className="ml-1 h-7 w-7 fill-text-inverse text-text-inverse" aria-hidden="true" /></span></button>}
-    </div>
-    <div className="px-3 pb-3 pt-2">
-      {/* A real range input, so seeking is keyboard-operable and exposed. */}
-      <input type="range" min={0} max={seconds} step={0.25} value={elapsed} onChange={(event) => seek(Number(event.target.value))} aria-label="Seek" className="video-scrubber w-full" style={{ '--progress': `${seconds > 0 ? (elapsed / seconds) * 100 : 0}%` } as React.CSSProperties} />
-      <div className="mt-2 flex items-center justify-between gap-3 text-caption text-text-inverse">
-        <div className="flex items-center gap-3">
-          <button type="button" onClick={togglePlay} aria-label={playing ? 'Pause answer' : 'Play answer'} className="rounded-sm p-1 transition-colors hover:bg-glass-bg">{playing ? <Pause className="h-4 w-4 fill-current" aria-hidden="true" /> : <Play className="h-4 w-4 fill-current" aria-hidden="true" />}</button>
-          <button type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? 'Unmute' : 'Mute'} className="rounded-sm p-1 transition-colors hover:bg-glass-bg">{muted ? <VolumeX className="h-4 w-4" aria-hidden="true" /> : <Volume2 className="h-4 w-4" aria-hidden="true" />}</button>
-          <span className="tabular">{formatTime(elapsed)} / {duration}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button type="button" onClick={() => setRate((v) => (v === 2 ? 0.5 : v === 0.5 ? 1 : v === 1 ? 1.5 : 2))} aria-label={`Playback speed ${rate}x`} className="rounded-sm px-1.5 py-1 tabular transition-colors hover:bg-glass-bg">{rate.toFixed(1)}x</button>
-          <button type="button" onClick={() => setCaptions((v) => !v)} aria-pressed={captions} aria-label="Toggle captions" className={cn('rounded-xs border px-1 py-0.5 transition-colors', captions ? 'border-text-inverse bg-glass-bg-strong' : 'border-text-inverse/40 hover:bg-glass-bg')}>CC</button>
-          <button type="button" onClick={toggleFullscreen} aria-label="Toggle fullscreen" className="rounded-sm p-1 transition-colors hover:bg-glass-bg"><Maximize2 className="h-4 w-4" aria-hidden="true" /></button>
-        </div>
       </div>
     </div>
   </div>;
@@ -270,42 +196,6 @@ function ScoreRing({ score }: { score: number }) {
    off the page. Always at most PIP_WINDOW pips; a small leading/trailing dot
    stands in for "more before/after" when the total exceeds the window, so
    the shape stays legible at 5 questions or 500. */
-const PIP_WINDOW = 5;
-
-function QuestionPips({ total, current, onSelect }: { total: number; current: number; onSelect: (index: number) => void }) {
-  if (total <= PIP_WINDOW) {
-    return <div className="hidden items-center gap-1 lg:flex">
-      {Array.from({ length: total }, (_, index) => (
-        <button type="button" key={index} onClick={() => onSelect(index)} aria-label={`Go to question ${index + 1}`} aria-current={index === current ? 'true' : undefined} className={cn('h-1.5 rounded-full transition-all', index === current ? 'w-6 bg-primary' : 'w-4 bg-surface-2 hover:bg-border-strong')} />
-      ))}
-    </div>;
-  }
-
-  const half = Math.floor(PIP_WINDOW / 2);
-  const start = Math.min(Math.max(current - half, 0), total - PIP_WINDOW);
-  const windowed = Array.from({ length: PIP_WINDOW }, (_, i) => start + i);
-
-  return <div className="hidden items-center gap-1.5 lg:flex">
-    {start > 0 && <span className="h-1 w-1 shrink-0 rounded-full bg-border-strong" aria-hidden="true" />}
-    <div className="flex items-center gap-1">
-      {windowed.map((index) => (
-        <button type="button" key={index} onClick={() => onSelect(index)} aria-label={`Go to question ${index + 1}`} aria-current={index === current ? 'true' : undefined} className={cn('h-1.5 rounded-full transition-all', index === current ? 'w-6 bg-primary' : 'w-4 bg-surface-2 hover:bg-border-strong')} />
-      ))}
-    </div>
-    {start + PIP_WINDOW < total && <span className="h-1 w-1 shrink-0 rounded-full bg-border-strong" aria-hidden="true" />}
-  </div>;
-}
-
-function QuestionNav({ questionIndex, onQuestionChange }: { questionIndex: number; onQuestionChange: (index: number) => void }) {
-  return <div className="flex shrink-0 items-center gap-2">
-    <div className="flex items-center gap-1">
-      <Button variant="secondary" size="icon-sm" aria-label="Previous question" disabled={questionIndex === 0} onClick={() => onQuestionChange(questionIndex - 1)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /></Button>
-      <Button variant="secondary" size="icon-sm" aria-label="Next question" disabled={questionIndex === interviewQuestions.length - 1} onClick={() => onQuestionChange(questionIndex + 1)}><ChevronRight className="h-4 w-4" aria-hidden="true" /></Button>
-    </div>
-    <QuestionPips total={interviewQuestions.length} current={questionIndex} onSelect={onQuestionChange} />
-  </div>;
-}
-
 function InterviewView({ questionIndex, onQuestionChange, onDialog, onMove }: { questionIndex: number; onQuestionChange: (index: number) => void; onDialog: (dialog: DialogState) => void; onMove: (stage: string) => void }) {
   const question = interviewQuestions[questionIndex];
   const [nextStage, setNextStage] = React.useState('Review');
@@ -365,83 +255,6 @@ function InterviewView({ questionIndex, onQuestionChange, onDialog, onMove }: { 
 }
 
 /* Severity dot: red for a hard flag, amber for a soft one. */
-function FlagDot({ severity }: { severity: FlagSeverity }) {
-  return <span className={cn('flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold leading-none', severity === 'high' ? 'bg-error text-error-foreground' : 'bg-warning text-warning-foreground')} aria-label={severity === 'high' ? 'Flagged' : 'Needs a look'}>!</span>;
-}
-
-/* The full answer: the recording and its transcript side by side, so a
-   reviewer can read along or re-watch without leaving the question. */
-function AnswerModal({ question, onClose }: { question: InterviewQuestion | null; onClose: () => void }) {
-  return <Dialog open={Boolean(question)} onOpenChange={(open) => !open && onClose()}>
-    <DialogContent className="max-w-4xl">
-      <DialogHeader>
-        <DialogTitle className="flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-primary-soft px-2 py-1 text-caption font-semibold text-primary-ink">Q{question?.number}</span>
-          <span className="text-h3">{question?.text}</span>
-        </DialogTitle>
-        <DialogDescription className="flex flex-wrap items-center gap-2 pt-1">
-          <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1 text-caption"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Answer: {question?.duration}</span>
-          {question?.flagged && <span className={cn('flex items-center gap-1 rounded-full px-2 py-1 text-caption font-medium', question.flagged === 'high' ? 'bg-error-wash text-error-ink' : 'bg-warning-wash text-warning-ink')}><ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />AI Flagged</span>}
-        </DialogDescription>
-      </DialogHeader>
-      {question && (
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-          <VideoPlayer duration={question.duration} seconds={question.seconds} />
-          <div className="flex min-h-0 flex-col rounded-lg border border-border bg-surface-2/60 p-4">
-            <p className="text-caption font-medium uppercase tracking-wide text-muted">Transcript</p>
-            <div className="mt-2 max-h-72 overflow-y-auto overscroll-contain pr-1">
-              <p className="whitespace-pre-line text-body-sm leading-relaxed text-bodyText">{question.transcript ?? question.answer}</p>
-            </div>
-          </div>
-        </div>
-      )}
-      <DialogFooter>
-        <Button variant="secondary" onClick={onClose}>Close</Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>;
-}
-
-function QuestionRail({ questionIndex, onQuestionChange }: { questionIndex: number; onQuestionChange: (index: number) => void }) {
-  const [expanded, setExpanded] = React.useState(false);
-  const [answerOpen, setAnswerOpen] = React.useState<InterviewQuestion | null>(null);
-  const active = interviewQuestions[questionIndex];
-  const rest = interviewQuestions.filter((_, index) => index !== questionIndex);
-  const visible = expanded ? rest : rest.slice(questionIndex, questionIndex + 3);
-
-  return <aside className="hidden min-h-0 min-w-0 flex-col gap-3 overflow-y-auto overscroll-contain border-l border-border bg-surface p-4 xl:flex">
-    {/* The question being watched is an open panel, not another card in the
-        stack, so it is never mistaken for a jump target. */}
-    <div className="rounded-lg border border-primary/20 bg-primary-soft p-3">
-      <div className="flex items-center justify-between gap-2"><span className="text-caption font-semibold text-primary-ink">Q{active.number} · Now playing</span><span className="flex items-center gap-2 text-caption tabular text-muted">{active.duration}{active.flagged && <FlagDot severity={active.flagged} />}</span></div>
-      <p className="mt-2 text-body-sm font-medium text-heading">{active.text}</p>
-      <p className="mt-2 line-clamp-3 text-caption font-normal text-muted">{active.answer}</p>
-      <button type="button" className="mt-2 text-caption font-medium text-primary-ink hover:underline" onClick={() => setAnswerOpen(active)}>View full answer</button>
-    </div>
-
-    {visible.map((question) => {
-      const index = interviewQuestions.findIndex((item) => item.id === question.id);
-      return <button key={question.id} type="button" onClick={() => onQuestionChange(index)} className="rounded-lg border border-border bg-surface p-3 text-left transition-colors hover:border-border-hover hover:bg-surface-hover">
-        <div className="flex items-center justify-between gap-2"><span className="text-caption font-semibold text-heading">Q{question.number}</span><span className="flex items-center gap-2 text-caption tabular text-muted">{question.duration}{question.flagged && <FlagDot severity={question.flagged} />}</span></div>
-        <p className="mt-2 text-body-sm font-medium text-heading">{question.text}</p>
-        <p className="mt-1.5 line-clamp-2 text-caption font-normal text-muted">{question.answer}</p>
-      </button>;
-    })}
-
-    <Button variant="secondary" className="w-full justify-between" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>{expanded ? 'Show fewer questions' : `View all questions (${interviewQuestions.length})`}<ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} aria-hidden="true" /></Button>
-    <AnswerModal question={answerOpen} onClose={() => setAnswerOpen(null)} />
-
-  </aside>;
-}
-
-/* Read-only star row. `value` may be fractional (an average), so each star
-   is filled only when the value clears it. */
-function Stars({ value, className }: { value: number; className?: string }) {
-  return <span className={cn('flex items-center gap-0.5', className)} aria-label={`${value} out of 5 stars`}>
-    {[1, 2, 3, 4, 5].map((step) => <Star key={step} className={cn('h-3.5 w-3.5', value >= step - 0.5 ? 'fill-warning text-warning' : 'fill-none text-border-strong')} aria-hidden="true" />)}
-  </span>;
-}
-
 function NoteList({ notes, empty, variant }: { notes: TeamNote[]; empty: string; variant: 'comment' | 'review' }) {
   if (notes.length === 0) {
     return <div className="rounded-lg border border-dashed border-border-strong px-6 py-12 text-center">
@@ -464,6 +277,547 @@ function NoteList({ notes, empty, variant }: { notes: TeamNote[]; empty: string;
       </li>
     ))}
   </ul>;
+}
+
+/* ── Share link ──
+   Mirrors the flow on the live product: pick what the recipient may see,
+   generate a link, then copy it. The modal has two states — before the link
+   exists the primary action generates it; afterwards a read-only field with a
+   copy button takes its place, and the toggles stay editable so the settings
+   can still be adjusted (which regenerates the link). */
+function ShareDialog({ candidates, open, onOpenChange }: { candidates: Candidate[]; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const bulk = candidates.length > 1;
+  const [settings, setSettings] = React.useState<ShareSettings>(DEFAULT_SHARE_SETTINGS);
+  const [link, setLink] = React.useState<string | null>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  // A fresh dialog always starts from the default options and no link.
+  React.useEffect(() => {
+    if (!open) return;
+    setSettings(DEFAULT_SHARE_SETTINGS);
+    setLink(null);
+    setCopied(false);
+  }, [open]);
+
+  /* Changing an option invalidates the link it produced, so the recipient can
+     never end up with a URL that grants more than the current settings. */
+  const toggle = (id: ShareOption['id']) => {
+    setSettings((current) => ({ ...current, [id]: !current[id] }));
+    setLink(null);
+    setCopied(false);
+  };
+
+  const generate = () => {
+    const enabled = (Object.keys(settings) as ShareOption['id'][]).filter((key) => settings[key]);
+    const origin = typeof window === 'undefined' ? '' : window.location.origin;
+    /* One link for the whole selection: the recipient sees a shared view whose
+       sidebar is limited to exactly these candidates. The URL carries each
+       candidate's opaque shareToken, never their id (which is name-derived
+       in this mock data) — otherwise a name-off link would still leak the
+       name through the link itself. */
+    const ids = candidates.map((item) => item.shareToken).join(',');
+    const query = [ids ? `c=${ids}` : '', enabled.length ? `opts=${enabled.join(',')}` : ''].filter(Boolean).join('&');
+    setLink(`${origin}/share${query ? `?${query}` : ''}`);
+    setCopied(false);
+  };
+
+  const copy = async () => {
+    if (!link) return;
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopied(true);
+      toast('Share link copied');
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy the link');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{bulk ? `Share ${candidates.length} candidates` : 'Copy share link'}</DialogTitle>
+          <DialogDescription>Anyone with this link can view {bulk ? 'these interviews' : 'the interview'}. Choose what they can see.</DialogDescription>
+        </DialogHeader>
+
+        {link && (
+          <div className="flex w-full min-w-0 items-center gap-2 overflow-hidden rounded-md border border-border bg-surface-2 p-1.5 pl-3">
+            <span className="block min-w-0 flex-1 overflow-hidden text-ellipsis whitespace-nowrap font-mono text-body-sm text-heading" title={link}>{link}</span>
+            <Button size="sm" variant={copied ? 'secondary' : 'default'} className="shrink-0" onClick={copy}>
+              {copied ? <><Check className="h-4 w-4" aria-hidden="true" />Copied</> : <><Copy className="h-4 w-4" aria-hidden="true" />Copy</>}
+            </Button>
+          </div>
+        )}
+
+        {bulk && (
+          <div className="flex flex-wrap gap-1.5 rounded-md border border-border bg-surface-2 p-2.5">
+            {candidates.map((item) => (
+              <span key={item.id} className="rounded-full border border-border bg-surface px-2 py-0.5 text-caption text-heading">{item.name}</span>
+            ))}
+          </div>
+        )}
+
+        <div className="grid gap-x-6 gap-y-3 sm:grid-cols-2">
+          {SHARE_OPTIONS.map((option) => (
+            <div key={option.id} className="flex items-start gap-2.5">
+              <Switch id={`share-${option.id}`} checked={settings[option.id]} onCheckedChange={() => toggle(option.id)} className="mt-0.5 shrink-0" />
+              <label htmlFor={`share-${option.id}`} className="min-w-0 cursor-pointer">
+                <span className="block text-body-sm font-medium text-heading">{option.label}</span>
+                <span className="mt-0.5 block text-caption font-normal leading-4 text-muted">{option.hint}</span>
+              </label>
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
+          {!link && <Button onClick={generate}><LinkIcon className="h-4 w-4" aria-hidden="true" />Generate link</Button>}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Create Link (job-level) ──
+   A four-step wizard, distinct from ShareDialog above: this bundles a chosen
+   set of candidates, questions and internal users behind one persisted link,
+   optionally PIN-protected. Reuses SHARE_OPTIONS/ShareSettings for the
+   options step so a link's visibility toggles stay identical to the
+   candidate share flow. */
+type LinkStep = 1 | 2 | 3 | 4;
+
+function StepDots({ step }: { step: LinkStep }) {
+  const labels = ['Link', 'Questions', 'Candidates', 'Summary'];
+  return <div className="flex items-center gap-2">
+    {labels.map((label, index) => {
+      const value = (index + 1) as LinkStep;
+      return <React.Fragment key={label}>
+        <span className={cn('flex items-center gap-1.5 text-caption font-medium', value === step ? 'text-primary-ink' : value < step ? 'text-muted' : 'text-muted/60')}>
+          <span className={cn('flex h-5 w-5 items-center justify-center rounded-full text-[10px]', value === step ? 'bg-primary text-primary-foreground' : value < step ? 'bg-surface-2 text-heading' : 'bg-surface-2 text-muted')}>{value < step ? <Check className="h-3 w-3" aria-hidden="true" /> : value}</span>
+          <span className="hidden sm:inline">{label}</span>
+        </span>
+        {index < labels.length - 1 && <span className="h-px w-4 shrink-0 bg-border" aria-hidden="true" />}
+      </React.Fragment>;
+    })}
+  </div>;
+}
+
+/* A 4-box OTP-style PIN entry: each box holds one digit, typing advances
+   focus automatically, and Backspace on an empty box steps back — the usual
+   OTP feel rather than one free-text field. */
+function PinInput({ value, onChange, error }: { value: string; onChange: (value: string) => void; error?: boolean }) {
+  const digits = Array.from({ length: 4 }, (_, index) => value[index] ?? '');
+  const refs = React.useRef<(HTMLInputElement | null)[]>([]);
+
+  const setDigit = (index: number, char: string) => {
+    const next = digits.slice();
+    next[index] = char;
+    onChange(next.join(''));
+  };
+
+  const handleChange = (index: number, raw: string) => {
+    const digit = raw.replace(/\D/g, '').slice(-1);
+    setDigit(index, digit);
+    if (digit && index < 3) refs.current[index + 1]?.focus();
+  };
+
+  const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Backspace' && !digits[index] && index > 0) {
+      refs.current[index - 1]?.focus();
+      setDigit(index - 1, '');
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+      refs.current[index - 1]?.focus();
+    } else if (event.key === 'ArrowRight' && index < 3) {
+      refs.current[index + 1]?.focus();
+    }
+  };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const pasted = event.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4);
+    if (!pasted) return;
+    event.preventDefault();
+    onChange(pasted.padEnd(4, '').slice(0, 4).replace(/ /g, ''));
+    refs.current[Math.min(pasted.length, 3)]?.focus();
+  };
+
+  return (
+    <div className="flex items-center gap-2" role="group" aria-label="4-digit PIN">
+      {digits.map((digit, index) => (
+        <input
+          key={index}
+          ref={(el) => { refs.current[index] = el; }}
+          type="password"
+          inputMode="numeric"
+          maxLength={1}
+          value={digit}
+          onChange={(event) => handleChange(index, event.target.value)}
+          onKeyDown={(event) => handleKeyDown(index, event)}
+          onPaste={handlePaste}
+          aria-label={`PIN digit ${index + 1}`}
+          className={cn('h-11 w-11 rounded-md border bg-surface text-center text-h3 tabular text-heading focus:outline-none focus:ring-2 focus:ring-primary/40', error ? 'border-error' : 'border-border-strong')}
+        />
+      ))}
+    </div>
+  );
+}
+
+function CreateLinkDialog({ jobId, open, onOpenChange, mode, link, onCreated, onUpdated }: { jobId: string; open: boolean; onOpenChange: (open: boolean) => void; mode: 'create' | 'edit'; link?: JobLink | null; onCreated: (link: JobLink) => void; onUpdated: (link: JobLink) => void }) {
+  const [step, setStep] = React.useState<LinkStep>(1);
+  const [name, setName] = React.useState('');
+  const [candidateIds, setCandidateIds] = React.useState<Set<string>>(new Set());
+  const [settings, setSettings] = React.useState<ShareSettings>(DEFAULT_SHARE_SETTINGS);
+  const [passwordProtected, setPasswordProtected] = React.useState(false);
+  const [pin, setPin] = React.useState('');
+  const [questionIds, setQuestionIds] = React.useState<Set<string>>(new Set());
+  const [creating, setCreating] = React.useState(false);
+  const [created, setCreated] = React.useState<JobLink | null>(null);
+  const [copied, setCopied] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!open) return;
+    setStep(1);
+    setCreated(null);
+    setCopied(false);
+    if (mode === 'edit' && link) {
+      setName(link.name);
+      setCandidateIds(new Set(link.candidateIds));
+      setSettings(link.settings);
+      setPasswordProtected(Boolean(link.pin));
+      setPin(link.pin ?? '');
+      setQuestionIds(new Set(link.questionIds));
+    } else {
+      setName('');
+      setCandidateIds(new Set());
+      setSettings(DEFAULT_SHARE_SETTINGS);
+      setPasswordProtected(false);
+      setPin('');
+      setQuestionIds(new Set());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, mode, link?.id]);
+
+  const pinValid = !passwordProtected || /^\d{4}$/.test(pin);
+  const nameValid = name.trim().length > 0;
+  const step1Valid = nameValid && pinValid;
+  const isEdit = mode === 'edit';
+
+  const toggleSet = (setFn: React.Dispatch<React.SetStateAction<Set<string>>>) => (id: string) => setFn((current) => {
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
+  const toggleCandidate = toggleSet(setCandidateIds);
+  const toggleQuestion = toggleSet(setQuestionIds);
+  const toggleOption = (id: ShareOption['id']) => setSettings((current) => ({ ...current, [id]: !current[id] }));
+
+  const selectedCandidates = workflowCandidates.filter((item) => candidateIds.has(item.id));
+  const selectedQuestions = interviewQuestions.filter((item) => questionIds.has(item.id));
+  const enabledOptions = SHARE_OPTIONS.filter((option) => settings[option.id]);
+
+  const handleSave = async () => {
+    setCreating(true);
+    try {
+      const input = {
+        name: name.trim(),
+        candidateIds: Array.from(candidateIds),
+        questionIds: Array.from(questionIds),
+        settings,
+        pin: passwordProtected ? pin : null,
+      };
+      if (isEdit && link) {
+        const updated = updateJobLink(jobId, link.id, input);
+        if (!updated) throw new Error('not found');
+        onUpdated(updated);
+        toast('Link updated');
+        onOpenChange(false);
+      } else {
+        const created = createJobLink(jobId, input);
+        setCreated(created);
+        onCreated(created);
+        toast('Link created');
+      }
+    } catch {
+      toast.error(isEdit ? 'Could not update the link' : 'Could not create the link');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const copyLink = async () => {
+    if (!created) return;
+    try {
+      await navigator.clipboard.writeText(created.url);
+      setCopied(true);
+      toast('Link copied');
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy the link');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(next) => { if (!next && created) { onOpenChange(false); return; } onOpenChange(next); }}>
+      <DialogContent className="flex h-[90vh] max-h-[860px] w-[95vw] max-w-3xl flex-col overflow-hidden sm:h-[85vh]">
+        <DialogHeader>
+          <DialogTitle>{created ? 'Link created' : isEdit ? 'Edit link' : 'Create link'}</DialogTitle>
+          <DialogDescription>{created ? 'Share this link with anyone who needs access.' : 'Bundle candidates and questions behind one shareable link.'}</DialogDescription>
+        </DialogHeader>
+
+        {created ? (
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-5 overflow-y-auto py-6 text-center">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success-wash"><Check className="h-7 w-7 text-success-ink" aria-hidden="true" /></span>
+            <div>
+              <p className="text-h3 text-heading">{created.name}</p>
+              <p className="mt-1 text-body-sm text-muted">Anyone with this link can open it{created.pin ? ' after entering the PIN' : ''}.</p>
+            </div>
+            <div className="flex w-full max-w-lg min-w-0 flex-col gap-2 rounded-lg border border-border bg-surface-2 p-3 sm:flex-row sm:items-center">
+              <span className="block min-w-0 flex-1 break-all text-left font-mono text-body-sm text-heading" title={created.url}>{created.url}</span>
+              <Button size="sm" variant={copied ? 'secondary' : 'default'} className="w-full shrink-0 sm:w-auto" onClick={copyLink}>
+                {copied ? <><Check className="h-4 w-4" aria-hidden="true" />Copied</> : <><Copy className="h-4 w-4" aria-hidden="true" />Copy link</>}
+              </Button>
+            </div>
+            {created.pin && (
+              <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-1.5">
+                <KeyRound className="h-3.5 w-3.5 text-muted" aria-hidden="true" />
+                <span className="text-caption text-muted">PIN</span>
+                <span className="font-mono text-body-sm font-semibold tracking-[0.2em] text-heading">{created.pin}</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            <div className="shrink-0 border-b border-border pb-4"><StepDots step={step} /></div>
+
+            <div className="min-h-0 flex-1 overflow-y-auto py-1 pr-1">
+              {step === 1 && (
+                <div className="space-y-6">
+                  <div>
+                    <label className="text-body-sm font-medium text-heading" htmlFor="link-name">Link name</label>
+                    <Input id="link-name" className="mt-1.5 h-11 text-body" value={name} onChange={(event) => setName(event.target.value)} placeholder="e.g. Shortlist for hiring panel" />
+                  </div>
+
+                  <div>
+                    <p className="text-body-sm font-medium text-heading">Link permissions</p>
+                    <p className="mt-0.5 text-caption text-muted">Choose what anyone opening this link can see or do.</p>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      {SHARE_OPTIONS.map((option) => (
+                        <label key={option.id} htmlFor={`link-${option.id}`} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-colors', settings[option.id] ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface hover:bg-surface-hover')}>
+                          <Switch id={`link-${option.id}`} checked={settings[option.id]} onCheckedChange={() => toggleOption(option.id)} className="mt-0.5 shrink-0" />
+                          <span className="min-w-0">
+                            <span className="block text-body-sm font-medium text-heading">{option.label}</span>
+                            <span className="mt-0.5 block text-caption font-normal leading-4 text-muted">{option.hint}</span>
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className={cn('rounded-lg border p-4 transition-colors', passwordProtected ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface')}>
+                    <div className="flex items-start gap-3">
+                      <Switch id="link-pw" checked={passwordProtected} onCheckedChange={setPasswordProtected} className="mt-0.5 shrink-0" />
+                      <label htmlFor="link-pw" className="min-w-0 flex-1 cursor-pointer">
+                        <span className="flex items-center gap-1.5 text-body-sm font-medium text-heading"><KeyRound className="h-3.5 w-3.5" aria-hidden="true" />Password protect this link</span>
+                        <span className="mt-0.5 block text-caption font-normal leading-4 text-muted">Require a 4-digit PIN before the link can be opened.</span>
+                      </label>
+                    </div>
+                    {passwordProtected && (
+                      <div className="mt-4 border-t border-border/70 pt-4 pl-8">
+                        <p className="mb-2 text-caption font-medium text-muted">Enter a 4-digit PIN</p>
+                        <PinInput value={pin} onChange={setPin} error={pin.length > 0 && !pinValid} />
+                        {pin.length > 0 && !pinValid && <p className="mt-2 text-caption text-error-ink">Enter exactly 4 digits.</p>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="flex h-full min-h-0 flex-col">
+                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-body-sm font-medium text-heading">Questions</p>
+                      <p className="text-caption text-muted">Choose which questions are visible through this link.</p>
+                    </div>
+                    <div className="flex items-center gap-1 rounded-md border border-border bg-surface p-0.5">
+                      <Button variant="ghost" size="sm" className="h-7 px-2.5 text-caption" onClick={() => setQuestionIds(new Set(interviewQuestions.map((item) => item.id)))}>Select all</Button>
+                      <Button variant="ghost" size="sm" className="h-7 px-2.5 text-caption" onClick={() => setQuestionIds(new Set())}>Select none</Button>
+                    </div>
+                  </div>
+                  <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                    {interviewQuestions.map((item) => {
+                      const checked = questionIds.has(item.id);
+                      return (
+                        <label key={item.id} htmlFor={`q-${item.id}`} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-colors', checked ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface hover:bg-surface-hover')}>
+                          <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-caption font-semibold', checked ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-muted')}>{item.number}</span>
+                          <span className="min-w-0 flex-1 pt-0.5 text-body-sm font-medium leading-5 text-heading">{item.text}</span>
+                          <Checkbox id={`q-${item.id}`} className="mt-1 shrink-0" checked={checked} onCheckedChange={() => toggleQuestion(item.id)} />
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 shrink-0 text-caption text-muted">{questionIds.size} of {interviewQuestions.length} selected</p>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="flex h-full min-h-0 flex-col">
+                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <p className="text-body-sm font-medium text-heading">Candidates</p>
+                      <p className="text-caption text-muted">Choose which candidates this link gives access to.</p>
+                    </div>
+                    <div className="flex items-center gap-1 rounded-md border border-border bg-surface p-0.5">
+                      <Button variant="ghost" size="sm" className="h-7 px-2.5 text-caption" onClick={() => setCandidateIds(new Set(workflowCandidates.map((item) => item.id)))}>Select all</Button>
+                      <Button variant="ghost" size="sm" className="h-7 px-2.5 text-caption" onClick={() => setCandidateIds(new Set())}>Select none</Button>
+                    </div>
+                  </div>
+                  <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                    {workflowCandidates.map((item) => {
+                      const checked = candidateIds.has(item.id);
+                      return (
+                        <label key={item.id} htmlFor={`c-${item.id}`} className={cn('flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition-colors', checked ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface hover:bg-surface-hover')}>
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary-soft text-caption font-semibold text-primary-ink">{item.initials}</span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-body-sm font-medium text-heading">{item.name}</span>
+                            <span className="block truncate text-caption text-muted">{item.title}</span>
+                          </span>
+                          <MatchBadge match={item.match} className="hidden shrink-0 sm:inline-flex" />
+                          <Checkbox id={`c-${item.id}`} className="shrink-0" checked={checked} onCheckedChange={() => toggleCandidate(item.id)} />
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-2 shrink-0 text-caption text-muted">{candidateIds.size} of {workflowCandidates.length} selected</p>
+                </div>
+              )}
+
+              {step === 4 && (
+                <div className="space-y-4">
+                  <div className="rounded-lg border border-border bg-surface p-4">
+                    <p className="text-caption font-medium uppercase tracking-wide text-muted">Link name</p>
+                    <p className="mt-1 text-h3 text-heading">{name || '—'}</p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-lg border border-border bg-surface p-4">
+                      <p className="flex items-center gap-1.5 text-caption font-medium uppercase tracking-wide text-muted"><FileText className="h-3.5 w-3.5" aria-hidden="true" />Questions</p>
+                      <p className="mt-1 text-h3 text-heading">{selectedQuestions.length} <span className="text-body-sm font-normal text-muted">of {interviewQuestions.length}</span></p>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {selectedQuestions.length ? selectedQuestions.map((q) => <span key={q.id} className="rounded-full bg-surface-2 px-2 py-0.5 text-caption font-medium text-heading">Q{q.number}</span>) : <span className="text-caption text-muted">None selected</span>}
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-border bg-surface p-4">
+                      <p className="flex items-center gap-1.5 text-caption font-medium uppercase tracking-wide text-muted"><UserRound className="h-3.5 w-3.5" aria-hidden="true" />Candidates</p>
+                      <p className="mt-1 text-h3 text-heading">{selectedCandidates.length} <span className="text-body-sm font-normal text-muted">of {workflowCandidates.length}</span></p>
+                      <div className="mt-2.5 flex flex-wrap gap-1.5">
+                        {selectedCandidates.length ? selectedCandidates.map((item) => <span key={item.id} className="rounded-full bg-surface-2 px-2 py-0.5 text-caption font-medium text-heading">{item.name}</span>) : <span className="text-caption text-muted">None selected</span>}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-border bg-surface p-4">
+                    <p className="text-caption font-medium uppercase tracking-wide text-muted">Link permissions</p>
+                    <div className="mt-2.5 flex flex-wrap gap-1.5">
+                      {enabledOptions.length ? enabledOptions.map((option) => <span key={option.id} className="inline-flex items-center gap-1 rounded-full bg-success-wash px-2.5 py-1 text-caption font-medium text-success-ink"><Check className="h-3 w-3" aria-hidden="true" />{option.label}</span>) : <span className="text-caption text-muted">None enabled</span>}
+                    </div>
+                  </div>
+
+                  <div className={cn('flex items-center justify-between rounded-lg border p-4', passwordProtected ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface')}>
+                    <span className="flex items-center gap-2 text-body-sm font-medium text-heading"><KeyRound className="h-4 w-4" aria-hidden="true" />Password protection</span>
+                    {passwordProtected ? <span className="font-mono text-body-sm font-semibold tracking-[0.2em] text-heading">{pin}</span> : <span className="text-caption text-muted">Disabled</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+          </>
+        )}
+
+        <DialogFooter className="shrink-0">
+          {created ? (
+            <Button onClick={() => onOpenChange(false)}>Done</Button>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={() => step === 1 ? onOpenChange(false) : setStep((current) => (current - 1) as LinkStep)}>{step === 1 ? 'Cancel' : 'Back'}</Button>
+              {step < 4 ? (
+                <Button disabled={step === 1 && !step1Valid} onClick={() => setStep((current) => (current + 1) as LinkStep)}>Next</Button>
+              ) : (
+                <Button onClick={handleSave} disabled={creating}>{creating ? (isEdit ? 'Saving…' : 'Creating…') : isEdit ? 'Save changes' : 'Create link'}</Button>
+              )}
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── Manage Link (job-level) ──
+   Lists every link already created for this job. Reachable only once at
+   least one link exists — the More menu swaps "Create Link" for
+   "Manage Link" the moment the first one is generated. */
+function ManageLinkDialog({ links, open, onOpenChange, onEdit }: { links: JobLink[]; open: boolean; onOpenChange: (open: boolean) => void; onEdit: (link: JobLink) => void }) {
+  const copyLink = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      toast('Link copied');
+    } catch {
+      toast.error('Could not copy the link');
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex h-[85vh] max-h-[760px] w-[95vw] max-w-3xl flex-col overflow-hidden sm:h-[75vh]">
+        <DialogHeader>
+          <DialogTitle>Manage links</DialogTitle>
+          <DialogDescription>{links.length} shareable link{links.length === 1 ? '' : 's'} for this job.</DialogDescription>
+        </DialogHeader>
+
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+          {links.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center gap-2 text-center">
+              <LinkIcon className="h-6 w-6 text-muted" aria-hidden="true" />
+              <p className="text-body-sm text-muted">No links yet.</p>
+            </div>
+          ) : links.map((link) => (
+            <div key={link.id} className="rounded-lg border border-border bg-surface p-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-body-sm font-semibold text-heading" title={link.name}>{link.name}</p>
+                  <p className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-muted">
+                    <span>Created {link.createdAt}</span>
+                    <span aria-hidden="true">·</span>
+                    {link.pin ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-success-wash px-2 py-0.5 font-medium text-success-ink"><KeyRound className="h-3 w-3" aria-hidden="true" />PIN protected</span>
+                    ) : (
+                      <span className="text-muted">No password</span>
+                    )}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => onEdit(link)}>
+                    <Settings2 className="h-3.5 w-3.5" aria-hidden="true" />Edit
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => window.open(link.url, '_blank', 'noopener,noreferrer')}>
+                    <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />Open
+                  </Button>
+                </div>
+              </div>
+              <div className="mt-3 flex min-w-0 items-center gap-2 rounded-md border border-border bg-surface-2 p-2 pl-3">
+                <span className="block min-w-0 flex-1 truncate font-mono text-caption text-heading" title={link.url}>{link.url}</span>
+                <button type="button" aria-label="Copy link" className="shrink-0 rounded-sm p-1.5 text-muted transition-colors hover:bg-surface-hover hover:text-heading" onClick={() => copyLink(link.url)}><Copy className="h-3.5 w-3.5" aria-hidden="true" /></button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <DialogFooter className="shrink-0">
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function SupportingView({ view, candidate, comments, reviews }: { view: Exclude<CandidateView, 'Interview'>; candidate: Candidate; comments: TeamNote[]; reviews: TeamNote[] }) {
@@ -541,6 +895,10 @@ export default function JobDetailPage() {
   const [reviews, setReviews] = React.useState<TeamNote[]>(candidateReviews);
   const [draft, setDraft] = React.useState('');
   const [draftStars, setDraftStars] = React.useState(0);
+  const [jobLinks, setJobLinks] = React.useState<JobLink[]>([]);
+  const [editingLink, setEditingLink] = React.useState<JobLink | null>(null);
+
+  React.useEffect(() => { if (jobId) setJobLinks(getJobLinks(jobId)); }, [jobId]);
 
   /* The signed-in reviewer. Real auth would supply this. */
   const me = { author: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', initials: 'SC' };
@@ -566,15 +924,17 @@ export default function JobDetailPage() {
   const averageRating = reviews.length ? reviews.reduce((sum, r) => sum + (r.stars ?? 0), 0) / reviews.length : undefined;
   const shownCandidate: Candidate = { ...candidate, rating: averageRating, reviews: reviews.length };
 
-  const dialogCopy: Record<Exclude<DialogState, null>, { title: string; description: string; confirm: string; destructive?: boolean; field?: 'text' }> = {
+  type SimpleDialogKind = 'comment' | 'note' | 'report' | 'compare' | 'delete';
+  const dialogCopy: Record<SimpleDialogKind, { title: string; description: string; confirm: string; destructive?: boolean; field?: 'text' }> = {
     comment: { title: 'Add a comment', description: 'Comments are visible to everyone on the hiring team.', confirm: 'Post comment', field: 'text' },
     note: { title: 'Add a review', description: 'Rate this candidate and share what informed your view.', confirm: 'Post review', field: 'text' },
-    share: { title: `Share ${candidate.name}`, description: 'Anyone with the link can view this interview and its AI assessment.', confirm: 'Copy link' },
     report: { title: 'Generate AI report', description: `Build a combined report for ${checkedIds.size} selected candidates.`, confirm: 'Generate report' },
     compare: { title: 'Compare candidates', description: 'Select up to three completed AI reports to compare side by side.', confirm: 'Compare' },
     delete: { title: `Reject ${candidate.name}?`, description: 'They will move to the Rejected stage. You can restore them later.', confirm: 'Reject candidate', destructive: true },
   };
-  const copy = dialog ? dialogCopy[dialog] : null;
+  const shareMode = dialog === 'share' ? 'single' : dialog === 'share-bulk' ? 'bulk' : null;
+  const isSimpleDialog = (value: DialogState): value is SimpleDialogKind => value !== null && value in dialogCopy;
+  const copy = isSimpleDialog(dialog) ? dialogCopy[dialog] : null;
 
   React.useEffect(() => { setStage(initialStage); }, [initialStage]);
 
@@ -594,10 +954,10 @@ export default function JobDetailPage() {
       <div className="grid min-h-0 flex-1 overflow-y-auto overscroll-contain lg:grid-cols-[300px_minmax(0,1fr)] lg:overflow-hidden">
         <CandidateList candidates={workflowCandidates} selectedCandidate={candidate} checkedIds={checkedIds} query={query} sort={sort} matchFilter={matchFilter} onQueryChange={setQuery} onSortChange={setSort} onMatchFilterChange={setMatchFilter} onSelect={(next) => { setCandidate(next); setQuestionIndex(1); }} onCheck={toggleCandidate} onSelectAll={selectAll} onClear={clearSelected} />
         <div className="flex min-h-0 min-w-0 flex-col lg:overflow-hidden">
-          <div className="shrink-0"><CandidateHeader candidate={shownCandidate} onDialog={openDialog} /></div>
+          <div className="shrink-0"><CandidateHeader candidate={shownCandidate} onDialog={openDialog} hasLinks={jobLinks.length > 0} /></div>
           <div className={cn('grid min-h-0 flex-1 lg:overflow-hidden', view === 'Interview' && 'xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]')}><main className="min-w-0 overflow-visible overscroll-contain bg-background lg:overflow-y-auto"><div className="border-b border-border bg-surface px-4 sm:px-6"><div className="flex gap-6 overflow-x-auto" role="tablist" aria-label="Candidate detail views">{(['Interview', 'Resume', 'Comments', 'Reviews', 'Activity'] as CandidateView[]).map((item) => <button key={item} type="button" role="tab" aria-selected={view === item} onClick={() => setView(item)} className={cn('-mb-px border-b-2 px-1 py-4 text-button transition-colors', view === item ? 'border-primary text-primary-ink' : 'border-transparent text-muted hover:text-heading')}>{item}</button>)}</div></div><div className="p-3 sm:p-4">{view === 'Interview' ? <InterviewView questionIndex={questionIndex} onQuestionChange={setQuestionIndex} onDialog={setDialog} onMove={(target) => toast(`${candidate.name} moved to ${target}`)} /> : <SupportingView view={view} candidate={candidate} comments={comments} reviews={reviews} />}{/* Clears the floating bulk bar (62px tall + 12px inset) so the last
               control is never trapped underneath it. */}{checkedIds.size > 0 && <div aria-hidden="true" className="h-[86px]" />}</div></main>{view === 'Interview' && <QuestionRail questionIndex={questionIndex} onQuestionChange={setQuestionIndex} />}</div></div></div>{checkedIds.size > 0 && <BulkActionBar count={checkedIds.size} onDialog={openDialog} onClear={clearSelected} />}
-    <Dialog open={Boolean(dialog)} onOpenChange={(open) => !open && setDialog(null)}>
+    <Dialog open={isSimpleDialog(dialog)} onOpenChange={(open) => !open && setDialog(null)}>
       <DialogContent>
         <DialogHeader><DialogTitle>{copy?.title}</DialogTitle><DialogDescription>{copy?.description}</DialogDescription></DialogHeader>
         {dialog === 'note' && (
@@ -624,6 +984,23 @@ export default function JobDetailPage() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    <ShareDialog candidates={shareMode === 'bulk' ? workflowCandidates.filter((item) => checkedIds.has(item.id)) : [candidate]} open={Boolean(shareMode)} onOpenChange={(next) => setDialog(next ? dialog : null)} />
+    <CreateLinkDialog
+      key={dialog === 'edit-link' ? editingLink?.id : 'create'}
+      jobId={job.id}
+      mode={dialog === 'edit-link' ? 'edit' : 'create'}
+      link={dialog === 'edit-link' ? editingLink : null}
+      open={dialog === 'create-link' || dialog === 'edit-link'}
+      onOpenChange={(open) => setDialog(open ? dialog : null)}
+      onCreated={(link) => { setJobLinks((current) => [link, ...current]); }}
+      onUpdated={(link) => { setJobLinks((current) => current.map((item) => (item.id === link.id ? link : item))); }}
+    />
+    <ManageLinkDialog
+      links={jobLinks}
+      open={dialog === 'manage-link'}
+      onOpenChange={(open) => setDialog(open ? 'manage-link' : null)}
+      onEdit={(link) => { setEditingLink(link); setDialog('edit-link'); }}
+    />
   </div>;
 }
 
@@ -634,7 +1011,7 @@ function BriefcaseIcon() { return <span className="flex h-5 w-5 items-center jus
 const barButton = 'text-text-inverse hover:bg-glass-bg-strong hover:text-text-inverse active:bg-glass-bg';
 
 function BulkActionBar({ count, onDialog, onClear }: { count: number; onDialog: (dialog: DialogState) => void; onClear: () => void }) {
-  return <div className="fixed inset-x-3 bottom-3 z-savebar mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-lg border border-heading bg-heading p-3 text-text-inverse shadow-xl"><div className="flex items-center gap-3"><span className="text-button font-medium text-text-inverse">{count} selected</span><button type="button" className="text-caption text-text-inverse/70 transition-colors hover:text-text-inverse" onClick={onClear}>Clear</button></div><div className="flex flex-wrap items-center gap-2"><Button variant="ghost" size="sm" className={barButton} onClick={() => toast('Select up to three completed AI reports to compare')}><UsersIcon /><span className="hidden sm:inline">Compare</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => toast(`Move ${count} candidates opened`)}><MoveRight className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Move</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => onDialog('report')}><Sparkles className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">AI Report</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => toast(`${count} candidates rejected`)}><X className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Reject</span></Button><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className={barButton}><EllipsisVertical className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">More</span></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onSelect={() => onDialog('delete')}><Trash2 className="mr-2 h-4 w-4" />Delete {count} candidates</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></div>;
+  return <div className="fixed inset-x-3 bottom-3 z-savebar mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-lg border border-heading bg-heading p-3 text-text-inverse shadow-xl"><div className="flex items-center gap-3"><span className="text-button font-medium text-text-inverse">{count} selected</span><button type="button" className="text-caption text-text-inverse/70 transition-colors hover:text-text-inverse" onClick={onClear}>Clear</button></div><div className="flex flex-wrap items-center gap-2"><Button variant="ghost" size="sm" className={barButton} onClick={() => onDialog('share-bulk')}><LinkIcon className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Share link</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => toast(`Move ${count} candidates opened`)}><MoveRight className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Move</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => onDialog('report')}><Sparkles className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">AI Report</span></Button><Button variant="ghost" size="sm" className={barButton} onClick={() => toast(`${count} candidates rejected`)}><X className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">Reject</span></Button><DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="sm" className={barButton}><EllipsisVertical className="h-4 w-4" aria-hidden="true" /><span className="hidden sm:inline">More</span></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem onSelect={() => onDialog('compare')}><UsersIcon /><span className="ml-2">Compare candidates</span></DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem className="text-error-ink focus:text-error-ink" onSelect={() => onDialog('delete')}><Trash2 className="mr-2 h-4 w-4" />Delete {count} candidates</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div></div>;
 }
 
 function UsersIcon() { return <span className="flex items-center"><UserRound className="h-4 w-4" aria-hidden="true" /><UserRound className="-ml-2 h-3 w-3" aria-hidden="true" /></span>; }
