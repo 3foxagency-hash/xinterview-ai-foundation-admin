@@ -21,6 +21,9 @@ export const MATCH_LABEL: Record<MatchLevel, string> = {
 
 export type Candidate = {
   id: string;
+  /** Opaque handle for share links — never derived from the name, so an
+      anonymized link can't leak identity through the URL itself. */
+  shareToken: string;
   name: string;
   initials: string;
   title: string;
@@ -84,13 +87,13 @@ export const workflowStages: WorkflowStage[] = [
 ];
 
 export const workflowCandidates: Candidate[] = [
-  { id: 'aarav', name: 'Aarav Malhotra', initials: 'AM', title: 'Sr. Product Designer', email: 'aarav.malhotra@example.com', phone: '+91 98765 43210', applied: 'Today, 10:24 AM', source: 'via direct link', match: 'perfect', rating: 4.5, reviews: 3, live: true },
-  { id: 'saanvi', name: 'Saanvi Iyer', initials: 'SI', title: 'Product Designer', email: 'saanvi.iyer@example.com', phone: '+91 98765 42110', applied: 'Today, 09:11 AM', source: 'via direct link', match: 'good', rating: 4, reviews: 2 },
-  { id: 'rohan', name: 'Rohan Mehta', initials: 'RM', title: 'UX Designer', email: 'rohan.mehta@example.com', phone: '+91 98765 41120', applied: 'Yesterday, 06:35 PM', source: 'via direct link', match: 'average', rating: 3.5, reviews: 2, live: true },
-  { id: 'diya', name: 'Diya Shah', initials: 'DS', title: 'Product Designer', email: 'diya.shah@example.com', phone: '+91 98765 40130', applied: 'Yesterday, 03:22 PM', source: 'via direct link', match: 'average', reviews: 0 },
-  { id: 'krishnapriya', name: 'Krishnapriya Venkataraman Subramanian', initials: 'KV', title: 'Senior Product Designer', email: 'krishnapriya@example.com', phone: '+91 98765 39140', applied: '14 Aug, 11:02 AM', source: 'via direct link', match: 'poor', rating: 2.5, reviews: 1 },
-  { id: 'ishaan', name: 'Ishaan Verma', initials: 'IV', title: 'Product Designer', email: 'ishaan.verma@example.com', phone: '+91 98765 38150', applied: '13 Aug, 08:47 AM', source: 'via direct link', match: 'poor', reviews: 0 },
-  { id: 'neha', name: 'Neha Kapoor', initials: 'NK', title: 'Product Designer', email: 'neha.kapoor@example.com', phone: '+91 98765 37160', applied: '13 Aug, 04:15 AM', source: 'via direct link', match: 'good', rating: 4, reviews: 1 },
+  { id: 'aarav', shareToken: 'c-7f2k9m', name: 'Aarav Malhotra', initials: 'AM', title: 'Sr. Product Designer', email: 'aarav.malhotra@example.com', phone: '+91 98765 43210', applied: 'Today, 10:24 AM', source: 'via direct link', match: 'perfect', rating: 4.5, reviews: 3, live: true },
+  { id: 'saanvi', shareToken: 'c-3q8x1p', name: 'Saanvi Iyer', initials: 'SI', title: 'Product Designer', email: 'saanvi.iyer@example.com', phone: '+91 98765 42110', applied: 'Today, 09:11 AM', source: 'via direct link', match: 'good', rating: 4, reviews: 2 },
+  { id: 'rohan', shareToken: 'c-9d4w6t', name: 'Rohan Mehta', initials: 'RM', title: 'UX Designer', email: 'rohan.mehta@example.com', phone: '+91 98765 41120', applied: 'Yesterday, 06:35 PM', source: 'via direct link', match: 'average', rating: 3.5, reviews: 2, live: true },
+  { id: 'diya', shareToken: 'c-2r5n8v', name: 'Diya Shah', initials: 'DS', title: 'Product Designer', email: 'diya.shah@example.com', phone: '+91 98765 40130', applied: 'Yesterday, 03:22 PM', source: 'via direct link', match: 'average', reviews: 0 },
+  { id: 'krishnapriya', shareToken: 'c-6h1z4y', name: 'Krishnapriya Venkataraman Subramanian', initials: 'KV', title: 'Senior Product Designer', email: 'krishnapriya@example.com', phone: '+91 98765 39140', applied: '14 Aug, 11:02 AM', source: 'via direct link', match: 'poor', rating: 2.5, reviews: 1 },
+  { id: 'ishaan', shareToken: 'c-5b3j7c', name: 'Ishaan Verma', initials: 'IV', title: 'Product Designer', email: 'ishaan.verma@example.com', phone: '+91 98765 38150', applied: '13 Aug, 08:47 AM', source: 'via direct link', match: 'poor', reviews: 0 },
+  { id: 'neha', shareToken: 'c-8t2f5s', name: 'Neha Kapoor', initials: 'NK', title: 'Product Designer', email: 'neha.kapoor@example.com', phone: '+91 98765 37160', applied: '13 Aug, 04:15 AM', source: 'via direct link', match: 'good', rating: 4, reviews: 1 },
 ];
 
 export const interviewQuestions: InterviewQuestion[] = [
@@ -197,3 +200,107 @@ export const candidateReviews: TeamNote[] = [
 /* Placeholder resume served from /public until real uploads are wired up. */
 export const RESUME_URL = '/CVArchanaGaitonde.pdf';
 export const RESUME_META = { fileName: 'CVArchanaGaitonde.pdf', pages: 4, sizeLabel: '100 KB' };
+
+/* ── Shareable link ──
+   A share link exposes a read-only view of the candidate's interview. Each
+   toggle controls what the recipient can see or do on that page, so the
+   options travel with the link rather than being a property of the candidate. */
+export type ShareOption = {
+  id: 'name' | 'cv' | 'review' | 'comments' | 'aiReport';
+  label: string;
+  hint: string;
+};
+
+export const SHARE_OPTIONS: ShareOption[] = [
+  { id: 'name', label: 'Show candidate name', hint: 'Reveal the name. Turn off to share the interview anonymously.' },
+  { id: 'cv', label: 'Include resume', hint: "Attach the candidate's CV to the shared view." },
+  { id: 'review', label: 'Allow reviews', hint: 'Let recipients rate the candidate with a star review.' },
+  { id: 'comments', label: 'Allow comments', hint: 'Let recipients leave comments on the interview.' },
+  { id: 'aiReport', label: 'Include AI report', hint: 'Show the AI assessment and per-question analysis.' },
+];
+
+export type ShareSettings = Record<ShareOption['id'], boolean>;
+
+export const DEFAULT_SHARE_SETTINGS: ShareSettings = {
+  name: true, cv: true, review: true, comments: true, aiReport: true,
+};
+
+/* ── Job links ──
+   A job-level shareable link, distinct from the per-candidate ShareDialog
+   above: it bundles a chosen set of candidates and questions behind one URL,
+   optionally PIN-protected. Kept as an in-memory store keyed by jobId so the
+   More menu can tell "no links yet" from "links exist" without a backend. */
+export type JobLink = {
+  id: string;
+  jobId: string;
+  name: string;
+  candidateIds: string[];
+  questionIds: string[];
+  settings: ShareSettings;
+  pin: string | null;
+  url: string;
+  createdAt: string;
+};
+
+const jobLinksStore = new Map<string, JobLink[]>();
+
+export function getJobLinks(jobId: string): JobLink[] {
+  return jobLinksStore.get(jobId) ?? [];
+}
+
+export type JobLinkInput = {
+  name: string;
+  candidateIds: string[];
+  questionIds: string[];
+  settings: ShareSettings;
+  pin: string | null;
+};
+
+function buildLinkUrl(input: JobLinkInput): string {
+  const enabled = (Object.keys(input.settings) as ShareOption['id'][]).filter((key) => input.settings[key]);
+  const origin = typeof window === 'undefined' ? '' : window.location.origin;
+  const tokens = input.candidateIds
+    .map((id) => workflowCandidates.find((item) => item.id === id)?.shareToken)
+    .filter((token): token is string => Boolean(token));
+  const query = [tokens.length ? `c=${tokens.join(',')}` : '', enabled.length ? `opts=${enabled.join(',')}` : ''].filter(Boolean).join('&');
+  return `${origin}/share${query ? `?${query}` : ''}`;
+}
+
+export function createJobLink(jobId: string, input: JobLinkInput): JobLink {
+  const link: JobLink = {
+    id: `link-${Date.now().toString(36)}`,
+    jobId,
+    name: input.name,
+    candidateIds: input.candidateIds,
+    questionIds: input.questionIds,
+    settings: input.settings,
+    pin: input.pin,
+    url: buildLinkUrl(input),
+    createdAt: new Date().toLocaleString('en-US', { month: 'short', day: '2-digit', year: 'numeric', hour: 'numeric', minute: '2-digit' }),
+  };
+
+  jobLinksStore.set(jobId, [link, ...getJobLinks(jobId)]);
+  return link;
+}
+
+/* Editing a link's candidates/questions/options changes what the URL's query
+   string must encode, so the URL is regenerated on every update rather than
+   left stale — the id and createdAt stay fixed, everything else can change. */
+export function updateJobLink(jobId: string, linkId: string, input: JobLinkInput): JobLink | null {
+  const current = getJobLinks(jobId);
+  const existing = current.find((item) => item.id === linkId);
+  if (!existing) return null;
+
+  const updated: JobLink = {
+    ...existing,
+    name: input.name,
+    candidateIds: input.candidateIds,
+    questionIds: input.questionIds,
+    settings: input.settings,
+    pin: input.pin,
+    url: buildLinkUrl(input),
+  };
+
+  jobLinksStore.set(jobId, current.map((item) => (item.id === linkId ? updated : item)));
+  return updated;
+}
