@@ -62,8 +62,11 @@ export type FlagSeverity = "high" | "medium";
 
 /** What the candidate actually recorded/submitted for a question — drives
     which player renders in the answer panel. Defaults to 'video' when
-    unset, so existing mock questions don't need updating one by one. */
-export type QuestionType = "video" | "audio" | "mcq" | "text";
+    unset, so existing mock questions don't need updating one by one.
+    `phone_recording` is distinct from `audio`: it is not a per-question
+    answer but the single full-call recording that occupies the first slot
+    of a Phone Screening interview, so it renders without question text. */
+export type QuestionType = "video" | "audio" | "mcq" | "text" | "phone_recording";
 
 export type McqOption = {
   id: string;
@@ -87,6 +90,9 @@ export type InterviewQuestion = {
   options?: McqOption[];
   selectedOptionId?: string;
   correctOptionId?: string;
+  /** phone_recording only — the backend-provided audio file for the full
+      call. Absent for every other question type. */
+  recordingUrl?: string;
 };
 
 export type AiOverview = {
@@ -464,6 +470,138 @@ And honestly, the interview experience itself is something I have opinions about
     allowed: "2 min"
   }
 ];
+
+/* ── Phone Screening ──
+   A Phone Screening interview has no video or MCQ content: the candidate is
+   screened over a call, so the first slot holds the full call recording
+   (`type: "phone_recording"`, no question text) and every slot after it is
+   a plain text question/answer transcribed from that call. Kept as its own
+   array — rather than a filtered view of `interviewQuestions` — because the
+   backend will eventually supply this shape directly for phone-screen jobs. */
+export const phoneScreeningQuestions: InterviewQuestion[] = [
+  {
+    id: "ps-recording",
+    number: 0,
+    text: "",
+    answer: "",
+    duration: "18:42",
+    seconds: 1122,
+    allowed: "20 min",
+    type: "phone_recording",
+    recordingUrl: "/phone-screening-call.mp3"
+  },
+  {
+    id: "ps-q1",
+    number: 1,
+    text: "What was your previous experience?",
+    answer: "Four years as an SDR at a mid-market SaaS company, then moved into a closing role last year.",
+    duration: "00:58",
+    transcript: "Four years as an SDR at a mid-market SaaS company, then moved into a closing role last year. I carried a full quota for the last two quarters and hit it both times.",
+    seconds: 58,
+    allowed: "2 min",
+    type: "text"
+  },
+  {
+    id: "ps-q2",
+    number: 2,
+    text: "Why are you looking to leave your current role?",
+    answer: "The territory was recently restructured and I want more ownership over a named account list.",
+    duration: "00:44",
+    transcript: "The territory was recently restructured and I want more ownership over a named account list rather than rotating leads.",
+    seconds: 44,
+    allowed: "2 min",
+    type: "text"
+  },
+  {
+    id: "ps-q3",
+    number: 3,
+    text: "What is your experience with our industry or product category?",
+    answer: "Sold into HR and recruiting teams for the past two years, so the buyer persona is familiar.",
+    duration: "01:02",
+    transcript: "I've sold into HR and recruiting teams for the past two years, so the buyer persona and the objections around procurement and rollout are familiar to me.",
+    seconds: 62,
+    allowed: "2 min",
+    type: "text"
+  },
+  {
+    id: "ps-q4",
+    number: 4,
+    text: "Walk me through your sales process from prospecting to close.",
+    answer: "Outbound sequencing, discovery call, tailored demo, procurement, then a structured close plan with the champion.",
+    duration: "01:15",
+    transcript: "Outbound sequencing to build pipeline, a discovery call to qualify budget and timeline, a tailored demo, then working procurement in parallel with a structured close plan alongside my champion.",
+    seconds: 75,
+    allowed: "2 min",
+    flagged: "medium",
+    type: "text"
+  },
+  {
+    id: "ps-q5",
+    number: 5,
+    text: "What is your expected compensation range?",
+    answer: "Base in the low six figures with an OTE around double that, negotiable depending on the split.",
+    duration: "00:36",
+    transcript: "Base in the low six figures with an OTE around double that, but I'm flexible depending on how the commission split is structured.",
+    seconds: 36,
+    allowed: "90 sec",
+    type: "text"
+  },
+  {
+    id: "ps-q6",
+    number: 6,
+    text: "What is your availability and notice period?",
+    answer: "Two weeks' notice once an offer is signed.",
+    duration: "00:22",
+    transcript: "Two weeks' notice once an offer is signed, so I could realistically start within a month.",
+    seconds: 22,
+    allowed: "60 sec",
+    type: "text"
+  },
+  {
+    id: "ps-q7",
+    number: 7,
+    text: "Do you have any questions about the role or the team?",
+    answer: "Asked about team size, how quota is split across the team, and who the role reports to.",
+    duration: "00:51",
+    transcript: "Asked about team size, how quota is split across the team, and who the role reports to day to day.",
+    seconds: 51,
+    allowed: "2 min",
+    type: "text"
+  },
+  {
+    id: "ps-q8",
+    number: 8,
+    text: "Is there anything else you would like us to know before moving forward?",
+    answer: "Reiterated interest and flagged an upcoming trip that may affect scheduling next steps.",
+    duration: "00:33",
+    transcript: "Reiterated strong interest in the role and flagged an upcoming trip that may affect scheduling for next steps, but offered evenings as a workaround.",
+    seconds: 33,
+    allowed: "90 sec",
+    type: "text"
+  }
+];
+
+/* Every job's interview reads from here rather than importing
+   `interviewQuestions` directly, so a job's question set is a real,
+   swappable property of the job instead of one array shared by all of
+   them. Existing jobs all point at the same legacy array — identical
+   behaviour to before — while the Phone Screening job points at its own. */
+export const interviewQuestionsByJob: Record<string, InterviewQuestion[]> = {
+  "job-1": interviewQuestions,
+  "job-2": interviewQuestions,
+  "job-3": interviewQuestions,
+  "job-4": interviewQuestions,
+  "job-5": interviewQuestions,
+  "job-6": interviewQuestions,
+  "job-7": interviewQuestions,
+  "job-8": interviewQuestions,
+  "job-9": interviewQuestions,
+  "job-phone-screen": phoneScreeningQuestions
+};
+
+export function getInterviewQuestions(jobId: string): InterviewQuestion[] {
+  return interviewQuestionsByJob[jobId] ?? interviewQuestions;
+}
 
 /* Three strengths, matching the reference — the previous two-item list left
    the Strengths column visibly shorter than Areas to improve. */

@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, CalendarDays, StickyNote, Copy, ExternalLink, Link as LinkIcon, Maximize2, Pause, Volume2, VolumeX, CircleCheck, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Clock3, Download, FileText, Flag, FolderOpen, Headphones, KeyRound, List, Mail, MessageCircle, MoveHorizontal as MoreHorizontal, EllipsisVertical, MoveRight, Paperclip, Phone, Play, Search, Settings2, Share2, ShieldAlert, Sparkles, Star, Trash2, UserRound, UserRoundPlus, Users, Video, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { activeJobs, archivedJobs, type Job } from '@/lib/jobs-mock';
-import { aiOverview, candidateComments, candidateReviews, createJobLink, updateJobLink, getJobLinks, interviewQuestions, workflowCandidates, workflowStages, DEFAULT_SHARE_SETTINGS, MATCH_LABEL, MATCH_LEVELS, RESUME_META, RESUME_URL, SHARE_OPTIONS, type JobLink, type ShareOption, type ShareSettings, type Candidate, type FlagSeverity, type InterviewQuestion, type MatchLevel, type TeamNote, type WorkflowStage } from '@/lib/workflow-mock';
+import { aiOverview, candidateComments, candidateReviews, createJobLink, updateJobLink, getInterviewQuestions, getJobLinks, workflowCandidates, workflowStages, DEFAULT_SHARE_SETTINGS, MATCH_LABEL, MATCH_LEVELS, RESUME_META, RESUME_URL, SHARE_OPTIONS, type JobLink, type ShareOption, type ShareSettings, type Candidate, type FlagSeverity, type InterviewQuestion, type MatchLevel, type TeamNote, type WorkflowStage } from '@/lib/workflow-mock';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -196,30 +196,31 @@ function ScoreRing({ score }: { score: number }) {
    off the page. Always at most PIP_WINDOW pips; a small leading/trailing dot
    stands in for "more before/after" when the total exceeds the window, so
    the shape stays legible at 5 questions or 500. */
-function InterviewView({ questionIndex, onQuestionChange, onDialog, onMove }: { questionIndex: number; onQuestionChange: (index: number) => void; onDialog: (dialog: DialogState) => void; onMove: (stage: string) => void }) {
-  const question = interviewQuestions[questionIndex];
+function InterviewView({ questions, questionIndex, onQuestionChange, onDialog, onMove }: { questions: InterviewQuestion[]; questionIndex: number; onQuestionChange: (index: number) => void; onDialog: (dialog: DialogState) => void; onMove: (stage: string) => void }) {
+  const question = questions[questionIndex];
+  const isRecording = question.type === 'phone_recording';
   const [nextStage, setNextStage] = React.useState('Review');
   const [detailsOpen, setDetailsOpen] = React.useState(false);
   const moveTargets = workflowStages.filter((stage) => !['invited', 'in-progress', 'rejected'].includes(stage.id));
 
   return <section className="min-w-0">
     <div className="flex items-center justify-between gap-3 pb-3">
-      <span className="text-body font-medium text-heading">Question {question.number} of {interviewQuestions.length}</span>
-      <QuestionNav questionIndex={questionIndex} onQuestionChange={onQuestionChange} />
+      <span className="text-body font-medium text-heading">{isRecording ? `Recording · 1 of ${questions.length}` : `Question ${question.number} of ${questions.length}`}</span>
+      <QuestionNav questionIndex={questionIndex} onQuestionChange={onQuestionChange} total={questions.length} />
     </div>
     <AnswerPlayer question={question} />
 
     <div className="mt-3 rounded-lg border border-border bg-surface p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2"><span className="shrink-0 rounded-md bg-primary-soft px-2 py-1 text-caption font-semibold text-primary-ink">Q{question.number}</span><h2 className="text-h3 text-heading">{question.text}</h2></div>
+          <div className="flex flex-wrap items-center gap-2">{isRecording ? <h2 className="text-h3 text-heading">Phone interview recording</h2> : <><span className="shrink-0 rounded-md bg-primary-soft px-2 py-1 text-caption font-semibold text-primary-ink">Q{question.number}</span><h2 className="text-h3 text-heading">{question.text}</h2></>}</div>
           <div className="mt-3 flex flex-wrap gap-2 text-caption font-normal text-muted">
-            <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Allowed time: {question.allowed}</span>
-            {question.type !== 'mcq' && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Your answer: {question.duration}</span>}
+            {!isRecording && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Allowed time: {question.allowed}</span>}
+            {question.type !== 'mcq' && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />{isRecording ? 'Length' : 'Your answer'}: {question.duration}</span>}
             {question.flagged && <span className={cn('flex items-center gap-1 rounded-full px-2 py-1 font-medium', question.flagged === 'high' ? 'bg-error-wash text-error-ink' : 'bg-warning-wash text-warning-ink')}><ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />AI Flagged</span>}
           </div>
         </div>
-        <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setDetailsOpen(true)}>View question details</Button>
+        {!isRecording && <Button variant="secondary" size="sm" className="shrink-0" onClick={() => setDetailsOpen(true)}>View question details</Button>}
       </div>
     </div>
 
@@ -463,6 +464,7 @@ function PinInput({ value, onChange, error }: { value: string; onChange: (value:
 }
 
 function CreateLinkDialog({ jobId, open, onOpenChange, mode, link, onCreated, onUpdated }: { jobId: string; open: boolean; onOpenChange: (open: boolean) => void; mode: 'create' | 'edit'; link?: JobLink | null; onCreated: (link: JobLink) => void; onUpdated: (link: JobLink) => void }) {
+  const interviewQuestions = getInterviewQuestions(jobId);
   const [step, setStep] = React.useState<LinkStep>(1);
   const [name, setName] = React.useState('');
   const [candidateIds, setCandidateIds] = React.useState<Set<string>>(new Set());
@@ -649,8 +651,8 @@ function CreateLinkDialog({ jobId, open, onOpenChange, mode, link, onCreated, on
                       const checked = questionIds.has(item.id);
                       return (
                         <label key={item.id} htmlFor={`q-${item.id}`} className={cn('flex cursor-pointer items-start gap-3 rounded-lg border p-3.5 transition-colors', checked ? 'border-primary/30 bg-primary-soft' : 'border-border bg-surface hover:bg-surface-hover')}>
-                          <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-caption font-semibold', checked ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-muted')}>{item.number}</span>
-                          <span className="min-w-0 flex-1 pt-0.5 text-body-sm font-medium leading-5 text-heading">{item.text}</span>
+                          <span className={cn('mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-caption font-semibold', checked ? 'bg-primary text-primary-foreground' : 'bg-surface-2 text-muted')}>{item.type === 'phone_recording' ? <Phone className="h-3 w-3" aria-hidden="true" /> : item.number}</span>
+                          <span className="min-w-0 flex-1 pt-0.5 text-body-sm font-medium leading-5 text-heading">{item.type === 'phone_recording' ? 'Phone interview recording' : item.text}</span>
                           <Checkbox id={`q-${item.id}`} className="mt-1 shrink-0" checked={checked} onCheckedChange={() => toggleQuestion(item.id)} />
                         </label>
                       );
@@ -704,7 +706,7 @@ function CreateLinkDialog({ jobId, open, onOpenChange, mode, link, onCreated, on
                       <p className="flex items-center gap-1.5 text-caption font-medium uppercase tracking-wide text-muted"><FileText className="h-3.5 w-3.5" aria-hidden="true" />Questions</p>
                       <p className="mt-1 text-h3 text-heading">{selectedQuestions.length} <span className="text-body-sm font-normal text-muted">of {interviewQuestions.length}</span></p>
                       <div className="mt-2.5 flex flex-wrap gap-1.5">
-                        {selectedQuestions.length ? selectedQuestions.map((q) => <span key={q.id} className="rounded-full bg-surface-2 px-2 py-0.5 text-caption font-medium text-heading">Q{q.number}</span>) : <span className="text-caption text-muted">None selected</span>}
+                        {selectedQuestions.length ? selectedQuestions.map((q) => <span key={q.id} className="rounded-full bg-surface-2 px-2 py-0.5 text-caption font-medium text-heading">{q.type === 'phone_recording' ? 'Recording' : `Q${q.number}`}</span>) : <span className="text-caption text-muted">None selected</span>}
                       </div>
                     </div>
                     <div className="rounded-lg border border-border bg-surface p-4">
@@ -880,6 +882,11 @@ export default function JobDetailPage() {
   const searchParams = useSearchParams();
   const jobId = params?.id ?? 'job-1';
   const job: Job | undefined = [...activeJobs, ...archivedJobs].find((item) => item.id === jobId);
+  const questions = getInterviewQuestions(jobId);
+  /* A Phone Screening interview opens on its recording (slot 0) since that
+     is the natural starting point of the call; every other job type keeps
+     opening on the second question, as it always has. */
+  const defaultQuestionIndex = questions[0]?.type === 'phone_recording' ? 0 : 1;
   const stageFromUrl = searchParams.get('stage');
   const initialStage = workflowStages.find((stage) => stage.label === stageFromUrl)?.id ?? 'in-progress';
   const [stage, setStage] = React.useState(initialStage);
@@ -889,7 +896,7 @@ export default function JobDetailPage() {
   const [matchFilter, setMatchFilter] = React.useState<MatchLevel | 'all'>('all');
   const [checkedIds, setCheckedIds] = React.useState<Set<string>>(new Set());
   const [view, setView] = React.useState<CandidateView>('Interview');
-  const [questionIndex, setQuestionIndex] = React.useState(1);
+  const [questionIndex, setQuestionIndex] = React.useState(defaultQuestionIndex);
   const [dialog, setDialog] = React.useState<DialogState>(null);
   const [comments, setComments] = React.useState<TeamNote[]>(candidateComments);
   const [reviews, setReviews] = React.useState<TeamNote[]>(candidateReviews);
@@ -955,8 +962,8 @@ export default function JobDetailPage() {
         <CandidateList candidates={workflowCandidates} selectedCandidate={candidate} checkedIds={checkedIds} query={query} sort={sort} matchFilter={matchFilter} onQueryChange={setQuery} onSortChange={setSort} onMatchFilterChange={setMatchFilter} onSelect={(next) => { setCandidate(next); setQuestionIndex(1); }} onCheck={toggleCandidate} onSelectAll={selectAll} onClear={clearSelected} />
         <div className="flex min-h-0 min-w-0 flex-col lg:overflow-hidden">
           <div className="shrink-0"><CandidateHeader candidate={shownCandidate} onDialog={openDialog} hasLinks={jobLinks.length > 0} /></div>
-          <div className={cn('grid min-h-0 flex-1 lg:overflow-hidden', view === 'Interview' && 'xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]')}><main className="min-w-0 overflow-visible overscroll-contain bg-background lg:overflow-y-auto"><div className="border-b border-border bg-surface px-4 sm:px-6"><div className="flex gap-6 overflow-x-auto" role="tablist" aria-label="Candidate detail views">{(['Interview', 'Resume', 'Comments', 'Reviews', 'Activity'] as CandidateView[]).map((item) => <button key={item} type="button" role="tab" aria-selected={view === item} onClick={() => setView(item)} className={cn('-mb-px border-b-2 px-1 py-4 text-button transition-colors', view === item ? 'border-primary text-primary-ink' : 'border-transparent text-muted hover:text-heading')}>{item}</button>)}</div></div><div className="p-3 sm:p-4">{view === 'Interview' ? <InterviewView questionIndex={questionIndex} onQuestionChange={setQuestionIndex} onDialog={setDialog} onMove={(target) => toast(`${candidate.name} moved to ${target}`)} /> : <SupportingView view={view} candidate={candidate} comments={comments} reviews={reviews} />}{/* Clears the floating bulk bar (62px tall + 12px inset) so the last
-              control is never trapped underneath it. */}{checkedIds.size > 0 && <div aria-hidden="true" className="h-[86px]" />}</div></main>{view === 'Interview' && <QuestionRail questionIndex={questionIndex} onQuestionChange={setQuestionIndex} />}</div></div></div>{checkedIds.size > 0 && <BulkActionBar count={checkedIds.size} onDialog={openDialog} onClear={clearSelected} />}
+          <div className={cn('grid min-h-0 flex-1 lg:overflow-hidden', view === 'Interview' && 'xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]')}><main className="min-w-0 overflow-visible overscroll-contain bg-background lg:overflow-y-auto"><div className="border-b border-border bg-surface px-4 sm:px-6"><div className="flex gap-6 overflow-x-auto" role="tablist" aria-label="Candidate detail views">{(['Interview', 'Resume', 'Comments', 'Reviews', 'Activity'] as CandidateView[]).map((item) => <button key={item} type="button" role="tab" aria-selected={view === item} onClick={() => setView(item)} className={cn('-mb-px border-b-2 px-1 py-4 text-button transition-colors', view === item ? 'border-primary text-primary-ink' : 'border-transparent text-muted hover:text-heading')}>{item}</button>)}</div></div><div className="p-3 sm:p-4">{view === 'Interview' ? <InterviewView questions={questions} questionIndex={questionIndex} onQuestionChange={setQuestionIndex} onDialog={setDialog} onMove={(target) => toast(`${candidate.name} moved to ${target}`)} /> : <SupportingView view={view} candidate={candidate} comments={comments} reviews={reviews} />}{/* Clears the floating bulk bar (62px tall + 12px inset) so the last
+              control is never trapped underneath it. */}{checkedIds.size > 0 && <div aria-hidden="true" className="h-[86px]" />}</div></main>{view === 'Interview' && <QuestionRail questions={questions} questionIndex={questionIndex} onQuestionChange={setQuestionIndex} />}</div></div></div>{checkedIds.size > 0 && <BulkActionBar count={checkedIds.size} onDialog={openDialog} onClear={clearSelected} />}
     <Dialog open={isSimpleDialog(dialog)} onOpenChange={(open) => !open && setDialog(null)}>
       <DialogContent>
         <DialogHeader><DialogTitle>{copy?.title}</DialogTitle><DialogDescription>{copy?.description}</DialogDescription></DialogHeader>
