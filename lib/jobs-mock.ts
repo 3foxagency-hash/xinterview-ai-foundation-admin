@@ -78,6 +78,8 @@ export const activeJobs: Job[] = [
   { id: 'job-5', format: 'ai_avatar', title: 'Product Designer', department: 'Design', mode: 'Remote', location: 'Amsterdam, Netherlands', status: 'Active', created: '02 Apr 2026', responded: '6/8', responseRate: '75%', candidates: 38, active: 30, createdBy: 'Mohit Bhatt', stages: pipeline([['sourced', 7], ['applied', 15], ['assessment', 9], ['interview', 4], ['final', 2], ['offer', 1], ['hired', 1]]) },
   // 6 stages
   { id: 'job-6', format: 'ai_phone', title: 'Customer Success Manager', department: 'Customer Success', mode: 'On-site', location: 'Dublin, Ireland', status: 'Active', created: '28 Mar 2026', responded: '7/9', responseRate: '78%', candidates: 33, active: 26, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 14], ['phone', 8], ['assessment', 4], ['interview', 2], ['offer', 1], ['hired', 1]]) },
+  // 5 stages — phone screening job type: text Q&A plus the full call recording
+  { id: 'job-phone-screen', format: 'ai_phone', title: 'Phone Screening', department: 'Sales', mode: 'Remote', location: 'Chicago, United States', status: 'Active', created: '18 Aug 2026', responded: '9/9', responseRate: '100%', candidates: 19, active: 19, createdBy: 'Mohit Bhatt', stages: pipeline([['applied', 9], ['phone', 6], ['interview', 2], ['offer', 1], ['hired', 1]]) },
 ];
 
 export const archivedJobs: Job[] = [
