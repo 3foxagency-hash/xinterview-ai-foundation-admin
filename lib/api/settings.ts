@@ -640,12 +640,17 @@ export type CareerJobListing = {
   /** Expired jobs can't be shown, mirroring the live product */
   expired: boolean;
   visible: boolean;
+  department?: string;
+  location?: string;
+  mode?: 'Remote' | 'Hybrid' | 'On-site';
+  type?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
 };
 
 export type CareerPageConfig = {
   showLogo: boolean;
   buttonColor: string;
   secondaryColor: string;
+  backgroundColor: string;
   welcomeMessage: string;
   thankYouNote: string;
   faviconUrl: string | null;
@@ -664,6 +669,7 @@ let careerStore: CareerPageConfig = {
   showLogo: true,
   buttonColor: '#5B4FE9',
   secondaryColor: '#1F242E',
+  backgroundColor: '#FFFFFF',
   welcomeMessage: '<h1>Careers</h1>',
   thankYouNote:
     '<p>Our hiring process is built on trust, transparency, and equal opportunity. Let&rsquo;s succeed together.</p>',
@@ -673,15 +679,46 @@ let careerStore: CareerPageConfig = {
   metaDescription:
     'Discover exciting career opportunities with us. Join a supportive, growth-driven team and build a brighter future.',
   listings: [
-    { id: 'job_a', title: 'Senior Frontend Engineer', expired: false, visible: true },
-    { id: 'job_b', title: 'Product Manager', expired: false, visible: true },
-    { id: 'job_c', title: 'Data Scientist', expired: false, visible: false },
-    { id: 'job_d', title: 'UX Designer', expired: true, visible: false },
+    { id: 'job_a', title: 'Senior Frontend Engineer', expired: false, visible: true, department: 'Engineering', location: 'London, United Kingdom', mode: 'Hybrid', type: 'Full-time' },
+    { id: 'job_b', title: 'Product Manager', expired: false, visible: true, department: 'Product', location: 'Remote', mode: 'Remote', type: 'Full-time' },
+    { id: 'job_c', title: 'Data Analyst', expired: false, visible: true, department: 'Data', location: 'Bangalore, India', mode: 'Hybrid', type: 'Full-time' },
+    { id: 'job_d', title: 'UI/UX Designer', expired: false, visible: true, department: 'Design', location: 'Remote', mode: 'Remote', type: 'Contract' },
+    { id: 'job_e', title: 'Backend Engineer', expired: false, visible: true, department: 'Engineering', location: 'Berlin, Germany', mode: 'Hybrid', type: 'Full-time' },
+    { id: 'job_f', title: 'Data Scientist', expired: false, visible: false, department: 'Data', location: 'Berlin, Germany', mode: 'On-site', type: 'Full-time' },
+    { id: 'job_g', title: 'UX Researcher', expired: true, visible: false, department: 'Design', location: 'Amsterdam, Netherlands', mode: 'Remote', type: 'Part-time' },
   ],
 };
 
-export function getCareerPageUrl(): string {
-  return `https://xinterview.ai/careers/${CAREER_PAGE_ID}`;
+export function getCareerPageUrl(id: string = CAREER_PAGE_ID): string {
+  return `https://xinterview.ai/careers/${id}`;
+}
+
+export function getCareerPageId(): string {
+  return CAREER_PAGE_ID;
+}
+
+/** Appearance fields the public page can't fetch on its own yet (no
+ *  workspace-scoped backend), so the settings page hands them over as query
+ *  params — this is a stopgap until `/careers/[id]` reads a real API and
+ *  these can be dropped. */
+export const CAREER_APPEARANCE_PARAMS = [
+  'showLogo',
+  'buttonColor',
+  'secondaryColor',
+  'backgroundColor',
+] as const;
+
+export function getCareerPreviewUrl(
+  config: Pick<CareerPageConfig, (typeof CAREER_APPEARANCE_PARAMS)[number]>,
+  id: string = CAREER_PAGE_ID
+): string {
+  const params = new URLSearchParams({
+    showLogo: String(config.showLogo),
+    buttonColor: config.buttonColor,
+    secondaryColor: config.secondaryColor,
+    backgroundColor: config.backgroundColor,
+  });
+  return `${getCareerPageUrl(id)}?${params.toString()}`;
 }
 
 export function getCareerEmbedCode(): string {
@@ -709,6 +746,24 @@ export async function saveCareerPage(
 
 export function _resetCareerStore() {
   careerStore = { ...careerStore };
+}
+
+export type PublicCareerPage = {
+  config: CareerPageConfig;
+  companyName: string;
+  logoUrl: string | null;
+};
+
+/** Public, unauthenticated read used by the `/careers/[id]` page. Returns
+ *  `null` when the id doesn't match a published careers page. */
+export async function getPublicCareerPage(id: string): Promise<PublicCareerPage | null> {
+  await delay(400);
+  if (id !== CAREER_PAGE_ID) return null;
+  return {
+    config: { ...careerStore, listings: careerStore.listings.map((l) => ({ ...l })) },
+    companyName: orgStore.name,
+    logoUrl: orgStore.logoUrl,
+  };
 }
 
 // ─── Integrations ───
