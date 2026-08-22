@@ -24,6 +24,7 @@ import {
   saveCareerPage,
   getCareerEmbedCode,
   getCareerPageUrl,
+  getCareerPreviewUrl,
   getOrganization,
   CAREER_META_TITLE_MAX,
   CAREER_META_DESCRIPTION_MAX,
@@ -128,7 +129,7 @@ export default function CareerPage() {
               </div>
 
               <a
-                href={getCareerPageUrl()}
+                href={getCareerPreviewUrl(config)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex h-10 w-fit shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
@@ -143,6 +144,11 @@ export default function CareerPage() {
             <ShareField label="Direct link" value={getCareerPageUrl()} icon={Globe} />
             <ShareField label="Embed code" value={getCareerEmbedCode()} icon={Copy} mono />
           </div>
+          <p className="border-t border-border px-5 py-3 text-caption text-muted sm:px-6">
+            &ldquo;View live page&rdquo; opens with your current appearance settings attached as
+            URL parameters, so you can preview colour changes before saving. The direct link and
+            embed code above are the permanent, parameter-free URLs to share.
+          </p>
         </section>
 
         {/* ── Appearance, with a preview that reflects the choices live ── */}
@@ -180,13 +186,30 @@ export default function CareerPage() {
                 value={config.secondaryColor}
                 onChange={(v) => update('secondaryColor', v)}
               />
+              <ColourField
+                label="Background colour"
+                helper="The page background — match it to your site when embedding."
+                value={config.backgroundColor}
+                onChange={(v) => update('backgroundColor', v)}
+              />
             </div>
 
-            <CareerPreview
-              companyName={companyName ?? 'Your company'}
-              config={config}
-              jobCount={visibleCount}
-            />
+            <div className="min-w-0">
+              <CareerPreview
+                companyName={companyName ?? 'Your company'}
+                config={config}
+                jobCount={visibleCount}
+              />
+              <a
+                href={getCareerPreviewUrl(config)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-1.5 text-body-sm font-medium text-primary-ink hover:underline"
+              >
+                <ExternalLink size={13} />
+                Preview on the live page
+              </a>
+            </div>
           </div>
         </section>
 
@@ -521,7 +544,7 @@ function CareerPreview({
           ))}
         </div>
 
-        <div className="space-y-3 bg-surface p-4">
+        <div className="space-y-3 p-4" style={{ backgroundColor: config.backgroundColor }}>
           {config.showLogo && (
             <div className="flex items-center gap-2">
               <span
