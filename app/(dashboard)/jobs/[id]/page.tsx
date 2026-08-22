@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { cn } from '@/lib/utils';
-import { AnswerModal, FlagDot, QuestionNav, QuestionRail, Stars, VideoPlayer, formatTime } from '@/components/interview/interview-parts';
+import { AnswerModal, AnswerPlayer, FlagDot, QuestionNav, QuestionRail, Stars, formatTime } from '@/components/interview/interview-parts';
 
 type CandidateView = 'Interview' | 'Resume' | 'Comments' | 'Reviews' | 'Activity';
 type DialogState = 'comment' | 'note' | 'share' | 'share-bulk' | 'report' | 'delete' | 'compare' | 'create-link' | 'edit-link' | 'manage-link' | null;
@@ -207,7 +207,7 @@ function InterviewView({ questionIndex, onQuestionChange, onDialog, onMove }: { 
       <span className="text-body font-medium text-heading">Question {question.number} of {interviewQuestions.length}</span>
       <QuestionNav questionIndex={questionIndex} onQuestionChange={onQuestionChange} />
     </div>
-    <VideoPlayer duration={question.duration} seconds={question.seconds} />
+    <AnswerPlayer question={question} />
 
     <div className="mt-3 rounded-lg border border-border bg-surface p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -215,7 +215,7 @@ function InterviewView({ questionIndex, onQuestionChange, onDialog, onMove }: { 
           <div className="flex flex-wrap items-center gap-2"><span className="shrink-0 rounded-md bg-primary-soft px-2 py-1 text-caption font-semibold text-primary-ink">Q{question.number}</span><h2 className="text-h3 text-heading">{question.text}</h2></div>
           <div className="mt-3 flex flex-wrap gap-2 text-caption font-normal text-muted">
             <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Allowed time: {question.allowed}</span>
-            <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Your answer: {question.duration}</span>
+            {question.type !== 'mcq' && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1"><Clock3 className="h-3.5 w-3.5" aria-hidden="true" />Your answer: {question.duration}</span>}
             {question.flagged && <span className={cn('flex items-center gap-1 rounded-full px-2 py-1 font-medium', question.flagged === 'high' ? 'bg-error-wash text-error-ink' : 'bg-warning-wash text-warning-ink')}><ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />AI Flagged</span>}
           </div>
         </div>

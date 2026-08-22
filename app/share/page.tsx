@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { AnswerModal, QuestionNav, QuestionRail, VideoPlayer } from '@/components/interview/interview-parts';
+import { AnswerModal, AnswerPlayer, QuestionNav, QuestionRail } from '@/components/interview/interview-parts';
 import { aiOverview, interviewQuestions, workflowCandidates, RESUME_META, RESUME_URL, type Candidate } from '@/lib/workflow-mock';
 import { cn } from '@/lib/utils';
 
@@ -156,7 +156,7 @@ function ShareView() {
                     <span className="text-body font-medium text-heading">Question {question.number} of {interviewQuestions.length}</span>
                     <QuestionNav questionIndex={questionIndex} onQuestionChange={setQuestionIndex} />
                   </div>
-                  <VideoPlayer duration={question.duration} seconds={question.seconds} />
+                  <AnswerPlayer question={question} />
 
                   <div className="mt-3 rounded-lg border border-border bg-surface p-4">
                     <div className="flex flex-wrap items-center gap-2">
@@ -164,7 +164,7 @@ function ShareView() {
                       <h2 className="text-h3 text-heading">{question.text}</h2>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-surface-2 px-2 py-1 text-caption font-normal text-muted">Answer: {question.duration}</span>
+                      {question.type !== 'mcq' && <span className="rounded-full bg-surface-2 px-2 py-1 text-caption font-normal text-muted">Answer: {question.duration}</span>}
                       <Button variant="secondary" size="sm" className="ml-auto" onClick={() => setAnswerOpen(question)}>View question details</Button>
                     </div>
                   </div>
