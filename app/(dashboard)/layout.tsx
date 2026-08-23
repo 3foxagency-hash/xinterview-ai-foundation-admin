@@ -62,9 +62,9 @@ export default function DashboardLayout({
         className={
           showRail
             ? expanded
-              ? 'ml-[260px] flex h-screen min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
-              : 'ml-[72px] flex h-screen min-w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
-            : 'flex h-screen min-w-0 flex-1 flex-col overflow-hidden'
+              ? 'ml-[260px] flex h-screen min-w-0 w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
+              : 'ml-[72px] flex h-screen min-w-0 w-0 flex-1 flex-col overflow-hidden transition-[margin] duration-200 motion-reduce:transition-none'
+            : 'flex h-screen min-w-0 w-0 flex-1 flex-col overflow-hidden'
         }
       >
         {/* Mobile top bar — menu button + logo */}
