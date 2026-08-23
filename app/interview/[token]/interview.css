@@ -1,0 +1,1205 @@
+/* ═══════════════════════════════════════════════════════════
+   Candidate interview page — scoped styles.
+   All colours come from --iv-* custom properties derived from
+   the hiring company's brand colour (see lib/interview/theme.ts).
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Base ── */
+.interview-page {
+  --iv-font-display: var(--font-display), Georgia, 'Times New Roman', serif;
+  --iv-font-body: var(--font-body), -apple-system, system-ui, sans-serif;
+  font-family: var(--iv-font-body);
+  background-color: var(--iv-canvas);
+  color: var(--iv-text);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.interview-page * {
+  box-sizing: border-box;
+}
+
+/* ── Film grain overlay (3%) ── */
+.iv-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: var(--iv-grain-opacity, 0.03);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+/* ── Ambient light blooms ── */
+.iv-ambient {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.iv-ambient::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: -10%;
+  width: 70%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    var(--iv-glow) 0%,
+    transparent 60%
+  );
+  opacity: var(--iv-glow-opacity, 0.18);
+  filter: blur(40px);
+}
+
+.iv-ambient::after {
+  content: '';
+  position: absolute;
+  bottom: -20%;
+  left: -10%;
+  width: 50%;
+  height: 60%;
+  background: radial-gradient(
+    ellipse at center,
+    var(--iv-glow) 0%,
+    transparent 60%
+  );
+  opacity: calc(var(--iv-glow-opacity, 0.18) * 0.44);
+  filter: blur(40px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-ambient::before,
+  .iv-ambient::after {
+    animation: none;
+  }
+}
+
+/* ── Top bar ── */
+.iv-topbar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 40px;
+}
+
+.iv-topbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--iv-font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--iv-text);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+}
+
+.iv-topbar-logo img {
+  height: 32px;
+  width: auto;
+  display: block;
+}
+
+.iv-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iv-topbar-link {
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.iv-topbar-link:hover {
+  color: var(--iv-text);
+}
+
+.iv-lang-selector {
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-family: var(--iv-font-body);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: color 0.15s ease;
+}
+
+.iv-lang-selector:hover {
+  color: var(--iv-text);
+}
+
+.iv-lang-selector:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.iv-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--iv-text-secondary);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.iv-theme-toggle:hover {
+  color: var(--iv-text);
+}
+
+.iv-theme-toggle:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+}
+
+.iv-powered-by {
+  font-size: 11px;
+  color: var(--iv-text-secondary);
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+}
+
+/* ── Micro label (eyebrow, field labels, section headings) ── */
+.iv-micro-label {
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iv-text-secondary);
+  opacity: 0.85;
+}
+
+/* ── Status dot ── */
+.iv-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--iv-accent);
+  flex-shrink: 0;
+}
+
+/* ── Job title ── */
+.iv-job-title {
+  font-family: var(--iv-font-display);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  color: var(--iv-text);
+  text-wrap: balance;
+  hyphens: none;
+  overflow-wrap: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* Character-count size tiers (desktop) */
+.iv-title-tier-1 { font-size: clamp(2.25rem, 5.5vw, 5.5rem); }   /* ≤18 chars */
+.iv-title-tier-2 { font-size: clamp(2.25rem, 4.5vw, 4.5rem); }   /* 19-32 */
+.iv-title-tier-3 { font-size: clamp(2rem, 3.5vw, 3.5rem); }      /* 33-48 */
+.iv-title-tier-4 { font-size: clamp(1.75rem, 2.8vw, 2.75rem); }  /* 49-70 */
+.iv-title-tier-5 { font-size: clamp(1.5rem, 2.2vw, 2.25rem); letter-spacing: -0.005em; } /* 70+ */
+
+/* All-caps: drop one tier, lighter weight */
+.iv-title-caps {
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Scenario D: one tier up */
+.iv-title-boost {
+  font-size: calc(var(--iv-title-size, 5.5rem) * 1.15);
+}
+
+/* ── Hairline rule ── */
+.iv-hairline {
+  border: none;
+  border-top: 1px solid var(--iv-hairline);
+  margin: 0;
+}
+
+.iv-hairline-short {
+  border: none;
+  border-top: 1px solid var(--iv-hairline);
+  width: 120px;
+  margin: 0;
+}
+
+/* ── Meta row ── */
+.iv-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+}
+
+.iv-meta-item {
+  font-size: 13px;
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+  padding: 0 16px;
+}
+
+.iv-meta-item:first-child {
+  padding-left: 0;
+}
+
+.iv-meta-item:last-child {
+  padding-right: 0;
+}
+
+.iv-meta-divider {
+  width: 1px;
+  height: 12px;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
+}
+
+/* ── Translucent plane ── */
+.iv-plane {
+  background: var(--iv-surface);
+  opacity: var(--iv-surface-opacity, 0.7);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: 20px;
+  border-top: 1px solid var(--iv-hairline);
+  border-left: 1px solid var(--iv-hairline);
+  border-right: none;
+  border-bottom: none;
+  position: relative;
+}
+
+/* ── Video frame ── */
+.iv-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--iv-hairline);
+  cursor: pointer;
+}
+
+.iv-video-poster {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.iv-video-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--iv-accent);
+  opacity: 0.08;
+  pointer-events: none;
+}
+
+.iv-video-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.iv-video-play:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.iv-video-play:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+}
+
+.iv-video-play-icon {
+  width: 0;
+  height: 0;
+  border-left: 12px solid rgba(255, 255, 255, 0.9);
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  margin-left: 3px;
+}
+
+.iv-video-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.iv-video-presenter {
+  font-size: 13px;
+  color: var(--iv-text-secondary);
+}
+
+.iv-video-duration {
+  font-size: 10px;
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.iv-video-element {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Job description panel ── */
+.iv-desc-panel {
+  position: relative;
+  padding: 28px 32px;
+  max-height: 480px;
+  overflow: hidden;
+}
+
+.iv-desc-panel.expanded {
+  max-height: none;
+}
+
+.iv-desc-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.iv-desc-underline {
+  width: 24px;
+  height: 2px;
+  background: var(--iv-accent);
+  flex-shrink: 0;
+}
+
+.iv-desc-content {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--iv-text);
+}
+
+.iv-desc-content p {
+  margin: 0 0 16px 0;
+}
+
+.iv-desc-content p:last-child {
+  margin-bottom: 0;
+}
+
+.iv-desc-content h4 {
+  font-family: var(--iv-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--iv-text);
+  margin: 24px 0 12px 0;
+  letter-spacing: -0.005em;
+}
+
+.iv-desc-content h4:first-child {
+  margin-top: 0;
+}
+
+.iv-desc-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px 0;
+}
+
+.iv-desc-content li {
+  position: relative;
+  padding-left: 20px;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.iv-desc-content li::before {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--iv-text-secondary);
+  opacity: 0.5;
+}
+
+.iv-desc-content li:last-child {
+  margin-bottom: 0;
+}
+
+.iv-desc-fade {
+  position: absolute;
+  bottom: 48px;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--iv-canvas)
+  );
+  pointer-events: none;
+}
+
+.iv-desc-panel.expanded .iv-desc-fade {
+  display: none;
+}
+
+.iv-desc-show-more {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--iv-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--iv-font-body);
+  padding: 0;
+  transition: opacity 0.15s ease;
+}
+
+.iv-desc-show-more:hover {
+  opacity: 0.7;
+}
+
+.iv-desc-show-more:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ── Form panel ── */
+.iv-form-panel {
+  padding: 32px 36px;
+}
+
+.iv-form-heading {
+  font-family: var(--iv-font-display);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--iv-text);
+  margin: 8px 0 28px 0;
+  letter-spacing: -0.01em;
+}
+
+/* ── Underline field ── */
+.iv-field {
+  margin-bottom: 24px;
+}
+
+.iv-field-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.iv-field-label {
+  display: block;
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iv-text-secondary);
+  opacity: 0.85;
+  margin-bottom: 8px;
+}
+
+.iv-field-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--iv-hairline);
+  background: transparent;
+  padding: 6px 0 8px 0;
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  color: var(--iv-text);
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.iv-field-input::placeholder {
+  color: var(--iv-text-secondary);
+  opacity: 0.4;
+}
+
+.iv-field-input:focus {
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-field-input:focus-visible {
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-field-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.iv-field-input[aria-invalid='true'] {
+  border-bottom-color: var(--iv-accent);
+}
+
+/* Locked field */
+.iv-field-locked {
+  position: relative;
+}
+
+.iv-field-locked .iv-field-input {
+  opacity: 0.5;
+  border-bottom-style: dashed;
+}
+
+.iv-field-lock-icon {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  color: var(--iv-text-secondary);
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+/* Error text */
+.iv-field-error {
+  font-size: 11px;
+  color: var(--iv-accent);
+  margin-top: 6px;
+  font-family: var(--iv-font-body);
+  display: block;
+}
+
+/* Two-column row */
+.iv-field-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Phone field */
+.iv-phone-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.iv-phone-code {
+  font-size: 15px;
+  color: var(--iv-text-secondary);
+  padding-bottom: 8px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Optional links toggle */
+.iv-optional-toggle {
+  display: inline-block;
+  background: none;
+  border: none;
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 24px;
+  transition: color 0.15s ease;
+}
+
+.iv-optional-toggle:hover {
+  color: var(--iv-text);
+}
+
+.iv-optional-toggle:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ── Resume field ── */
+.iv-resume-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--iv-hairline);
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.iv-resume-row:hover {
+  border-bottom-color: var(--iv-text-secondary);
+}
+
+.iv-resume-row:focus-within {
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-resume-icon {
+  color: var(--iv-text-secondary);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.iv-resume-label {
+  font-size: 14px;
+  color: var(--iv-text);
+  flex-grow: 1;
+}
+
+.iv-resume-hint {
+  font-size: 10px;
+  color: var(--iv-text-secondary);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+
+.iv-resume-filename {
+  font-size: 14px;
+  color: var(--iv-text);
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iv-resume-remove {
+  background: none;
+  border: none;
+  color: var(--iv-text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: color 0.15s ease;
+}
+
+.iv-resume-remove:hover {
+  color: var(--iv-text);
+}
+
+.iv-resume-remove:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+}
+
+.iv-resume-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
+/* ── Consent block ── */
+.iv-consent {
+  margin-top: 32px;
+}
+
+.iv-consent-label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.iv-consent-divider {
+  border: none;
+  border-top: 1px solid var(--iv-hairline);
+  margin: 0 0 16px 0;
+}
+
+.iv-consent-items {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-left: 12px;
+}
+
+.iv-consent-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.iv-consent-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--iv-hairline);
+  border-radius: 2px;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  margin-top: 2px;
+  position: relative;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.iv-consent-checkbox:hover {
+  border-color: var(--iv-text-secondary);
+}
+
+.iv-consent-checkbox:checked {
+  background: var(--iv-accent);
+  border-color: var(--iv-accent);
+}
+
+.iv-consent-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 0px;
+  width: 4px;
+  height: 8px;
+  border: solid var(--iv-on-accent);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.iv-consent-checkbox:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 3px;
+}
+
+.iv-consent-text {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--iv-text-secondary);
+}
+
+.iv-consent-text a {
+  color: var(--iv-text);
+  text-decoration: underline;
+  text-decoration-color: var(--iv-hairline);
+  text-underline-offset: 2px;
+}
+
+.iv-consent-text a:hover {
+  text-decoration-color: var(--iv-accent);
+}
+
+.iv-consent-error {
+  font-size: 11px;
+  color: var(--iv-accent);
+  margin-top: 8px;
+  font-family: var(--iv-font-body);
+}
+
+/* ── CTA ── */
+.iv-cta-wrap {
+  margin-top: 32px;
+  position: relative;
+}
+
+.iv-cta-bloom {
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(
+    ellipse at center,
+    var(--iv-glow) 0%,
+    transparent 70%
+  );
+  opacity: 0.3;
+  border-radius: 9999px;
+  pointer-events: none;
+  filter: blur(20px);
+}
+
+.iv-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 56px;
+  border-radius: 9999px;
+  border: none;
+  background: var(--iv-accent);
+  color: var(--iv-on-accent);
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: opacity 0.2s ease, transform 0.15s ease;
+}
+
+.iv-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.iv-cta:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+}
+
+.iv-cta:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: transparent;
+  color: var(--iv-text-secondary);
+  border: 1px solid var(--iv-hairline);
+}
+
+.iv-cta:disabled + .iv-cta-bloom {
+  opacity: 0;
+}
+
+.iv-cta-arrow {
+  transition: transform 0.2s ease;
+}
+
+.iv-cta:hover:not(:disabled) .iv-cta-arrow {
+  transform: translateX(4px);
+}
+
+/* ── Beneath CTA ── */
+.iv-beneath-cta {
+  margin-top: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.iv-beneath-line {
+  font-size: 11px;
+  color: var(--iv-text-secondary);
+  line-height: 1.5;
+}
+
+/* ── Trust row ── */
+.iv-trust-row {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iv-text-secondary);
+  opacity: 0.5;
+}
+
+/* ── Layout: two-column (scenarios A, B, C) ── */
+.iv-layout-two-col {
+  display: grid;
+  grid-template-columns: 7fr 5fr;
+  gap: 64px;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 40px;
+  position: relative;
+  z-index: 2;
+}
+
+.iv-left-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.iv-right-col {
+  display: flex;
+  flex-direction: column;
+  margin-top: 100px;
+}
+
+/* ── Layout: single centred column (scenario D) ── */
+.iv-layout-centre {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 60px 40px;
+  position: relative;
+  z-index: 2;
+  text-align: left;
+}
+
+.iv-centre-content {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.iv-centre-form {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/* ── State page ── */
+.iv-state-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 80px);
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 60px 40px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.iv-state-title {
+  font-family: var(--iv-font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  color: var(--iv-text);
+  margin: 16px 0 12px 0;
+  letter-spacing: -0.01em;
+}
+
+.iv-state-body {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--iv-text-secondary);
+  margin: 0 0 24px 0;
+}
+
+.iv-state-link {
+  font-size: 14px;
+  color: var(--iv-accent);
+  text-decoration: none;
+  font-family: var(--iv-font-body);
+  border-bottom: 1px solid var(--iv-accent);
+  padding-bottom: 2px;
+  transition: opacity 0.15s ease;
+}
+
+.iv-state-link:hover {
+  opacity: 0.7;
+}
+
+.iv-state-link:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ── Responsive ── */
+
+/* 1024–1279px: narrower gutters, reduced stagger */
+@media (max-width: 1279px) {
+  .iv-layout-two-col {
+    gap: 40px;
+    padding: 32px;
+  }
+  .iv-right-col {
+    margin-top: 48px;
+  }
+}
+
+/* 768–1023px: single column, form first */
+@media (max-width: 1023px) {
+  .iv-layout-two-col {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 24px;
+  }
+  .iv-right-col {
+    margin-top: 0;
+    order: -1;
+  }
+  .iv-form-panel {
+    padding: 24px 28px;
+  }
+}
+
+/* <768px: mobile */
+@media (max-width: 767px) {
+  .iv-topbar {
+    padding: 16px 20px;
+  }
+
+  .iv-topbar-right {
+    gap: 12px;
+  }
+
+  .iv-powered-by {
+    display: none;
+  }
+
+  .iv-layout-two-col,
+  .iv-layout-centre,
+  .iv-state-page {
+    padding: 20px;
+  }
+
+  /* Title drops two size tiers */
+  .iv-title-tier-1 { font-size: clamp(1.75rem, 7vw, 2.5rem); }
+  .iv-title-tier-2 { font-size: clamp(1.5rem, 6vw, 2.25rem); }
+  .iv-title-tier-3 { font-size: clamp(1.5rem, 5.5vw, 2rem); }
+  .iv-title-tier-4 { font-size: clamp(1.25rem, 5vw, 1.75rem); }
+  .iv-title-tier-5 { font-size: clamp(1.125rem, 4.5vw, 1.5rem); }
+
+  /* Video full-bleed */
+  .iv-video-frame {
+    border-radius: 0;
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
+  }
+
+  /* Form panel: no floating treatment, sits on canvas */
+  .iv-form-panel {
+    padding: 20px 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: none;
+    border-top: 1px solid var(--iv-hairline);
+    border-radius: 0;
+  }
+
+  .iv-desc-panel {
+    padding: 20px;
+    max-height: 280px;
+  }
+
+  .iv-field-pair {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  /* CTA sticky bottom bar */
+  .iv-cta-wrap {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: var(--iv-canvas);
+    padding: 16px 0;
+    margin-top: 24px;
+    border-top: 1px solid var(--iv-hairline);
+  }
+
+  .iv-cta {
+    transform: none;
+  }
+
+  .iv-cta:hover:not(:disabled) {
+    transform: none;
+  }
+
+  /* Meta row wraps */
+  .iv-meta-item {
+    padding: 4px 12px;
+    font-size: 12px;
+  }
+
+  .iv-meta-item:first-child {
+    padding-top: 0;
+    padding-left: 0;
+  }
+
+  .iv-meta-item:last-child {
+    padding-bottom: 0;
+    padding-right: 0;
+  }
+
+  .iv-meta-divider {
+    display: none;
+  }
+
+  .iv-layout-centre {
+    min-height: calc(100vh - 60px);
+    padding: 40px 20px;
+  }
+
+  .iv-state-page {
+    min-height: calc(100vh - 60px);
+    padding: 40px 20px;
+  }
+
+  /* Touch targets ≥44px */
+  .iv-consent-checkbox {
+    width: 14px;
+    height: 14px;
+  }
+
+  .iv-consent-item {
+    min-height: 44px;
+  }
+
+  .iv-theme-toggle {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Focus ring improvements for keyboard navigation */
+.iv-field-input:focus-visible {
+  outline: none;
+}
+
+.iv-resume-row:focus-within {
+  outline: none;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .iv-cta,
+  .iv-cta-arrow,
+  .iv-video-play,
+  .iv-topbar-link,
+  .iv-lang-selector,
+  .iv-theme-toggle,
+  .iv-optional-toggle,
+  .iv-desc-show-more,
+  .iv-resume-remove,
+  .iv-consent-checkbox,
+  .iv-state-link {
+    transition: none;
+  }
+
+  .iv-cta:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .iv-cta:hover:not(:disabled) .iv-cta-arrow {
+    transform: none;
+  }
+}
