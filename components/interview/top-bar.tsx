@@ -27,7 +27,12 @@ export function TopBar({ config }: TopBarProps) {
         {showLogo && (
           <img src={logoSrc!} alt={`${company.name} logo`} />
         )}
-        {showWordmark && <span>{company.name}</span>}
+        {showWordmark && (
+          <>
+            <span className="iv-brand-mark" aria-hidden="true">N</span>
+            <span className="iv-wordmark">{company.name}</span>
+          </>
+        )}
       </div>
 
       {/* Right side controls */}

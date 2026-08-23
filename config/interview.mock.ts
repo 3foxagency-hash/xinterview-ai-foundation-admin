@@ -116,7 +116,10 @@ export const interviewConfig: InterviewConfig = {
     resume: { enabled: true, required: true },
   },
 
-  prefilled: {},
+  prefilled: {
+    firstName: 'Jane',
+    email: 'jane.doe@gmail.com',
+  },
 
   consent: {
     platformTermsUrl: 'https://xinterview.com/terms',
@@ -126,7 +129,7 @@ export const interviewConfig: InterviewConfig = {
   },
 
   disclosures: {
-    aiEvaluation: false,
+    aiEvaluation: true,
     monitoring: false,
   },
 

@@ -67,10 +67,12 @@ export function InterviewPage() {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '10px',
                 }}
               >
-                <span className="iv-status-dot" aria-hidden="true" />
+                <span className="iv-brand-mark iv-brand-mark-sm" aria-hidden="true">
+                  {config.company.name.charAt(0).toUpperCase()}
+                </span>
                 <span className="iv-micro-label">
                   {config.company.name.toUpperCase()} · INTERVIEW
                 </span>

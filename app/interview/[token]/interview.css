@@ -101,6 +101,35 @@
   text-decoration: none;
 }
 
+.iv-brand-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: var(--iv-accent);
+  color: var(--iv-on-accent);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+
+.iv-brand-mark-sm {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  font-size: 11px;
+}
+
+.iv-wordmark {
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
 .iv-topbar-logo img {
   height: 32px;
   width: auto;
@@ -278,7 +307,7 @@
 /* ── Translucent plane ── */
 .iv-plane {
   background: var(--iv-surface);
-  opacity: var(--iv-surface-opacity, 0.7);
+  opacity: 1;
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   border-radius: 20px;
@@ -287,6 +316,17 @@
   border-right: none;
   border-bottom: none;
   position: relative;
+}
+
+.iv-plane::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: var(--iv-canvas);
+  opacity: var(--iv-surface-opacity, 0.7);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* ── Video frame ── */
@@ -379,9 +419,14 @@
 /* ── Job description panel ── */
 .iv-desc-panel {
   position: relative;
-  padding: 28px 32px;
+  padding: 32px 36px 28px;
   max-height: 480px;
   overflow: hidden;
+}
+
+.iv-desc-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .iv-desc-panel.expanded {
@@ -501,22 +546,27 @@
 
 /* ── Form panel ── */
 .iv-form-panel {
-  padding: 32px 36px;
+  padding: 36px 40px 32px;
+}
+
+.iv-form-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 .iv-form-heading {
   font-family: var(--iv-font-display);
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 400;
   line-height: 1.1;
   color: var(--iv-text);
-  margin: 8px 0 28px 0;
-  letter-spacing: -0.01em;
+  margin: 6px 0 24px 0;
+  letter-spacing: -0.015em;
 }
 
 /* ── Underline field ── */
 .iv-field {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .iv-field-row {
@@ -820,8 +870,16 @@
 
 /* ── CTA ── */
 .iv-cta-wrap {
-  margin-top: 32px;
+  margin-top: 28px;
   position: relative;
+}
+
+.iv-cta-wrap:hover .iv-cta-tooltip {
+  opacity: 1;
+}
+
+.iv-cta-tooltip {
+  transition: opacity 0.15s ease;
 }
 
 .iv-cta-bloom {
@@ -852,14 +910,16 @@
   color: var(--iv-on-accent);
   font-family: var(--iv-font-body);
   font-size: 15px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  letter-spacing: 0.005em;
   cursor: pointer;
-  transition: opacity 0.2s ease, transform 0.15s ease;
+  transition: opacity 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .iv-cta:hover:not(:disabled) {
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .iv-cta:focus-visible {
@@ -868,11 +928,12 @@
 }
 
 .iv-cta:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
   background: transparent;
   color: var(--iv-text-secondary);
   border: 1px solid var(--iv-hairline);
+  box-shadow: none;
 }
 
 .iv-cta:disabled + .iv-cta-bloom {
@@ -893,7 +954,7 @@
   text-align: center;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
 .iv-beneath-line {
@@ -904,24 +965,24 @@
 
 /* ── Trust row ── */
 .iv-trust-row {
-  margin-top: 20px;
+  margin-top: 24px;
   text-align: center;
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   color: var(--iv-text-secondary);
-  opacity: 0.5;
+  opacity: 0.4;
 }
 
 /* ── Layout: two-column (scenarios A, B, C) ── */
 .iv-layout-two-col {
   display: grid;
   grid-template-columns: 7fr 5fr;
-  gap: 64px;
+  gap: 56px;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 40px;
+  padding: 20px 48px 60px;
   position: relative;
   z-index: 2;
 }
@@ -929,13 +990,14 @@
 .iv-left-col {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 28px;
+  padding-top: 24px;
 }
 
 .iv-right-col {
   display: flex;
   flex-direction: column;
-  margin-top: 100px;
+  margin-top: 120px;
 }
 
 /* ── Layout: single centred column (scenario D) ── */
@@ -1043,7 +1105,7 @@
     order: -1;
   }
   .iv-form-panel {
-    padding: 24px 28px;
+    padding: 24px 28px 24px;
   }
 }
 
@@ -1084,13 +1146,17 @@
 
   /* Form panel: no floating treatment, sits on canvas */
   .iv-form-panel {
-    padding: 20px 0;
+    padding: 20px 0 20px;
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     border: none;
     border-top: 1px solid var(--iv-hairline);
     border-radius: 0;
+  }
+
+  .iv-form-panel::before {
+    display: none;
   }
 
   .iv-desc-panel {
