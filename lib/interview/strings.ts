@@ -102,4 +102,86 @@ export const strings = {
 
   // Language
   languageLabel: 'Language',
+
+  // ── Device setup screen ──
+
+  // Eyebrow & heading
+  setupEyebrow: (company: string) => `${company.toUpperCase()} · INTERVIEW`,
+  setupHeading: 'Check your setup',
+  setupSubtext: 'A quick check so nothing surprises you mid-interview.',
+  setupMicroLabel: 'SETUP',
+
+  // State headings
+  setupCheckingHeading: 'Checking your setup',
+  setupReadyHeading: 'Everything looks good',
+  setupDeniedHeading: 'We need camera access',
+  setupNoDeviceHeading: "We can't find your camera",
+  setupWeakConnectionHeading: 'Your connection looks slow',
+
+  // Camera preview
+  setupLiveLabel: 'Live',
+  setupCameraAriaLabel: 'Live camera self-view preview',
+  setupCheckingPreview: 'Checking your camera and microphone',
+
+  // Mic meter
+  setupMicLevelLabel: 'MIC LEVEL',
+  setupMicTestHint: 'Say something to test',
+  setupMicActive: 'Microphone is picking up sound',
+  setupMicSilent: 'Microphone is quiet',
+  setupNotRecorded: 'Nothing is recorded until you start an answer.',
+
+  // Check rows
+  setupCameraLabel: 'Camera',
+  setupMicrophoneLabel: 'Microphone',
+  setupConnectionLabel: 'Connection',
+  setupCheckingLabel: 'Checking…',
+  setupConnectionStable: 'Connection is stable',
+  setupConnectionWeak: 'Answers may take longer to upload',
+
+  // Connection results
+  setupConnectionStrong: (mbps: number) => `Strong · ${mbps} Mbps`,
+  setupConnectionWeakResult: (mbps: number) => `Weak · ${mbps} Mbps`,
+
+  // Device selectors
+  setupCameraSelectLabel: 'Camera',
+  setupMicSelectLabel: 'Microphone',
+  setupNoVideoDevices: 'No camera found',
+  setupNoAudioDevices: 'No microphone found',
+  setupDefaultCamera: 'Default camera',
+  setupDefaultMic: 'Default microphone',
+
+  // CTA
+  setupCtaBegin: 'Begin interview',
+  setupCtaTryAgain: 'Try again',
+  setupCtaContinueAnyway: 'Continue anyway',
+
+  // Secondary action
+  setupPracticeLink: 'Try a practice question first',
+
+  // Help link
+  setupHelpLink: 'How to enable access',
+  setupHelpTitle: 'Enable camera and microphone access',
+
+  // Help panel — browser instructions
+  setupHelpChrome: [
+    'Click the camera or microphone icon in the address bar.',
+    'Select Allow for both camera and microphone.',
+    'Reload this page to apply the changes.',
+  ],
+  setupHelpSafari: [
+    'Open Safari > Settings > Websites.',
+    'Find this site in the Camera and Microphone lists.',
+    'Set both to Allow, then reload this page.',
+  ],
+  setupHelpFirefox: [
+    'Click the shield icon in the address bar.',
+    'Clear the camera and microphone permissions.',
+    'Reload this page and allow access when prompted.',
+  ],
+  setupHelpEdge: [
+    'Click the lock icon in the address bar.',
+    'Set Camera and Microphone to Allow.',
+    'Reload this page to apply the changes.',
+  ],
+  setupHelpClose: 'Close',
 } as const;

@@ -147,6 +147,7 @@ export function deriveTokens(brand: string): ThemeTokens {
     glow: lGlow,
     'glow-opacity': '0.18',
     'grain-opacity': '0.03',
+    warning: '#B8842E',
   };
 
   const dark: Record<string, string> = {
@@ -161,6 +162,7 @@ export function deriveTokens(brand: string): ThemeTokens {
     glow: dGlow,
     'glow-opacity': '0.14',
     'grain-opacity': '0.03',
+    warning: '#D4933E',
   };
 
   return { light, dark };
