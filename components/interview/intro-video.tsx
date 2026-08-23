@@ -17,34 +17,28 @@ export function IntroVideo({ video }: IntroVideoProps) {
     if (!v) return;
     if (playing) {
       v.pause();
-      setPlaying(false);
     } else {
-      v.play().then(() => setPlaying(true)).catch(() => {});
+      v.play().catch(() => {});
     }
   }, [playing]);
 
   return (
     <div>
       <div className="iv-video-frame" onClick={handlePlay}>
-        {playing ? (
-          <video
-            ref={videoRef}
-            className="iv-video-element"
-            src={video.url}
-            poster={video.posterUrl}
-            controls
-            playsInline
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            onEnded={() => setPlaying(false)}
-          />
-        ) : (
+        <video
+          ref={videoRef}
+          className="iv-video-element"
+          src={video.url}
+          controls={playing}
+          playsInline
+          preload="metadata"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
+
+        {!playing && (
           <>
-            <img
-              className="iv-video-poster"
-              src={video.posterUrl}
-              alt=""
-            />
             <div className="iv-video-wash" aria-hidden="true" />
             <button
               type="button"

@@ -20,6 +20,14 @@
   box-sizing: border-box;
 }
 
+/* Every control here defines its own focus treatment below (accent-coloured
+   underlines, outlines, etc.) — suppress the global dashboard focus ring
+   (app/globals.css) so it doesn't double up with a mismatched halo. */
+.interview-page :focus,
+.interview-page :focus-visible {
+  box-shadow: none;
+}
+
 /* ── Film grain overlay (3%) ── */
 .iv-grain {
   position: fixed;
@@ -127,7 +135,8 @@
   font-family: var(--iv-font-body);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .iv-topbar-logo img {
@@ -205,6 +214,18 @@
   letter-spacing: 0.02em;
 }
 
+.iv-powered-by strong {
+  font-weight: 600;
+  opacity: 1;
+}
+
+.iv-topbar-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
+}
+
 /* ── Micro label (eyebrow, field labels, section headings) ── */
 .iv-micro-label {
   font-family: var(--iv-font-body);
@@ -243,11 +264,11 @@
 }
 
 /* Character-count size tiers (desktop) */
-.iv-title-tier-1 { font-size: clamp(2.25rem, 5.5vw, 5.5rem); }   /* ≤18 chars */
-.iv-title-tier-2 { font-size: clamp(2.25rem, 4.5vw, 4.5rem); }   /* 19-32 */
-.iv-title-tier-3 { font-size: clamp(2rem, 3.5vw, 3.5rem); }      /* 33-48 */
-.iv-title-tier-4 { font-size: clamp(1.75rem, 2.8vw, 2.75rem); }  /* 49-70 */
-.iv-title-tier-5 { font-size: clamp(1.5rem, 2.2vw, 2.25rem); letter-spacing: -0.005em; } /* 70+ */
+.iv-title-tier-1 { font-size: clamp(2.5rem, 6.5vw, 6.5rem); }    /* ≤18 chars */
+.iv-title-tier-2 { font-size: clamp(2.5rem, 5.5vw, 5.5rem); }    /* 19-32 */
+.iv-title-tier-3 { font-size: clamp(2.25rem, 4.2vw, 4.25rem); }  /* 33-48 */
+.iv-title-tier-4 { font-size: clamp(2rem, 3.3vw, 3.25rem); }     /* 49-70 */
+.iv-title-tier-5 { font-size: clamp(1.75rem, 2.6vw, 2.75rem); letter-spacing: -0.005em; } /* 70+ */
 
 /* All-caps: drop one tier, lighter weight */
 .iv-title-caps {
@@ -340,13 +361,6 @@
   cursor: pointer;
 }
 
-.iv-video-poster {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 .iv-video-wash {
   position: absolute;
   inset: 0;
@@ -419,9 +433,8 @@
 /* ── Job description panel ── */
 .iv-desc-panel {
   position: relative;
-  padding: 32px 36px 28px;
-  max-height: 480px;
-  overflow: hidden;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--iv-hairline);
 }
 
 .iv-desc-panel > * {
@@ -429,7 +442,13 @@
   z-index: 1;
 }
 
-.iv-desc-panel.expanded {
+.iv-desc-clip {
+  position: relative;
+  max-height: 480px;
+  overflow: hidden;
+}
+
+.iv-desc-clip.expanded {
   max-height: none;
 }
 
@@ -505,7 +524,7 @@
 
 .iv-desc-fade {
   position: absolute;
-  bottom: 48px;
+  bottom: 0;
   left: 0;
   right: 0;
   height: 60px;
@@ -517,7 +536,7 @@
   pointer-events: none;
 }
 
-.iv-desc-panel.expanded .iv-desc-fade {
+.iv-desc-clip.expanded .iv-desc-fade {
   display: none;
 }
 
@@ -620,25 +639,6 @@
 
 .iv-field-input[aria-invalid='true'] {
   border-bottom-color: var(--iv-accent);
-}
-
-/* Locked field */
-.iv-field-locked {
-  position: relative;
-}
-
-.iv-field-locked .iv-field-input {
-  opacity: 0.5;
-  border-bottom-style: dashed;
-}
-
-.iv-field-lock-icon {
-  position: absolute;
-  right: 0;
-  bottom: 10px;
-  color: var(--iv-text-secondary);
-  opacity: 0.5;
-  flex-shrink: 0;
 }
 
 /* Error text */
@@ -1178,7 +1178,10 @@
   }
 
   .iv-desc-panel {
-    padding: 20px;
+    padding: 20px 0 0;
+  }
+
+  .iv-desc-clip {
     max-height: 280px;
   }
 

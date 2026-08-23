@@ -1,8 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Lock } from 'lucide-react';
-import { strings } from '@/lib/interview/strings';
 
 interface UnderlineFieldProps {
   label: string;
@@ -11,7 +9,6 @@ interface UnderlineFieldProps {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
-  locked?: boolean;
   error?: string;
   placeholder?: string;
   autoComplete?: string;
@@ -30,7 +27,6 @@ export const UnderlineField = React.forwardRef<
     value,
     onChange,
     required,
-    locked,
     error,
     placeholder,
     autoComplete,
@@ -43,10 +39,10 @@ export const UnderlineField = React.forwardRef<
   const errorId = `${fieldId}-error`;
 
   return (
-    <div className={`iv-field ${locked ? 'iv-field-locked' : ''}`}>
+    <div className="iv-field">
       <label htmlFor={fieldId} className="iv-field-label">
         {label}
-        {required && !locked && (
+        {required && (
           <span aria-hidden="true" style={{ marginLeft: '2px' }}>
             *
           </span>
@@ -62,22 +58,13 @@ export const UnderlineField = React.forwardRef<
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={onBlur}
-          disabled={locked}
-          required={required && !locked}
+          required={required}
           aria-invalid={error ? 'true' : 'false'}
           aria-describedby={error ? errorId : undefined}
           placeholder={placeholder}
           autoComplete={autoComplete}
           className="iv-field-input"
         />
-        {locked && (
-          <Lock
-            size={14}
-            strokeWidth={1.5}
-            className="iv-field-lock-icon"
-            aria-label={strings.fieldLocked}
-          />
-        )}
       </div>
       {error && (
         <span className="iv-field-error" role="alert" id={errorId}>

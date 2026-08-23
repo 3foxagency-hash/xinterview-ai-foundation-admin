@@ -7,7 +7,6 @@
 export const strings = {
   // Top bar
   help: 'Help',
-  poweredBy: 'Powered by XInterview',
 
   // Eyebrow
   eyebrow: (company: string) => `${company.toUpperCase()} · INTERVIEW`,
@@ -33,15 +32,13 @@ export const strings = {
   phone: 'Phone',
   linkedin: 'LinkedIn URL',
   portfolio: 'Portfolio URL',
+  resumeLabel: 'Resume',
   resume: 'Attach your CV',
   resumeHint: 'PDF · 5MB',
 
   // Optional link
   addLinks: '+ Add LinkedIn or portfolio',
   hideLinks: '− Remove',
-
-  // Pre-filled
-  fieldLocked: 'Locked',
 
   // Consent
   consentLabel: 'CONSENT',

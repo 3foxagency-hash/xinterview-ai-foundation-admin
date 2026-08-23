@@ -41,8 +41,7 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
       estimatedMinutes: 18,
     },
     introVideo: {
-      url: 'https://example.com/intro.mp4',
-      posterUrl: '/images/ui/f231f007-979b-4b15-8aa9-b3d1c54c4a33_(1).png',
+      url: '/videos/intro-sample.mp4',
       durationLabel: '1:24',
       presenterName: 'Sarah Chen',
       presenterTitle: 'Design Director',
@@ -68,8 +67,7 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
       estimatedMinutes: 18,
     },
     introVideo: {
-      url: 'https://example.com/intro.mp4',
-      posterUrl: '/images/ui/f231f007-979b-4b15-8aa9-b3d1c54c4a33_(1).png',
+      url: '/videos/intro-sample.mp4',
       durationLabel: '1:24',
       presenterName: 'Sarah Chen',
       presenterTitle: 'Design Director',

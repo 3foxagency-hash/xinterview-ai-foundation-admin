@@ -48,12 +48,12 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
     consent.employerTermsUrl !== null && consent.employerPrivacyUrl !== null;
 
   const [values, setValues] = React.useState<FormValues>({
-    firstName: prefilled.firstName ?? '',
-    lastName: prefilled.lastName ?? '',
-    email: prefilled.email ?? '',
-    phone: prefilled.phone ?? '',
-    linkedin: prefilled.linkedin ?? '',
-    portfolio: prefilled.portfolio ?? '',
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    linkedin: '',
+    portfolio: '',
     resume: null,
     platformConsent: false,
     employerConsent: false,
@@ -172,7 +172,7 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
               onChange={(v) => update('firstName', v)}
               onBlur={() => handleBlur('firstName')}
               required={fields.firstName.required}
-              locked={!!prefilled.firstName}
+              placeholder={prefilled.firstName}
               error={touched.firstName ? errors.firstName : undefined}
               autoComplete="given-name"
             />
@@ -185,7 +185,7 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
               onChange={(v) => update('lastName', v)}
               onBlur={() => handleBlur('lastName')}
               required={fields.lastName.required}
-              locked={!!prefilled.lastName}
+              placeholder={prefilled.lastName}
               error={touched.lastName ? errors.lastName : undefined}
               autoComplete="family-name"
             />
@@ -203,7 +203,7 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
           onChange={(v) => update('email', v)}
           onBlur={() => handleBlur('email')}
           required={fields.email.required}
-          locked={!!prefilled.email}
+          placeholder={prefilled.email}
           error={touched.email ? errors.email : undefined}
           autoComplete="email"
         />
@@ -219,7 +219,7 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
           onChange={(v) => update('phone', v)}
           onBlur={() => handleBlur('phone')}
           required={fields.phone.required}
-          locked={!!prefilled.phone}
+          placeholder={prefilled.phone}
           error={touched.phone ? errors.phone : undefined}
           leftSlot={phoneCode}
           autoComplete="tel"
@@ -247,9 +247,8 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
                   onChange={(v) => update('linkedin', v)}
                   onBlur={() => handleBlur('linkedin')}
                   required={fields.linkedin.required}
-                  locked={!!prefilled.linkedin}
                   error={touched.linkedin ? errors.linkedin : undefined}
-                  placeholder="https://linkedin.com/in/..."
+                  placeholder={prefilled.linkedin ?? 'https://linkedin.com/in/...'}
                 />
               )}
               {fields.portfolio.enabled && (
@@ -261,9 +260,8 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
                   onChange={(v) => update('portfolio', v)}
                   onBlur={() => handleBlur('portfolio')}
                   required={fields.portfolio.required}
-                  locked={!!prefilled.portfolio}
                   error={touched.portfolio ? errors.portfolio : undefined}
-                  placeholder="https://..."
+                  placeholder={prefilled.portfolio ?? 'https://...'}
                 />
               )}
             </>
@@ -275,7 +273,7 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
       {fields.resume.enabled && (
         <div className="iv-field">
           <label className="iv-field-label" htmlFor="iv-resume-input">
-            {strings.resume}
+            {strings.resumeLabel}
           </label>
           <div
             className="iv-resume-row"
@@ -394,9 +392,6 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
         <span className="iv-beneath-line">
           {strings.responsesShared(company.name)}
         </span>
-        {disclosures.aiEvaluation && (
-          <span className="iv-beneath-line">{strings.aiEvaluation}</span>
-        )}
         {disclosures.monitoring && (
           <span className="iv-beneath-line">{strings.monitoring}</span>
         )}

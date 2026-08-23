@@ -84,7 +84,10 @@ export function TopBar({ config }: TopBarProps) {
           </button>
         )}
 
-        <span className="iv-powered-by">{strings.poweredBy}</span>
+        <span className="iv-topbar-divider" aria-hidden="true" />
+        <span className="iv-powered-by">
+          Powered by <strong>XInterview</strong>
+        </span>
       </div>
     </header>
   );

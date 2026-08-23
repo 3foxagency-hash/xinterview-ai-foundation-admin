@@ -20,7 +20,7 @@ export function JobDescription({ descriptionHtml }: JobDescriptionProps) {
   }, [descriptionHtml]);
 
   return (
-    <div className={`iv-plane iv-desc-panel ${expanded ? 'expanded' : ''}`}>
+    <div className="iv-desc-panel">
       <div className="iv-desc-heading-row">
         <span className="iv-micro-label iv-desc-label">
           {strings.jobDescriptionLabel}
@@ -28,15 +28,17 @@ export function JobDescription({ descriptionHtml }: JobDescriptionProps) {
         <span className="iv-desc-underline" aria-hidden="true" />
       </div>
 
-      <div
-        ref={contentRef}
-        className="iv-desc-content"
-        dangerouslySetInnerHTML={{ __html: descriptionHtml }}
-      />
+      <div className={`iv-desc-clip ${expanded ? 'expanded' : ''}`}>
+        <div
+          ref={contentRef}
+          className="iv-desc-content"
+          dangerouslySetInnerHTML={{ __html: descriptionHtml }}
+        />
 
-      {!expanded && needsTruncation && (
-        <div className="iv-desc-fade" aria-hidden="true" />
-      )}
+        {!expanded && needsTruncation && (
+          <div className="iv-desc-fade" aria-hidden="true" />
+        )}
+      </div>
 
       {needsTruncation && (
         <button
