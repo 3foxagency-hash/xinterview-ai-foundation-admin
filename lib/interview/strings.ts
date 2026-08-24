@@ -132,12 +132,14 @@ export const strings = {
   setupMicrophoneLabel: 'Microphone',
   setupConnectionLabel: 'Connection',
   setupCheckingLabel: 'Checking…',
+  setupDeviceReady: 'Detected and ready',
   setupConnectionStable: 'Connection is stable',
   setupConnectionWeak: 'Answers may take longer to upload',
 
   // Connection results
   setupConnectionStrong: (mbps: number) => `Strong · ${mbps} Mbps`,
   setupConnectionWeakResult: (mbps: number) => `Weak · ${mbps} Mbps`,
+  setupConnectionUnknown: 'Strong',
 
   // Device selectors
   setupCameraSelectLabel: 'Camera',

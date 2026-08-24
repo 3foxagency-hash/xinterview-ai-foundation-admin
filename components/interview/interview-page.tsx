@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import {
   InterviewThemeProvider,
   InterviewThemeScript,
@@ -30,7 +31,8 @@ function resolveScenario(config: InterviewConfig): Scenario {
   return 'neither';
 }
 
-export function InterviewPage() {
+export function InterviewPage({ token }: { token: string }) {
+  const router = useRouter();
   const [config, setConfig] = React.useState<InterviewConfig>(defaultConfig);
   const [isDev, setIsDev] = React.useState(false);
 
@@ -100,7 +102,7 @@ export function InterviewPage() {
               </div>
 
               <div className="iv-centre-form">
-                <ApplicationForm config={config} />
+                <ApplicationForm config={config} onSubmitSuccess={() => router.push(`/interview/${token}/setup`)} />
               </div>
             </div>
           </div>
@@ -132,7 +134,7 @@ export function InterviewPage() {
 
             {/* Right column — form */}
             <div className="iv-right-col">
-              <ApplicationForm config={config} />
+              <ApplicationForm config={config} onSubmitSuccess={() => router.push(`/interview/${token}/setup`)} />
             </div>
           </div>
         )}

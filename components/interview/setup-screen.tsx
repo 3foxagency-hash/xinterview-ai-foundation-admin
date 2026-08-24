@@ -20,6 +20,8 @@ import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 interface SetupScreenProps {
   config?: InterviewConfig;
   forcedState?: SetupState;
+  onBeginInterview?: () => void;
+  onTryPractice?: () => void;
 }
 
 type RealState =
@@ -47,13 +49,36 @@ function getMics(devices: MediaDeviceInfo[]): DeviceOption[] {
     }));
 }
 
-function mockConnectionSpeed(): number {
-  return 24;
+const SPEED_TEST_URL = '/speed-test/probe.bin';
+const SPEED_TEST_BYTES = 256 * 1024;
+
+/**
+ * Measures real downlink throughput by timing a fetch of a fixed-size,
+ * incompressible payload — works in every browser (unlike the Network
+ * Information API, which is Chrome/Edge only) and reflects the connection
+ * right now rather than a cached OS-level estimate. A cache-busting query
+ * param keeps the browser/CDN from serving a free instant "download".
+ */
+async function measureConnectionSpeed(): Promise<number | null> {
+  try {
+    const start = performance.now();
+    const res = await fetch(`${SPEED_TEST_URL}?cb=${Date.now()}`, { cache: 'no-store' });
+    if (!res.ok) return null;
+    await res.arrayBuffer();
+    const seconds = (performance.now() - start) / 1000;
+    if (seconds <= 0) return null;
+    const mbps = (SPEED_TEST_BYTES * 8) / seconds / 1_000_000;
+    return Math.round(mbps * 10) / 10;
+  } catch {
+    return null;
+  }
 }
 
 export function SetupScreen({
   config = defaultConfig,
   forcedState,
+  onBeginInterview,
+  onTryPractice,
 }: SetupScreenProps) {
   const [realState, setRealState] = React.useState<RealState>('checking');
   const [stream, setStream] = React.useState<MediaStream | null>(null);
@@ -61,7 +86,7 @@ export function SetupScreen({
   const [mics, setMics] = React.useState<DeviceOption[]>([]);
   const [selectedCamera, setSelectedCamera] = React.useState('');
   const [selectedMic, setSelectedMic] = React.useState('');
-  const [connectionSpeed] = React.useState(mockConnectionSpeed());
+  const [connectionSpeed, setConnectionSpeed] = React.useState<number | null>(null);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const streamRef = React.useRef<MediaStream | null>(null);
 
@@ -102,8 +127,9 @@ export function SetupScreen({
         } else if (!audioTrack) {
           setRealState('no_device');
         } else {
-          const speed = mockConnectionSpeed();
-          if (speed < 5) {
+          const speed = await measureConnectionSpeed();
+          setConnectionSpeed(speed);
+          if (speed !== null && speed < 5) {
             setRealState('weak_connection');
           } else {
             setRealState('ready');
@@ -214,15 +240,16 @@ export function SetupScreen({
 
   const connectionText =
     state === 'checking' ? strings.setupCheckingLabel :
-    state === 'weak_connection' ? strings.setupConnectionWeakResult(2) :
-    strings.setupConnectionStrong(connectionSpeed);
+    state === 'weak_connection' ? strings.setupConnectionWeakResult(connectionSpeed ?? 2) :
+    connectionSpeed !== null ? strings.setupConnectionStrong(connectionSpeed) :
+    strings.setupConnectionUnknown;
 
   const connectionSecondary =
     state === 'weak_connection' ? strings.setupConnectionWeak :
     state === 'checking' ? undefined :
     strings.setupConnectionStable;
 
-  const ctaClick = blocked ? handleTryAgain : undefined;
+  const ctaClick = blocked ? handleTryAgain : onBeginInterview;
 
   return (
     <>
@@ -278,6 +305,7 @@ export function SetupScreen({
                   selectorValue={selectedCamera}
                   onSelectorChange={handleCameraChange}
                   selectorDisabled={state === 'checking' || state === 'no_device'}
+                  secondaryText={cameraStatus === 'passed' ? strings.setupDeviceReady : undefined}
                 />
 
                 <DeviceCheckRow
@@ -288,6 +316,7 @@ export function SetupScreen({
                   selectorValue={selectedMic}
                   onSelectorChange={handleMicChange}
                   selectorDisabled={state === 'checking' || state === 'no_device'}
+                  secondaryText={micStatus === 'passed' ? strings.setupDeviceReady : undefined}
                 />
 
                 <DeviceCheckRow
@@ -319,8 +348,9 @@ export function SetupScreen({
               {/* Secondary action */}
               <button
                 type="button"
-                className="iv-setup-secondary-link"
-                disabled={state === 'checking'}
+                className="iv-setup-practice-btn"
+                disabled={actionsDisabled}
+                onClick={onTryPractice}
               >
                 {strings.setupPracticeLink}
               </button>

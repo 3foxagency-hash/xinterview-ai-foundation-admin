@@ -42,7 +42,13 @@ interface FormErrors {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_RE = /^https?:\/\/.+/;
 
-export function ApplicationForm({ config }: { config: InterviewConfig }) {
+export function ApplicationForm({
+  config,
+  onSubmitSuccess,
+}: {
+  config: InterviewConfig;
+  onSubmitSuccess?: () => void;
+}) {
   const { fields, prefilled, consent, company, disclosures } = config;
   const showEmployer =
     consent.employerTermsUrl !== null && consent.employerPrivacyUrl !== null;
@@ -120,18 +126,24 @@ export function ApplicationForm({ config }: { config: InterviewConfig }) {
     if (isValid) {
       // Mock submit — no backend
       console.log('Interview form submitted', values);
+      onSubmitSuccess?.();
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.type !== 'application/pdf') {
+    setTouched((prev) => ({ ...prev, resume: true }));
+    const isPdf =
+      file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
       setErrors((prev) => ({ ...prev, resume: strings.errorFileType }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
       setErrors((prev) => ({ ...prev, resume: strings.errorFileTooLarge }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     update('resume', file);

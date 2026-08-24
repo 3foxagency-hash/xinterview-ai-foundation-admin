@@ -67,14 +67,10 @@ export function DeviceCheckRow({
             ariaLabel={ariaLabel}
           />
         ) : (
-          <>
-            <span className="iv-check-value">{valueText}</span>
-            {secondaryText && (
-              <span className="iv-check-value-secondary">
-                {secondaryText}
-              </span>
-            )}
-          </>
+          <span className="iv-check-value">{valueText}</span>
+        )}
+        {secondaryText && (
+          <span className="iv-check-value-secondary">{secondaryText}</span>
         )}
       </div>
     </div>
