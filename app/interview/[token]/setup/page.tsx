@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { SetupScreen } from '@/components/interview/setup-screen';
 import type { SetupState } from '@/components/interview/camera-preview';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
-import { interviewSession } from '@/config/interview-session';
 
 const SETUP_STATES: SetupState[] = [
   'checking',
@@ -32,9 +31,7 @@ export default function SetupPage() {
       <SetupScreen
         config={defaultConfig}
         forcedState={forcedState}
-        onBeginInterview={() =>
-          router.push(interviewSession.practice.enabled ? './practice' : './questions')
-        }
+        onBeginInterview={() => router.push('./questions')}
         onTryPractice={() => router.push('./practice')}
       />
       {isDev && (

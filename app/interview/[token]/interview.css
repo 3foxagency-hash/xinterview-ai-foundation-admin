@@ -2142,28 +2142,39 @@
 .iv-interview-shell {
   display: grid;
   grid-template-columns: 7fr 5fr;
+  /* Grid rows stretch children to the tallest sibling by default — with a
+     longer question (more lines, longer description) in the left column,
+     that stretched the answer card to match, leaving a large gap between
+     the video/audio surface and its controls that the shorter practice
+     question never showed. align-items: start lets each column size to
+     its own content instead of matching the other. */
+  align-items: start;
   gap: 56px;
   max-width: 1320px;
   margin: 0 auto;
   padding: 24px 48px 60px;
   position: relative;
   z-index: 2;
-  height: calc(100vh - 80px - 2px);
-  overflow: hidden;
+  /* A hard height + overflow:hidden here used to clip the answer card's
+     content (recording controls, retake links, play buttons) whenever a
+     shorter window left too little room — content was cut off with no
+     visible scrollbar to hint that anything was missing. min-height keeps
+     the "everything fits on one screen" layout on tall viewports, but lets
+     the page grow and scroll naturally, like every other page in this
+     flow, when it doesn't fit. */
+  min-height: calc(100vh - 80px - 2px);
 }
 
 .iv-question-col {
   display: flex;
   flex-direction: column;
   padding-top: 24px;
-  overflow: hidden;
 }
 
 .iv-answer-col {
   display: flex;
   flex-direction: column;
   margin-top: 80px;
-  overflow: hidden;
 }
 
 /* ── Question panel ── */
@@ -2460,6 +2471,11 @@
   display: block;
 }
 
+.iv-video-poster-overlay {
+  position: absolute;
+  inset: 0;
+}
+
 .iv-rec-wash {
   position: absolute;
   inset: 0;
@@ -2583,11 +2599,16 @@
   white-space: nowrap;
 }
 
-/* ── Audio recorder ── */
+/* ── Audio recorder ──
+   No camera feed to show, so this is sized to its content (waveform +
+   controls) rather than the video preview's 4:3 ratio — that extra
+   height was pushing the play button below the fold on shorter
+   viewports right after recording, before the candidate scrolled. */
 .iv-audio-recorder-surface {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  min-height: 180px;
+  padding: 24px 16px;
   border-radius: 16px;
   background: var(--iv-hairline);
   opacity: 1;
@@ -2617,7 +2638,7 @@
   justify-content: center;
   gap: 2px;
   width: 80%;
-  height: 45%;
+  height: 80px;
 }
 
 .iv-wave-bar {
@@ -2640,7 +2661,7 @@
   justify-content: center;
   gap: 2px;
   width: 80%;
-  height: 45%;
+  height: 80px;
 }
 
 .iv-audio-waveform-static .iv-wave-bar {
@@ -2961,11 +2982,17 @@
 
 /* ── Disclosure plane ── */
 .iv-disclosure-wrap {
+  /* This is a single centered confirmation card, not the two-column
+     question/answer layout .iv-interview-shell's grid was built for —
+     without spanning both grid tracks it only centers within the left
+     (7fr) column, landing left-of-center on the page instead of centered
+     on the full width. */
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 80px);
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 40px 24px;
   position: relative;
@@ -2973,7 +3000,37 @@
 }
 
 .iv-disclosure-plane {
-  padding: 36px 40px 32px;
+  padding: 40px 44px 36px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.iv-disclosure-welcome {
+  font-family: var(--iv-font-display);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--iv-text);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.005em;
+}
+
+.iv-disclosure-section {
+  margin-bottom: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--iv-hairline);
+}
+
+.iv-disclosure-section .iv-micro-label {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.iv-disclosure-section .iv-disclosure-list {
+  margin-bottom: 0;
+}
+
+.iv-disclosure-section .iv-disclosure-intro {
+  margin-bottom: 14px;
 }
 
 .iv-disclosure-plane > * {
@@ -3074,6 +3131,9 @@
 
 /* ── Practice screen ── */
 .iv-practice-confirm-wrap {
+  /* Same fix as .iv-disclosure-wrap above — a single centered card must
+     span both grid tracks or it only centers within the left column. */
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;

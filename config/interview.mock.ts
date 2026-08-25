@@ -98,8 +98,8 @@ export const interviewConfig: InterviewConfig = {
       "<ul><li>5+ years of product design experience, ideally in consumer-facing software</li><li>A portfolio that demonstrates strong visual craft, systems thinking, and care for the details</li><li>Comfort with ambiguity and the ability to move from rough concept to polished delivery</li><li>Excellent communication skills and a collaborative, low-ego approach</li></ul>" +
       "<h4>What we offer</h4>" +
       "<ul><li>Competitive salary and equity</li><li>Flexible working hours and remote-friendly culture</li><li>Budget for conferences, courses, and tools</li><li>A team that genuinely cares about craft</li></ul>",
-    questionCount: 6,
-    estimatedMinutes: 18
+    questionCount: 4,
+    estimatedMinutes: 12
   },
 
   introVideo: {

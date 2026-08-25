@@ -119,7 +119,7 @@ export function RecordingControls({
           </button>
           <div className="iv-cta-bloom" aria-hidden="true" />
         </div>
-        {retakesRemaining > 0 && (
+        {isVideoOrAudio && retakesRemaining > 0 && (
           <button
             type="button"
             className="iv-link-button iv-retake-link"

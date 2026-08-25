@@ -2,7 +2,15 @@
    Mock session configuration for the practice, interview, and
    completion screens. All behaviour is data-driven from this
    object — nothing about question lifecycle is hardcoded.
+
+   `company` is derived from interview.mock.ts's InterviewConfig
+   rather than duplicated here — this is the same candidate
+   session as the landing/setup pages, so brand color, theme
+   mode, etc. must stay in sync everywhere. Change them in one
+   place (interview.mock.ts).
    ═══════════════════════════════════════════════════════════ */
+
+import { interviewConfig } from '@/config/interview.mock';
 
 export type QuestionType = 'video' | 'audio' | 'text' | 'choice';
 
@@ -64,17 +72,52 @@ export const interviewSession: InterviewSession = {
         id: 'p1',
         type: 'video',
         text: 'Tell us your name and what role you are applying for.',
+        descriptionHtml:
+          '<p>This is a quick warm-up question to help you get comfortable with the format before the real interview begins.</p>',
         thinkingSeconds: 10,
         answerSeconds: 60,
         retakesAllowed: 3,
       },
       {
         id: 'p2',
-        type: 'video',
-        text: 'What are you most excited about in this role?',
-        thinkingSeconds: 15,
-        answerSeconds: 60,
+        type: 'audio',
+        text: 'Describe how you would explain a complex technical decision to a non-technical stakeholder.',
+        descriptionHtml:
+          '<p>We want to understand how you simplify complexity without losing accuracy or confidence.</p>' +
+          '<p>In your answer, consider a real scenario and walk us through your approach.</p>' +
+          '<ul><li>How did you determine what mattered most to the stakeholder?</li><li>What approach did you take to explain it clearly?</li><li>What was the outcome of your communication?</li></ul>',
+        thinkingSeconds: 10,
+        answerSeconds: 90,
         retakesAllowed: 3,
+      },
+      {
+        id: 'p3',
+        type: 'choice',
+        text: "Which approach would you take first when a feature's adoption drops sharply after release?",
+        descriptionHtml:
+          '<p>We want to understand how you think through product and user challenges.</p>' +
+          '<p>Choose the option that best reflects your first move in this situation.</p>',
+        thinkingSeconds: 0,
+        answerSeconds: null,
+        retakesAllowed: 1,
+        options: [
+          { id: 'a', label: 'Analyze usage analytics to identify where users are dropping off in the flow.' },
+          { id: 'b', label: 'Talk to users to understand what changed in their experience or expectations.' },
+          { id: 'c', label: 'Review recent product and design changes to pinpoint any potential regressions.' },
+          { id: 'd', label: 'Launch a marketing campaign to re-engage users and drive adoption back up.' },
+        ],
+      },
+      {
+        id: 'p4',
+        type: 'text',
+        text: 'How would you approach the first ninety days in this role?',
+        descriptionHtml:
+          "<p>We're looking for how you'd prioritize learning, building trust, and delivering early impact.</p>" +
+          '<p>Consider how you would assess the landscape and set yourself up for long-term success.</p>',
+        thinkingSeconds: 0,
+        answerSeconds: null,
+        retakesAllowed: 1,
+        maxCharacters: 1500,
       },
     ],
   },
@@ -92,19 +135,25 @@ export const interviewSession: InterviewSession = {
     },
     {
       id: 'q2',
-      type: 'video',
-      text: 'Walk us through your portfolio and highlight the project you are most proud of.',
-      thinkingSeconds: 30,
-      answerSeconds: 120,
-      retakesAllowed: 2,
-    },
-    {
-      id: 'q3',
       type: 'audio',
       text: 'Describe a time you received critical feedback. How did you respond?',
       thinkingSeconds: 20,
       answerSeconds: 90,
       retakesAllowed: 2,
+    },
+    {
+      id: 'q3',
+      type: 'choice',
+      text: 'How many years of product design experience do you have?',
+      thinkingSeconds: 0,
+      answerSeconds: null,
+      retakesAllowed: 1,
+      options: [
+        { id: 'a', label: 'Less than 3 years' },
+        { id: 'b', label: '3 to 5 years' },
+        { id: 'c', label: '6 to 9 years' },
+        { id: 'd', label: '10 or more years' },
+      ],
     },
     {
       id: 'q4',
@@ -117,36 +166,6 @@ export const interviewSession: InterviewSession = {
       retakesAllowed: 1,
       maxCharacters: 1000,
       blockPaste: true,
-    },
-    {
-      id: 'q5',
-      type: 'choice',
-      text: 'Which of these design tools do you use regularly?',
-      thinkingSeconds: 0,
-      answerSeconds: null,
-      retakesAllowed: 1,
-      multiSelect: true,
-      options: [
-        { id: 'a', label: 'Figma' },
-        { id: 'b', label: 'Sketch' },
-        { id: 'c', label: 'Adobe XD' },
-        { id: 'd', label: 'Framer' },
-        { id: 'e', label: 'Penpot' },
-      ],
-    },
-    {
-      id: 'q6',
-      type: 'choice',
-      text: 'How many years of product design experience do you have?',
-      thinkingSeconds: 0,
-      answerSeconds: null,
-      retakesAllowed: 1,
-      options: [
-        { id: 'a', label: 'Less than 3 years' },
-        { id: 'b', label: '3 to 5 years' },
-        { id: 'c', label: '6 to 9 years' },
-        { id: 'd', label: '10 or more years' },
-      ],
     },
   ],
 
@@ -168,9 +187,9 @@ export const interviewSession: InterviewSession = {
   },
 
   company: {
-    name: 'Northwind',
-    brandColor: '#2F5D50',
-    themeMode: 'system',
-    allowCandidateToggle: true,
+    name: interviewConfig.company.name,
+    brandColor: interviewConfig.company.brandColor,
+    themeMode: interviewConfig.company.themeMode,
+    allowCandidateToggle: interviewConfig.company.allowCandidateToggle,
   },
 };

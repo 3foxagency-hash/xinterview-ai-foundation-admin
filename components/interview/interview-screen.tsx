@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { InterviewShell } from '@/components/interview/interview-shell';
 import { QuestionPanel } from '@/components/interview/question-panel';
-import { AnswerPlane } from '@/components/interview/answer-plane';
+import { AnswerPlane, initialLifecycleState } from '@/components/interview/answer-plane';
 import type { LifecycleState } from '@/components/interview/answer-plane';
 import { TimerTrack, useServerAnchoredTimer } from '@/components/interview/timer-track';
 import { RecordingControls } from '@/components/interview/recording-controls';
@@ -52,7 +52,11 @@ export function InterviewScreen({
   );
   const [questionIndex, setQuestionIndex] = React.useState(forcedQuestionIndex ?? 0);
   const [lifecycleState, setLifecycleState] = React.useState<LifecycleState>(
-    forcedState ?? 'thinking',
+    () =>
+      forcedState ??
+      initialLifecycleState(
+        session.questions[forcedQuestionIndex ?? 0] ?? session.questions[0],
+      ),
   );
   const [stream, setStream] = React.useState<MediaStream | null>(null);
   const [recordedChunks, setRecordedChunks] = React.useState<Blob[]>([]);
@@ -111,11 +115,19 @@ export function InterviewScreen({
   const [thinkingRemaining, setThinkingRemaining] = React.useState(0);
   const [thinkingStart, setThinkingStart] = React.useState<number | null>(null);
 
+  // Starts (or restarts) the countdown whenever we enter 'thinking' for the
+  // current question. This is the only place thinkingStart is ever set to a
+  // real timestamp — the question-reset effect below only ever clears it to
+  // null, so the two can't race and clobber each other's update. Keyed on
+  // effectiveIndex (not just lifecycleState) so back-to-back questions that
+  // both start in 'thinking' still restart the timer — a useState setter is
+  // a no-op when the value doesn't change, so lifecycleState going
+  // 'thinking' → 'thinking' across questions wouldn't otherwise re-fire this.
   React.useEffect(() => {
     if (lifecycleState !== 'thinking' || question.thinkingSeconds === 0) return;
     setThinkingStart(Date.now());
     setThinkingRemaining(question.thinkingSeconds * 1000);
-  }, [lifecycleState, question.thinkingSeconds]);
+  }, [lifecycleState, question.thinkingSeconds, effectiveIndex]);
 
   React.useEffect(() => {
     if (lifecycleState !== 'thinking' || thinkingStart === null) return;
@@ -138,12 +150,7 @@ export function InterviewScreen({
       setLifecycleState(forcedState);
       return;
     }
-    if (question.thinkingSeconds > 0) {
-      setLifecycleState('thinking');
-      setThinkingStart(null);
-    } else {
-      setLifecycleState('ready');
-    }
+    setLifecycleState(initialLifecycleState(question));
     setRetakesUsed(0);
     setRecordedChunks([]);
     setRecordingUrl(null);
@@ -198,19 +205,30 @@ export function InterviewScreen({
     setTimerStart(Date.now());
 
     try {
-      const recorder = new MediaRecorder(stream);
+      const preferredMimeType =
+        question.type === 'audio'
+          ? ['audio/webm;codecs=opus', 'audio/webm']
+          : ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp8', 'video/webm'];
+      const mimeType = preferredMimeType.find((t) => MediaRecorder.isTypeSupported(t));
+
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
       recorderRef.current = recorder;
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       recorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'video/webm' });
+        const blob = new Blob(chunksRef.current, {
+          type: mimeType ?? (question.type === 'audio' ? 'audio/webm' : 'video/webm'),
+        });
         setRecordedChunks(chunksRef.current);
         const url = URL.createObjectURL(blob);
         setRecordingUrl(url);
         setLifecycleState('review');
       };
-      recorder.start();
+      // A timeslice forces periodic chunks — without it, some browsers omit
+      // the cues/duration info a single end-of-recording chunk would need
+      // for the resulting blob to report a seekable duration.
+      recorder.start(1000);
 
       elapsedIntervalRef.current = setInterval(() => {
         setElapsedSeconds((p) => p + 1);
@@ -228,26 +246,14 @@ export function InterviewScreen({
     if (timerStart) setTimerStart(null);
   }
 
+  // Only video/audio ever reach 'thinking'/'ready'/'active' — text and
+  // choice questions start directly in 'review' (see initialLifecycleState).
   function handleStart() {
-    if (lifecycleState === 'thinking') {
-      startRecording();
-    } else if (lifecycleState === 'ready') {
-      if (question.type === 'text' || question.type === 'choice') {
-        setLifecycleState('active');
-        setTimerStart(Date.now());
-      } else {
-        startRecording();
-      }
-    }
+    if (lifecycleState === 'thinking' || lifecycleState === 'ready') startRecording();
   }
 
   function handleStop() {
-    if (question.type === 'text' || question.type === 'choice') {
-      setLifecycleState('review');
-      if (timerStart) setTimerStart(null);
-    } else {
-      stopRecording();
-    }
+    stopRecording();
   }
 
   function handleRetake() {
@@ -302,7 +308,7 @@ export function InterviewScreen({
       onComplete?.();
     } else {
       if (!forcedQuestionIndex) setQuestionIndex(next);
-      setLifecycleState(question.thinkingSeconds > 0 ? 'thinking' : 'ready');
+      setLifecycleState(initialLifecycleState(session.questions[next]));
     }
   }
 
@@ -366,6 +372,7 @@ export function InterviewScreen({
         <div className="iv-disclosure-wrap">
           <MonitoringDisclosure
             integrity={integrity}
+            totalQuestions={totalQuestions}
             onAcknowledge={() => {
               setPhase('interview');
               requestFullscreen();
@@ -425,7 +432,7 @@ export function InterviewScreen({
           elapsedSeconds={elapsedSeconds}
           recording={effectiveState === 'active' || effectiveState === 'warning'}
           reviewElapsed={reviewElapsed}
-          reviewDuration={question.answerSeconds ?? elapsedSeconds}
+          reviewDuration={elapsedSeconds}
           onReviewSeek={setReviewElapsed}
           onReviewToggle={() => setReviewPlaying((p) => !p)}
           reviewPlaying={reviewPlaying}
@@ -440,7 +447,7 @@ export function InterviewScreen({
           recording={effectiveState === 'active' || effectiveState === 'warning'}
           reviewUrl={recordingUrl}
           reviewElapsed={reviewElapsed}
-          reviewDuration={question.answerSeconds ?? elapsedSeconds}
+          reviewDuration={elapsedSeconds}
           onReviewSeek={setReviewElapsed}
           onReviewToggle={() => setReviewPlaying((p) => !p)}
           reviewPlaying={reviewPlaying}
@@ -477,10 +484,13 @@ export function InterviewScreen({
   const secondaryLine =
     question.type === 'choice' && choiceSelected.length === 0
       ? strings.choiceSelectToContinue
-      : null;
+      : question.type === 'text' && textContent.trim().length === 0
+        ? strings.textWriteToContinue
+        : null;
 
   const controlsDisabled =
-    (question.type === 'choice' && choiceSelected.length === 0 && effectiveState === 'review');
+    (question.type === 'choice' && choiceSelected.length === 0 && effectiveState === 'review') ||
+    (question.type === 'text' && textContent.trim().length === 0 && effectiveState === 'review');
 
   return (
     <InterviewShell
