@@ -36,10 +36,6 @@ export const strings = {
   resume: 'Attach your CV',
   resumeHint: 'PDF · 5MB',
 
-  // Optional link
-  addLinks: '+ Add LinkedIn or portfolio',
-  hideLinks: '− Remove',
-
   // Consent
   consentLabel: 'CONSENT',
   consentPlatform: 'I agree to the XInterview Terms of Service and Privacy Policy',

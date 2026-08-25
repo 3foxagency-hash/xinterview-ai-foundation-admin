@@ -13,18 +13,16 @@ export function IntroVideo({ video }: IntroVideoProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const handlePlay = React.useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (playing) {
-      v.pause();
-    } else {
-      v.play().catch(() => {});
-    }
-  }, [playing]);
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   return (
     <div>
-      <div className="iv-video-frame" onClick={handlePlay}>
+      {/* Once playing, native <video controls> owns play/pause toggling —
+          clicking the frame here would double-toggle against it (the
+          browser's own controls already respond to a click on the video
+          surface, not just the control bar). */}
+      <div className="iv-video-frame" onClick={playing ? undefined : handlePlay}>
         <video
           ref={videoRef}
           className="iv-video-element"

@@ -89,7 +89,7 @@ export const interviewConfig: InterviewConfig = {
   },
 
   job: {
-    title: "Senior Product Designer in Backend Development",
+    title: "Senior Product Designer – Consumer Experience",
     descriptionHtml:
       "<p>At Northwind, we design digital experiences that help millions of people move through their day with less friction and more delight. Our design team is small, senior, and embedded in every product decision.</p>" +
       "<h4>What you will do</h4>" +

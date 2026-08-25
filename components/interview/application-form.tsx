@@ -4,7 +4,10 @@ import * as React from 'react';
 import { FileText, X, ArrowRight } from 'lucide-react';
 import { UnderlineField } from '@/components/interview/underline-field';
 import { ConsentBlock } from '@/components/interview/consent-block';
+import { CountryCodeSelect } from '@/components/interview/country-code-select';
 import { strings } from '@/lib/interview/strings';
+import { DEFAULT_COUNTRY } from '@/lib/interview/country-codes';
+import { useDetectedCountry } from '@/lib/interview/use-detected-country';
 import type { InterviewConfig } from '@/config/interview.mock';
 
 type FieldKey =
@@ -67,7 +70,6 @@ export function ApplicationForm({
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
-  const [showOptional, setShowOptional] = React.useState(false);
   const [submitted, setSubmitted] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -155,16 +157,23 @@ export function ApplicationForm({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  // Auto-detect country code from phone input (simplified)
-  const phoneCode = React.useMemo(() => {
-    const p = values.phone.trim();
-    if (p.startsWith('+1')) return '+1';
-    if (p.startsWith('+44')) return '+44';
-    if (p.startsWith('+31')) return '+31';
-    if (p.startsWith('+49')) return '+49';
-    if (p.startsWith('+33')) return '+33';
-    return '+1';
-  }, [values.phone]);
+  // Default the phone country from the candidate's IP-detected location,
+  // but let them pick a different one — detection only fills the default,
+  // it never overrides a choice the candidate already made.
+  const detectedCountry = useDetectedCountry();
+  const [phoneCountry, setPhoneCountry] = React.useState(DEFAULT_COUNTRY);
+  const phoneCountryTouchedRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (detectedCountry && !phoneCountryTouchedRef.current) {
+      setPhoneCountry(detectedCountry);
+    }
+  }, [detectedCountry]);
+
+  const handlePhoneCountryChange = (countryCode: string) => {
+    phoneCountryTouchedRef.current = true;
+    setPhoneCountry(countryCode);
+  };
 
   const ctaDisabled = !isValid;
 
@@ -233,52 +242,39 @@ export function ApplicationForm({
           required={fields.phone.required}
           placeholder={prefilled.phone}
           error={touched.phone ? errors.phone : undefined}
-          leftSlot={phoneCode}
+          leftSlot={
+            <CountryCodeSelect value={phoneCountry} onChange={handlePhoneCountryChange} />
+          }
           autoComplete="tel"
         />
       )}
 
-      {/* Optional links toggle */}
-      {(fields.linkedin.enabled || fields.portfolio.enabled) && (
-        <>
-          <button
-            type="button"
-            className="iv-optional-toggle"
-            onClick={() => setShowOptional((p) => !p)}
-          >
-            {showOptional ? strings.hideLinks : strings.addLinks}
-          </button>
-          {showOptional && (
-            <>
-              {fields.linkedin.enabled && (
-                <UnderlineField
-                  label={strings.linkedin}
-                  name="linkedin"
-                  type="url"
-                  value={values.linkedin}
-                  onChange={(v) => update('linkedin', v)}
-                  onBlur={() => handleBlur('linkedin')}
-                  required={fields.linkedin.required}
-                  error={touched.linkedin ? errors.linkedin : undefined}
-                  placeholder={prefilled.linkedin ?? 'https://linkedin.com/in/...'}
-                />
-              )}
-              {fields.portfolio.enabled && (
-                <UnderlineField
-                  label={strings.portfolio}
-                  name="portfolio"
-                  type="url"
-                  value={values.portfolio}
-                  onChange={(v) => update('portfolio', v)}
-                  onBlur={() => handleBlur('portfolio')}
-                  required={fields.portfolio.required}
-                  error={touched.portfolio ? errors.portfolio : undefined}
-                  placeholder={prefilled.portfolio ?? 'https://...'}
-                />
-              )}
-            </>
-          )}
-        </>
+      {/* LinkedIn / portfolio */}
+      {fields.linkedin.enabled && (
+        <UnderlineField
+          label={strings.linkedin}
+          name="linkedin"
+          type="url"
+          value={values.linkedin}
+          onChange={(v) => update('linkedin', v)}
+          onBlur={() => handleBlur('linkedin')}
+          required={fields.linkedin.required}
+          error={touched.linkedin ? errors.linkedin : undefined}
+          placeholder={prefilled.linkedin ?? 'https://linkedin.com/in/...'}
+        />
+      )}
+      {fields.portfolio.enabled && (
+        <UnderlineField
+          label={strings.portfolio}
+          name="portfolio"
+          type="url"
+          value={values.portfolio}
+          onChange={(v) => update('portfolio', v)}
+          onBlur={() => handleBlur('portfolio')}
+          required={fields.portfolio.required}
+          error={touched.portfolio ? errors.portfolio : undefined}
+          placeholder={prefilled.portfolio ?? 'https://...'}
+        />
       )}
 
       {/* Resume */}

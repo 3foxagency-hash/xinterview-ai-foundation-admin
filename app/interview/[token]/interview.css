@@ -609,6 +609,14 @@
 /* ── Underline field ── */
 .iv-field {
   margin-bottom: 20px;
+  position: relative;
+}
+
+/* The phone field's country dropdown must float above sibling fields —
+   .iv-form-panel > * gives every field its own stacking context, so a
+   nested popover's z-index alone can't escape a later sibling. */
+.iv-field:has(.iv-country-select) {
+  z-index: 5;
 }
 
 .iv-field-row {
@@ -688,35 +696,147 @@
 }
 
 .iv-phone-code {
+  padding-bottom: 8px;
+}
+
+.iv-phone-flag {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Country code select (phone) ── */
+.iv-country-select {
+  position: relative;
+}
+
+.iv-country-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--iv-font-body);
   font-size: 15px;
   color: var(--iv-text-secondary);
-  padding-bottom: 8px;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  min-height: 32px;
 }
 
-/* Optional links toggle */
-.iv-optional-toggle {
-  display: inline-block;
-  background: none;
-  border: none;
-  font-family: var(--iv-font-body);
-  font-size: 12px;
-  color: var(--iv-text-secondary);
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 24px;
-  transition: color 0.15s ease;
-}
-
-.iv-optional-toggle:hover {
+.iv-country-trigger:hover {
   color: var(--iv-text);
 }
 
-.iv-optional-toggle:focus-visible {
+.iv-country-trigger:focus-visible {
   outline: 2px solid var(--iv-accent);
-  outline-offset: 4px;
+  outline-offset: 2px;
   border-radius: 2px;
+}
+
+.iv-country-trigger-chevron {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.iv-country-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: 280px;
+  max-width: 80vw;
+  background: var(--iv-surface);
+  border: 1px solid var(--iv-hairline);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.iv-country-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--iv-hairline);
+}
+
+.iv-country-search-icon {
+  color: var(--iv-text-secondary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.iv-country-search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text);
+  min-width: 0;
+}
+
+.iv-country-search-input::placeholder {
+  color: var(--iv-text-secondary);
+  opacity: 0.5;
+}
+
+.iv-country-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.iv-country-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text);
+  min-height: 36px;
+}
+
+.iv-country-option:hover,
+.iv-country-option:focus-visible {
+  background: var(--iv-hairline);
+  outline: none;
+}
+
+.iv-country-option.active {
+  background: var(--iv-hairline);
+}
+
+.iv-country-option-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iv-country-option-code {
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.iv-country-empty {
+  padding: 16px 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--iv-text-secondary);
 }
 
 /* ── Resume field ── */
@@ -1114,13 +1234,6 @@
   .iv-right-col {
     margin-top: 48px;
   }
-  .iv-setup-grid {
-    gap: 40px;
-    padding: 20px 32px 60px;
-  }
-  .iv-setup-right {
-    margin-top: 48px;
-  }
 }
 
 /* 768–1023px: single column, form first */
@@ -1136,17 +1249,6 @@
   }
   .iv-form-panel {
     padding: 24px 28px 24px;
-  }
-  .iv-setup-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
-    padding: 24px;
-  }
-  .iv-setup-right {
-    margin-top: 0;
-  }
-  .iv-setup-panel {
-    padding: 24px 28px;
   }
 }
 
@@ -1272,48 +1374,6 @@
 
   .iv-consent-item {
     min-height: 44px;
-  }
-
-  /* Setup screen mobile */
-  .iv-setup-grid {
-    padding: 20px;
-  }
-
-  .iv-camera-frame {
-    border-radius: 0;
-    margin-left: -20px;
-    margin-right: -20px;
-    width: calc(100% + 40px);
-  }
-
-  .iv-setup-panel {
-    padding: 20px 0;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    border-top: 1px solid var(--iv-hairline);
-    border-radius: 0;
-  }
-
-  .iv-setup-panel::before {
-    display: none;
-  }
-
-  .iv-mic-bars {
-    gap: 2px;
-  }
-
-  .iv-setup-cta-wrap {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    background: var(--iv-canvas);
-    padding: 16px 0;
-    margin-top: 24px;
-    border-top: 1px solid var(--iv-hairline);
   }
 }
 
@@ -1911,6 +1971,87 @@
   gap: 10px;
 }
 
+/* ── Setup screen responsive ── */
+
+/* 1024–1279px: narrower gutters, reduced stagger */
+@media (max-width: 1279px) {
+  .iv-setup-grid {
+    gap: 40px;
+    padding: 20px 32px 60px;
+  }
+  .iv-setup-right {
+    margin-top: 48px;
+  }
+}
+
+/* 768–1023px: single column, form first */
+@media (max-width: 1023px) {
+  .iv-setup-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 24px;
+  }
+  .iv-setup-right {
+    margin-top: 0;
+  }
+  .iv-setup-panel {
+    padding: 24px 28px;
+  }
+}
+
+/* <768px: mobile */
+@media (max-width: 767px) {
+  .iv-setup-grid {
+    padding: 20px;
+  }
+
+  .iv-setup-heading {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+
+  .iv-camera-frame {
+    border-radius: 0;
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
+  }
+
+  .iv-setup-panel {
+    padding: 20px 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid var(--iv-hairline);
+    border-radius: 0;
+  }
+
+  .iv-setup-panel::before {
+    display: none;
+  }
+
+  .iv-mic-bars {
+    gap: 2px;
+  }
+
+  .iv-setup-cta-wrap {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: var(--iv-canvas);
+    padding: 16px 0;
+    margin-top: 24px;
+    border-top: 1px solid var(--iv-hairline);
+  }
+
+  .iv-setup-practice-btn {
+    height: 48px;
+  }
+}
+
 /* ── Focus ring improvements for keyboard navigation ── */
 .iv-field-input:focus-visible {
   outline: none;
@@ -1929,7 +2070,6 @@
   .iv-lang-selector,
   .iv-theme-switch-track,
   .iv-theme-switch-knob,
-  .iv-optional-toggle,
   .iv-desc-show-more,
   .iv-resume-remove,
   .iv-consent-checkbox,
