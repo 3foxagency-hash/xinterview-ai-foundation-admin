@@ -34,7 +34,20 @@ export function AudioRecorder({
   const sourceRef = React.useRef<MediaStreamAudioSourceNode | null>(null);
   const rafRef = React.useRef<number>(0);
   const barsRef = React.useRef<(HTMLSpanElement | null)[]>([]);
+  const reviewRef = React.useRef<HTMLAudioElement>(null);
   const [isMobile, setIsMobile] = React.useState(false);
+
+  // The play/pause button only flips `reviewPlaying` state upstream — this
+  // is what actually drives the <audio> element to match it.
+  React.useEffect(() => {
+    const el = reviewRef.current;
+    if (!el || !reviewUrl) return;
+    if (reviewPlaying) {
+      el.play().catch(() => {});
+    } else {
+      el.pause();
+    }
+  }, [reviewPlaying, reviewUrl]);
 
   React.useEffect(() => {
     const mq = window.matchMedia('(max-width: 767px)');
@@ -94,6 +107,13 @@ export function AudioRecorder({
     const progress = reviewDuration > 0 ? reviewElapsed / reviewDuration : 0;
     return (
       <div className="iv-audio-recorder-surface">
+        <audio
+          ref={reviewRef}
+          src={reviewUrl}
+          preload="auto"
+          onTimeUpdate={(e) => onReviewSeek?.(e.currentTarget.currentTime)}
+          onEnded={() => onReviewToggle?.()}
+        />
         <div className="iv-audio-waveform-static" aria-hidden="true">
           {Array.from({ length: barCount }, (_, i) => {
             const played = i / barCount < progress;

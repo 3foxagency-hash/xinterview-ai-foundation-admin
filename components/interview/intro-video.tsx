@@ -13,38 +13,30 @@ export function IntroVideo({ video }: IntroVideoProps) {
   const videoRef = React.useRef<HTMLVideoElement>(null);
 
   const handlePlay = React.useCallback(() => {
-    const v = videoRef.current;
-    if (!v) return;
-    if (playing) {
-      v.pause();
-      setPlaying(false);
-    } else {
-      v.play().then(() => setPlaying(true)).catch(() => {});
-    }
-  }, [playing]);
+    videoRef.current?.play().catch(() => {});
+  }, []);
 
   return (
     <div>
-      <div className="iv-video-frame" onClick={handlePlay}>
-        {playing ? (
-          <video
-            ref={videoRef}
-            className="iv-video-element"
-            src={video.url}
-            poster={video.posterUrl}
-            controls
-            playsInline
-            onPlay={() => setPlaying(true)}
-            onPause={() => setPlaying(false)}
-            onEnded={() => setPlaying(false)}
-          />
-        ) : (
+      {/* Once playing, native <video controls> owns play/pause toggling —
+          clicking the frame here would double-toggle against it (the
+          browser's own controls already respond to a click on the video
+          surface, not just the control bar). */}
+      <div className="iv-video-frame" onClick={playing ? undefined : handlePlay}>
+        <video
+          ref={videoRef}
+          className="iv-video-element"
+          src={video.url}
+          controls={playing}
+          playsInline
+          preload="metadata"
+          onPlay={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
+
+        {!playing && (
           <>
-            <img
-              className="iv-video-poster"
-              src={video.posterUrl}
-              alt=""
-            />
             <div className="iv-video-wash" aria-hidden="true" />
             <button
               type="button"

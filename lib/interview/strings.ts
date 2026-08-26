@@ -7,7 +7,6 @@
 export const strings = {
   // Top bar
   help: 'Help',
-  poweredBy: 'Powered by XInterview',
 
   // Eyebrow
   eyebrow: (company: string) => `${company.toUpperCase()} · INTERVIEW`,
@@ -33,15 +32,9 @@ export const strings = {
   phone: 'Phone',
   linkedin: 'LinkedIn URL',
   portfolio: 'Portfolio URL',
+  resumeLabel: 'Resume',
   resume: 'Attach your CV',
   resumeHint: 'PDF · 5MB',
-
-  // Optional link
-  addLinks: '+ Add LinkedIn or portfolio',
-  hideLinks: '− Remove',
-
-  // Pre-filled
-  fieldLocked: 'Locked',
 
   // Consent
   consentLabel: 'CONSENT',
@@ -135,12 +128,20 @@ export const strings = {
   setupMicrophoneLabel: 'Microphone',
   setupConnectionLabel: 'Connection',
   setupCheckingLabel: 'Checking…',
-  setupConnectionStable: 'Connection is stable',
-  setupConnectionWeak: 'Answers may take longer to upload',
+  setupDeviceReady: 'Detected and ready',
+  setupConnectionStable: 'Your answers will upload smoothly.',
+  setupConnectionWeak: 'Your upload speed is low — answers may take longer to save.',
 
-  // Connection results
-  setupConnectionStrong: (mbps: number) => `Strong · ${mbps} Mbps`,
-  setupConnectionWeakResult: (mbps: number) => `Weak · ${mbps} Mbps`,
+  // Connection results — upload matters most here since every recorded
+  // answer has to be uploaded, so it drives the strong/weak verdict;
+  // download is shown alongside for context only. Rendered as a status
+  // badge plus two separate labeled speed rows (see ConnectionCheckRow),
+  // not one long sentence.
+  setupConnectionStrongBadge: 'Strong connection',
+  setupConnectionWeakBadge: 'Weak connection',
+  setupUploadLabel: 'Upload',
+  setupDownloadLabel: 'Download',
+  setupSpeedMbps: (mbps: number) => `${mbps} Mbps`,
 
   // Device selectors
   setupCameraSelectLabel: 'Camera',
@@ -283,9 +284,9 @@ export const strings = {
   // ── Text answer ──
 
   textCharCount: (current: number, max: number) => `${current} / ${max} characters`,
-  textDraftSaved: 'Draft saved',
   textPasteBlocked: 'Pasting isn\'t allowed for written answers.',
   textPlaceholder: 'Write your answer here…',
+  textWriteToContinue: 'Write your answer to continue.',
 
   // ── Choice answer ──
 
@@ -305,10 +306,23 @@ export const strings = {
   // ── Integrity ──
 
   disclosureTitle: 'Before you begin',
-  disclosureIntro: 'This interview includes the following checks to ensure a fair process:',
-  disclosureTabSwitch: 'This interview checks whether you switch tabs.',
-  disclosureFullScreen: 'This interview runs in full screen.',
-  disclosureRightClick: 'Right-click and keyboard shortcuts are disabled.',
+  disclosureWelcome: "You've made it to the interview — take a breath, you're in good hands.",
+  disclosureWelcomeBody:
+    "There's no one watching live, and no trick questions. Answer like you would in a real conversation: take your time to think, speak naturally, and be yourself. If you stumble over a word or need a second to collect your thoughts, that's completely fine — it happens to everyone.",
+
+  disclosureInstructionsTitle: 'A few things to know',
+  disclosureInstructionQuestions: (n: number) => `You'll be asked ${n} questions — a mix of video, audio, multiple choice, and written responses.`,
+  disclosureInstructionThinking: 'Most questions give you a short moment to think before recording starts, so you can gather your thoughts first.',
+  disclosureInstructionRetakes: "Some questions let you re-record if you're not happy with your first take — the exact number of retakes is shown on each question.",
+  disclosureInstructionFinal: "Once you submit an answer, it's final — you won't be able to go back and change it, so review your recording before continuing.",
+  disclosureInstructionEnvironment: 'Find a quiet, well-lit space, and double check your camera and microphone are working before you start.',
+
+  disclosureIntegrityTitle: 'What we monitor, and why',
+  disclosureIntegrityIntro:
+    "To keep the process fair for every candidate, this interview includes a few automated checks. They're standard practice — here's exactly what they do:",
+  disclosureTabSwitch: "Tab activity: if you switch away from this tab during a question, it's logged and shared with the hiring team. Stay on this page while recording.",
+  disclosureFullScreen: "Full screen mode: the interview runs in full screen. If you exit it, you'll be prompted to return before you can continue.",
+  disclosureRightClick: "Right-click and shortcuts: copy, paste, and right-click are disabled during written answers to keep responses genuinely your own.",
   disclosureAcknowledge: 'I understand, begin',
   disclosureContinue: 'Continue',
 

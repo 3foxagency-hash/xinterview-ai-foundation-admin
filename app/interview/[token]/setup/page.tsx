@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useRouter } from 'next/navigation';
 import { SetupScreen } from '@/components/interview/setup-screen';
 import type { SetupState } from '@/components/interview/camera-preview';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
@@ -14,6 +15,7 @@ const SETUP_STATES: SetupState[] = [
 ];
 
 export default function SetupPage() {
+  const router = useRouter();
   const [forcedState, setForcedState] = React.useState<SetupState | undefined>(
     undefined,
   );
@@ -26,7 +28,12 @@ export default function SetupPage() {
 
   return (
     <>
-      <SetupScreen config={defaultConfig} forcedState={forcedState} />
+      <SetupScreen
+        config={defaultConfig}
+        forcedState={forcedState}
+        onBeginInterview={() => router.push('./questions')}
+        onTryPractice={() => router.push('./practice')}
+      />
       {isDev && (
         <DevSetupSwitcher
           current={forcedState}

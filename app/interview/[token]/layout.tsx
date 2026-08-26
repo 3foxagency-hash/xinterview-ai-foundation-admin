@@ -1,9 +1,9 @@
-import { Instrument_Serif, Schibsted_Grotesk } from 'next/font/google';
+import { Lora, Schibsted_Grotesk } from 'next/font/google';
 import './interview.css';
 
-const display = Instrument_Serif({
+const display = Lora({
   subsets: ['latin'],
-  weight: ['400'],
+  weight: ['400', '500', '600'],
   style: ['normal', 'italic'],
   variable: '--font-display',
   display: 'swap',

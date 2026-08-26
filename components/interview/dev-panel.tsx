@@ -37,12 +37,11 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
       title: 'Senior Product Designer',
       descriptionHtml:
         '<p>At Northwind, we design digital experiences that help millions of people move through their day with less friction and more delight.</p><h4>What you will do</h4><ul><li>Lead end-to-end design for features used by over 2 million customers</li><li>Partner closely with engineering and product</li></ul>',
-      questionCount: 6,
-      estimatedMinutes: 18,
+      questionCount: 4,
+      estimatedMinutes: 12,
     },
     introVideo: {
-      url: 'https://example.com/intro.mp4',
-      posterUrl: '/images/ui/f231f007-979b-4b15-8aa9-b3d1c54c4a33_(1).png',
+      url: '/videos/intro-sample.mp4',
       durationLabel: '1:24',
       presenterName: 'Sarah Chen',
       presenterTitle: 'Design Director',
@@ -54,8 +53,8 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
       title: 'Senior Product Designer',
       descriptionHtml:
         '<p>At Northwind, we design digital experiences that help millions of people move through their day with less friction and more delight.</p><h4>What you will do</h4><ul><li>Lead end-to-end design for features used by over 2 million customers</li><li>Partner closely with engineering and product</li></ul>',
-      questionCount: 6,
-      estimatedMinutes: 18,
+      questionCount: 4,
+      estimatedMinutes: 12,
     },
     introVideo: null,
   },
@@ -64,12 +63,11 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
     job: {
       title: 'Senior Product Designer',
       descriptionHtml: null,
-      questionCount: 6,
-      estimatedMinutes: 18,
+      questionCount: 4,
+      estimatedMinutes: 12,
     },
     introVideo: {
-      url: 'https://example.com/intro.mp4',
-      posterUrl: '/images/ui/f231f007-979b-4b15-8aa9-b3d1c54c4a33_(1).png',
+      url: '/videos/intro-sample.mp4',
       durationLabel: '1:24',
       presenterName: 'Sarah Chen',
       presenterTitle: 'Design Director',
@@ -80,8 +78,8 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
     job: {
       title: 'Senior Product Designer',
       descriptionHtml: null,
-      questionCount: 6,
-      estimatedMinutes: 18,
+      questionCount: 4,
+      estimatedMinutes: 12,
     },
     introVideo: null,
   },

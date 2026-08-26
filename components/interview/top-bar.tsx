@@ -66,25 +66,30 @@ export function TopBar({ config }: TopBarProps) {
         </a>
 
         {canToggle && (
-          <button
-            type="button"
-            className="iv-theme-toggle"
-            onClick={toggle}
-            aria-label={
-              resolved === 'dark'
-                ? strings.themeToggleLight
-                : strings.themeToggleDark
-            }
-          >
-            {resolved === 'dark' ? (
-              <Sun size={16} strokeWidth={1.5} />
-            ) : (
-              <Moon size={16} strokeWidth={1.5} />
-            )}
-          </button>
+          <div className="iv-theme-switch">
+            <Sun size={14} strokeWidth={1.5} aria-hidden="true" />
+            <button
+              type="button"
+              role="switch"
+              aria-checked={resolved === 'dark'}
+              className="iv-theme-switch-track"
+              onClick={toggle}
+              aria-label={
+                resolved === 'dark'
+                  ? strings.themeToggleLight
+                  : strings.themeToggleDark
+              }
+            >
+              <span className="iv-theme-switch-knob" aria-hidden="true" />
+            </button>
+            <Moon size={14} strokeWidth={1.5} aria-hidden="true" />
+          </div>
         )}
 
-        <span className="iv-powered-by">{strings.poweredBy}</span>
+        <span className="iv-topbar-divider" aria-hidden="true" />
+        <span className="iv-powered-by">
+          Powered by <strong>XInterview</strong>
+        </span>
       </div>
     </header>
   );
