@@ -461,7 +461,6 @@ export function InterviewScreen({
           question={question}
           value={textContent}
           onChange={setTextContent}
-          storageKey={`iv-draft-${question.id}`}
           disabled={false}
         />
       );

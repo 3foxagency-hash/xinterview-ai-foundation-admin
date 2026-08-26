@@ -11,6 +11,7 @@ import { TopBar } from '@/components/interview/top-bar';
 import { CameraPreview, type SetupState } from '@/components/interview/camera-preview';
 import { MicLevelMeter } from '@/components/interview/mic-level-meter';
 import { DeviceCheckRow, type CheckStatus } from '@/components/interview/device-check-row';
+import { ConnectionCheckRow } from '@/components/interview/connection-check-row';
 import { type DeviceOption } from '@/components/interview/device-selector';
 import { HelpPanel } from '@/components/interview/help-panel';
 import { strings } from '@/lib/interview/strings';
@@ -49,8 +50,10 @@ function getMics(devices: MediaDeviceInfo[]): DeviceOption[] {
     }));
 }
 
-const SPEED_TEST_URL = '/speed-test/probe.bin';
-const SPEED_TEST_BYTES = 256 * 1024;
+const DOWNLOAD_TEST_URL = '/speed-test/probe.bin';
+const DOWNLOAD_TEST_BYTES = 256 * 1024;
+const UPLOAD_TEST_URL = '/api/speed-test/upload';
+const UPLOAD_TEST_BYTES = 256 * 1024;
 
 /**
  * Measures real downlink throughput by timing a fetch of a fixed-size,
@@ -59,15 +62,41 @@ const SPEED_TEST_BYTES = 256 * 1024;
  * right now rather than a cached OS-level estimate. A cache-busting query
  * param keeps the browser/CDN from serving a free instant "download".
  */
-async function measureConnectionSpeed(): Promise<number | null> {
+async function measureDownloadSpeed(): Promise<number | null> {
   try {
     const start = performance.now();
-    const res = await fetch(`${SPEED_TEST_URL}?cb=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`${DOWNLOAD_TEST_URL}?cb=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) return null;
     await res.arrayBuffer();
     const seconds = (performance.now() - start) / 1000;
     if (seconds <= 0) return null;
-    const mbps = (SPEED_TEST_BYTES * 8) / seconds / 1_000_000;
+    const mbps = (DOWNLOAD_TEST_BYTES * 8) / seconds / 1_000_000;
+    return Math.round(mbps * 10) / 10;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Measures real upload throughput by POSTing a fixed-size, incompressible
+ * payload to our own API route and timing the round trip. This is what
+ * actually matters for this product — every answer the candidate records
+ * has to be uploaded, so download speed alone can be misleadingly
+ * reassuring on connections with the (common) asymmetric upload profile.
+ */
+async function measureUploadSpeed(): Promise<number | null> {
+  try {
+    const payload = new Blob([new Uint8Array(UPLOAD_TEST_BYTES)]);
+    const start = performance.now();
+    const res = await fetch(UPLOAD_TEST_URL, {
+      method: 'POST',
+      body: payload,
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    const seconds = (performance.now() - start) / 1000;
+    if (seconds <= 0) return null;
+    const mbps = (UPLOAD_TEST_BYTES * 8) / seconds / 1_000_000;
     return Math.round(mbps * 10) / 10;
   } catch {
     return null;
@@ -86,7 +115,8 @@ export function SetupScreen({
   const [mics, setMics] = React.useState<DeviceOption[]>([]);
   const [selectedCamera, setSelectedCamera] = React.useState('');
   const [selectedMic, setSelectedMic] = React.useState('');
-  const [connectionSpeed, setConnectionSpeed] = React.useState<number | null>(null);
+  const [downloadSpeed, setDownloadSpeed] = React.useState<number | null>(null);
+  const [uploadSpeed, setUploadSpeed] = React.useState<number | null>(null);
   const [helpOpen, setHelpOpen] = React.useState(false);
   const streamRef = React.useRef<MediaStream | null>(null);
 
@@ -127,9 +157,16 @@ export function SetupScreen({
         } else if (!audioTrack) {
           setRealState('no_device');
         } else {
-          const speed = await measureConnectionSpeed();
-          setConnectionSpeed(speed);
-          if (speed !== null && speed < 5) {
+          // Every answer the candidate records gets uploaded, so upload
+          // speed — not download — is what determines whether the
+          // connection is actually going to be a problem here.
+          const [download, upload] = await Promise.all([
+            measureDownloadSpeed(),
+            measureUploadSpeed(),
+          ]);
+          setDownloadSpeed(download);
+          setUploadSpeed(upload);
+          if (upload !== null && upload < 1.5) {
             setRealState('weak_connection');
           } else {
             setRealState('ready');
@@ -238,11 +275,12 @@ export function SetupScreen({
     state === 'weak_connection' ? 'warning' :
     'passed';
 
-  const connectionText =
-    state === 'checking' ? strings.setupCheckingLabel :
-    state === 'weak_connection' ? strings.setupConnectionWeakResult(connectionSpeed ?? 2) :
-    connectionSpeed !== null ? strings.setupConnectionStrong(connectionSpeed) :
-    strings.setupConnectionUnknown;
+  // forcedState previews a weak connection from the dev panel without an
+  // actual slow network to measure — show a plausible mock reading rather
+  // than the real (likely fast) numbers this machine actually measured.
+  const isForcedWeak = !!forcedState && state === 'weak_connection';
+  const displayUploadSpeed = isForcedWeak ? 0.8 : uploadSpeed;
+  const displayDownloadSpeed = isForcedWeak ? 3.2 : downloadSpeed;
 
   const connectionSecondary =
     state === 'weak_connection' ? strings.setupConnectionWeak :
@@ -319,11 +357,10 @@ export function SetupScreen({
                   secondaryText={micStatus === 'passed' ? strings.setupDeviceReady : undefined}
                 />
 
-                <DeviceCheckRow
-                  label={strings.setupConnectionLabel}
+                <ConnectionCheckRow
                   status={connectionStatus}
-                  ariaLabel={strings.setupConnectionLabel}
-                  valueText={connectionText}
+                  uploadMbps={displayUploadSpeed}
+                  downloadMbps={displayDownloadSpeed}
                   secondaryText={connectionSecondary}
                 />
               </div>

@@ -129,13 +129,19 @@ export const strings = {
   setupConnectionLabel: 'Connection',
   setupCheckingLabel: 'Checking…',
   setupDeviceReady: 'Detected and ready',
-  setupConnectionStable: 'Connection is stable',
-  setupConnectionWeak: 'Answers may take longer to upload',
+  setupConnectionStable: 'Your answers will upload smoothly.',
+  setupConnectionWeak: 'Your upload speed is low — answers may take longer to save.',
 
-  // Connection results
-  setupConnectionStrong: (mbps: number) => `Strong · ${mbps} Mbps`,
-  setupConnectionWeakResult: (mbps: number) => `Weak · ${mbps} Mbps`,
-  setupConnectionUnknown: 'Strong',
+  // Connection results — upload matters most here since every recorded
+  // answer has to be uploaded, so it drives the strong/weak verdict;
+  // download is shown alongside for context only. Rendered as a status
+  // badge plus two separate labeled speed rows (see ConnectionCheckRow),
+  // not one long sentence.
+  setupConnectionStrongBadge: 'Strong connection',
+  setupConnectionWeakBadge: 'Weak connection',
+  setupUploadLabel: 'Upload',
+  setupDownloadLabel: 'Download',
+  setupSpeedMbps: (mbps: number) => `${mbps} Mbps`,
 
   // Device selectors
   setupCameraSelectLabel: 'Camera',
@@ -278,7 +284,6 @@ export const strings = {
   // ── Text answer ──
 
   textCharCount: (current: number, max: number) => `${current} / ${max} characters`,
-  textDraftSaved: 'Draft saved',
   textPasteBlocked: 'Pasting isn\'t allowed for written answers.',
   textPlaceholder: 'Write your answer here…',
   textWriteToContinue: 'Write your answer to continue.',

@@ -1683,6 +1683,64 @@
   margin-top: 2px;
 }
 
+/* ── Connection check row ── */
+.iv-connection-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 9999px;
+}
+
+.iv-connection-badge.strong {
+  color: var(--iv-accent);
+  background: color-mix(in srgb, var(--iv-accent) 12%, transparent);
+}
+
+.iv-connection-badge.weak {
+  color: var(--iv-warning);
+  background: color-mix(in srgb, var(--iv-warning) 14%, transparent);
+}
+
+.iv-connection-speeds {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.iv-connection-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.iv-connection-speed-icon {
+  flex-shrink: 0;
+  color: var(--iv-text-secondary);
+  opacity: 0.7;
+}
+
+.iv-connection-speed-label {
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  min-width: 56px;
+}
+
+.iv-connection-speed-value {
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--iv-text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Device selector (underline style) ── */
 .iv-device-selector {
   position: relative;
@@ -2771,14 +2829,6 @@
 
 .iv-text-charcount.warning {
   color: var(--iv-warning);
-}
-
-.iv-text-saved {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--iv-text-secondary);
 }
 
 .iv-text-paste-warn {

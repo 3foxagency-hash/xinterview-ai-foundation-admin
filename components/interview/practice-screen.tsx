@@ -282,7 +282,6 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
           question={question}
           value={textContent}
           onChange={setTextContent}
-          storageKey={`iv-practice-draft-${question.id}`}
           disabled={false}
         />
       );
