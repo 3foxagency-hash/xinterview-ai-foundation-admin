@@ -98,13 +98,7 @@ export function RecordingControls({
             <span className="iv-inactivity-text">
               {strings.inactivityCountdown(inactivityCountdown)}
             </span>
-            <button
-              type="button"
-              className="iv-link-button"
-              onClick={onCancelInactivity}
-            >
-              {strings.inactivityHoldOn}
-            </button>
+
           </div>
         )}
         <div className="iv-review-controls">

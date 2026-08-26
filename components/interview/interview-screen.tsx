@@ -70,14 +70,11 @@ export function InterviewScreen({
   const [uploadFailed, setUploadFailed] = React.useState(false);
   const [uploadFailCount, setUploadFailCount] = React.useState(0);
   const [slowUpload, setSlowUpload] = React.useState(false);
-  const [inactivityCountdown, setInactivityCountdown] = React.useState<number | null>(null);
-  const [inactivityCancelled, setInactivityCancelled] = React.useState(false);
   const [reviewElapsed, setReviewElapsed] = React.useState(0);
   const [reviewPlaying, setReviewPlaying] = React.useState(false);
   const recorderRef = React.useRef<MediaRecorder | null>(null);
   const chunksRef = React.useRef<Blob[]>([]);
   const elapsedIntervalRef = React.useRef<ReturnType<typeof setInterval>>(undefined);
-  const inactivityTimerRef = React.useRef<ReturnType<typeof setInterval>>(undefined);
   const reviewVideoRef = React.useRef<HTMLVideoElement>(null);
 
   const effectiveIndex = forcedQuestionIndex ?? questionIndex;
@@ -158,8 +155,6 @@ export function InterviewScreen({
     setChoiceSelected([]);
     setElapsedSeconds(0);
     setTimerStart(null);
-    setInactivityCountdown(null);
-    setInactivityCancelled(false);
     setReviewElapsed(0);
     setReviewPlaying(false);
   }, [effectiveIndex, forcedState]);
@@ -263,8 +258,6 @@ export function InterviewScreen({
     setElapsedSeconds(0);
     setRecordedChunks([]);
     chunksRef.current = [];
-    setInactivityCountdown(null);
-    setInactivityCancelled(false);
     if (question.thinkingSeconds > 0) {
       setLifecycleState('thinking');
       setThinkingStart(null);
@@ -310,29 +303,6 @@ export function InterviewScreen({
       if (!forcedQuestionIndex) setQuestionIndex(next);
       setLifecycleState(initialLifecycleState(session.questions[next]));
     }
-  }
-
-  // Inactivity countdown in review state
-  React.useEffect(() => {
-    if (lifecycleState !== 'review' || inactivityCancelled) return;
-    let count = 15;
-    setInactivityCountdown(count);
-    inactivityTimerRef.current = setInterval(() => {
-      count--;
-      setInactivityCountdown(count);
-      if (count <= 0) {
-        clearInterval(inactivityTimerRef.current);
-        handleSubmit();
-      }
-    }, 1000);
-    return () => clearInterval(inactivityTimerRef.current);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lifecycleState, inactivityCancelled]);
-
-  function cancelInactivity() {
-    setInactivityCancelled(true);
-    setInactivityCountdown(null);
-    if (inactivityTimerRef.current) clearInterval(inactivityTimerRef.current);
   }
 
   // Review playback
@@ -518,8 +488,8 @@ export function InterviewScreen({
               onSubmit={handleSubmit}
               onRetake={handleRetake}
               retakesRemaining={retakesRemaining}
-              inactivityCountdown={inactivityCountdown}
-              onCancelInactivity={cancelInactivity}
+              inactivityCountdown={null}
+              onCancelInactivity={() => {}}
               disabled={controlsDisabled}
             />
           }

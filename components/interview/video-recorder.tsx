@@ -14,6 +14,7 @@ interface VideoRecorderProps {
   onReviewSeek?: (seconds: number) => void;
   onReviewToggle?: () => void;
   reviewPlaying?: boolean;
+  isPortrait?: boolean;
 }
 
 export function VideoRecorder({
@@ -26,6 +27,7 @@ export function VideoRecorder({
   onReviewSeek,
   onReviewToggle,
   reviewPlaying,
+  isPortrait = false,
 }: VideoRecorderProps) {
   const liveRef = React.useRef<HTMLVideoElement>(null);
   const reviewRef = React.useRef<HTMLVideoElement>(null);
@@ -117,7 +119,7 @@ export function VideoRecorder({
 
   if (recordingUrl && !recording) {
     return (
-      <div className="iv-video-recorder-frame">
+      <div className={`iv-video-recorder-frame${isPortrait ? ' iv-video-portrait' : ''}`}>
         <video
           ref={reviewRef}
           src={recordingUrl}
@@ -178,7 +180,7 @@ export function VideoRecorder({
   }
 
   return (
-    <div className="iv-video-recorder-frame">
+    <div className={`iv-video-recorder-frame${isPortrait ? ' iv-video-portrait' : ''}`}>
       <video
         ref={liveRef}
         className="iv-video-recorder-video"

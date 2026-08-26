@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { FileText, X, ArrowRight } from 'lucide-react';
+import { FileText, X, ArrowRight, CloudUpload as UploadCloud } from 'lucide-react';
 import { UnderlineField } from '@/components/interview/underline-field';
 import { ConsentBlock } from '@/components/interview/consent-block';
 import { CountryCodeSelect } from '@/components/interview/country-code-select';
@@ -71,7 +71,10 @@ export function ApplicationForm({
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
   const [submitted, setSubmitted] = React.useState(false);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const [submitAttempted, setSubmitAttempted] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const formRef = React.useRef<HTMLFormElement>(null);
 
   const update = (key: keyof FormValues, value: string | File | null | boolean) => {
     setValues((prev) => ({ ...prev, [key]: value }));
@@ -79,6 +82,9 @@ export function ApplicationForm({
 
   const handleBlur = (key: string) => {
     setTouched((prev) => ({ ...prev, [key]: true }));
+    if (submitAttempted) {
+      setErrors(currentErrors);
+    }
   };
 
   const validate = (): FormErrors => {
@@ -113,6 +119,7 @@ export function ApplicationForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitted(true);
+    setSubmitAttempted(true);
     setTouched({
       firstName: true,
       lastName: true,
@@ -126,15 +133,17 @@ export function ApplicationForm({
     });
     setErrors(currentErrors);
     if (isValid) {
-      // Mock submit — no backend
       console.log('Interview form submitted', values);
       onSubmitSuccess?.();
+    } else {
+      const firstErrorKey = Object.keys(currentErrors)[0];
+      const el = formRef.current?.querySelector(`[name="${firstErrorKey}"], #iv-resume-dropzone, [data-field="${firstErrorKey}"]`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      (el as HTMLElement | null)?.focus?.();
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = (file: File) => {
     setTouched((prev) => ({ ...prev, resume: true }));
     const isPdf =
       file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -150,6 +159,19 @@ export function ApplicationForm({
     }
     update('resume', file);
     setErrors((prev) => ({ ...prev, resume: undefined }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    processFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
   };
 
   const handleFileRemove = () => {
@@ -175,12 +197,25 @@ export function ApplicationForm({
     setPhoneCountry(countryCode);
   };
 
-  const ctaDisabled = !isValid;
+  const ctaDisabled = false;
+
+  const errorList = submitAttempted ? Object.entries(currentErrors).filter(([, v]) => v) : [];
 
   return (
-    <form className="iv-plane iv-form-panel" onSubmit={handleSubmit} noValidate>
+    <form ref={formRef} className="iv-plane iv-form-panel" onSubmit={handleSubmit} noValidate>
       <span className="iv-micro-label">{strings.applyLabel}</span>
       <h2 className="iv-form-heading">{strings.formHeading}</h2>
+
+      {errorList.length > 0 && (
+        <div className="iv-error-summary" role="alert" aria-live="polite">
+          <p className="iv-error-summary-title">Please fix the following before continuing:</p>
+          <ul className="iv-error-summary-list">
+            {errorList.map(([key, msg]) => (
+              <li key={key}>{msg}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* First name / Last name */}
       {(fields.firstName.enabled || fields.lastName.enabled) && (
@@ -284,10 +319,16 @@ export function ApplicationForm({
             {strings.resumeLabel}
           </label>
           <div
-            className="iv-resume-row"
+            id="iv-resume-dropzone"
+            className={`iv-resume-dropzone${isDragging ? ' iv-resume-dropzone--dragging' : ''}${values.resume ? ' iv-resume-dropzone--filled' : ''}`}
             onClick={() => !values.resume && fileInputRef.current?.click()}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
             role="button"
             tabIndex={0}
+            data-field="resume"
+            aria-invalid={touched.resume && !!errors.resume}
             onKeyDown={(e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -295,10 +336,13 @@ export function ApplicationForm({
               }
             }}
           >
-            <FileText size={16} strokeWidth={1.5} className="iv-resume-icon" />
             {values.resume ? (
-              <>
-                <span className="iv-resume-filename">{values.resume.name}</span>
+              <div className="iv-resume-file-card">
+                <FileText size={20} strokeWidth={1.5} className="iv-resume-file-icon" />
+                <div className="iv-resume-file-info">
+                  <span className="iv-resume-filename">{values.resume.name}</span>
+                  <span className="iv-resume-file-size">{(values.resume.size / 1024 / 1024).toFixed(1)} MB</span>
+                </div>
                 <button
                   type="button"
                   className="iv-resume-remove"
@@ -308,14 +352,15 @@ export function ApplicationForm({
                   }}
                   aria-label="Remove file"
                 >
-                  <X size={14} strokeWidth={1.5} />
+                  <X size={16} strokeWidth={1.5} />
                 </button>
-              </>
+              </div>
             ) : (
-              <>
-                <span className="iv-resume-label">{strings.resume}</span>
+              <div className="iv-resume-dropzone-empty">
+                <UploadCloud size={24} strokeWidth={1.5} className="iv-resume-upload-icon" />
+                <span className="iv-resume-dropzone-label">{strings.resume}</span>
                 <span className="iv-resume-hint">{strings.resumeHint}</span>
-              </>
+              </div>
             )}
             <input
               ref={fileInputRef}
@@ -361,36 +406,10 @@ export function ApplicationForm({
           className="iv-cta"
           disabled={ctaDisabled}
           aria-busy={submitted && isValid}
-          aria-describedby={ctaDisabled ? 'iv-cta-disabled-reason' : undefined}
         >
           {strings.ctaBegin}
           <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
         </button>
-        {!isValid && ctaDisabled && (
-          <div
-            id="iv-cta-disabled-reason"
-            role="tooltip"
-            style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '8px',
-              padding: '6px 12px',
-              fontSize: '11px',
-              color: 'var(--iv-text)',
-              background: 'var(--iv-surface)',
-              borderRadius: '6px',
-              whiteSpace: 'nowrap',
-              opacity: 0,
-              pointerEvents: 'none',
-              transition: 'opacity 0.15s ease',
-            }}
-            className="iv-cta-tooltip"
-          >
-            {strings.ctaDisabledTooltip}
-          </div>
-        )}
         <div className="iv-cta-bloom" aria-hidden="true" />
       </div>
 

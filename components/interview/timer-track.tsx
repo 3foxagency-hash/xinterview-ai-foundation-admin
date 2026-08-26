@@ -102,7 +102,7 @@ export function useServerAnchoredTimer(
     };
   }, [startTimestamp, compute]);
 
-  const warning = remainingMs <= 15000 && remainingMs > 0;
+  const warning = remainingMs <= 10000 && remainingMs > 0;
 
   return { remainingMs, warning };
 }

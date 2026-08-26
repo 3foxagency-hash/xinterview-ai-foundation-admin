@@ -18,6 +18,9 @@ export interface InterviewField {
 }
 
 export interface InterviewConfig {
+  showIntroVideo: boolean;
+  showJobDescription: boolean;
+
   company: {
     name: string;
     logoUrl: string | null;
@@ -79,6 +82,9 @@ export interface InterviewConfig {
 }
 
 export const interviewConfig: InterviewConfig = {
+  showIntroVideo: true,
+  showJobDescription: true,
+
   company: {
     name: "Northwind",
     logoUrl: null,
