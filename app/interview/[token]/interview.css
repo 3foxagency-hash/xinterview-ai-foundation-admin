@@ -20,6 +20,14 @@
   box-sizing: border-box;
 }
 
+/* Every control here defines its own focus treatment below (accent-coloured
+   underlines, outlines, etc.) — suppress the global dashboard focus ring
+   (app/globals.css) so it doesn't double up with a mismatched halo. */
+.interview-page :focus,
+.interview-page :focus-visible {
+  box-shadow: none;
+}
+
 /* ── Film grain overlay (3%) ── */
 .iv-grain {
   position: fixed;
@@ -127,7 +135,8 @@
   font-family: var(--iv-font-body);
   font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 .iv-topbar-logo img {
@@ -175,25 +184,48 @@
   border-radius: 2px;
 }
 
-.iv-theme-toggle {
+.iv-theme-switch {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: transparent;
+  gap: 6px;
   color: var(--iv-text-secondary);
+}
+
+.iv-theme-switch-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 1px solid var(--iv-hairline);
+  background: var(--iv-hairline);
   cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.iv-theme-switch-track[aria-checked='true'] {
+  background: var(--iv-accent);
+  border-color: var(--iv-accent);
+}
+
+.iv-theme-switch-knob {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  transition: color 0.15s ease;
+  background: var(--iv-canvas);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s ease;
 }
 
-.iv-theme-toggle:hover {
-  color: var(--iv-text);
+.iv-theme-switch-track[aria-checked='true'] .iv-theme-switch-knob {
+  transform: translateX(16px);
 }
 
-.iv-theme-toggle:focus-visible {
+.iv-theme-switch-track:focus-visible {
   outline: 2px solid var(--iv-accent);
   outline-offset: 2px;
 }
@@ -203,6 +235,18 @@
   color: var(--iv-text-secondary);
   opacity: 0.6;
   letter-spacing: 0.02em;
+}
+
+.iv-powered-by strong {
+  font-weight: 600;
+  opacity: 1;
+}
+
+.iv-topbar-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
 }
 
 /* ── Micro label (eyebrow, field labels, section headings) ── */
@@ -243,11 +287,11 @@
 }
 
 /* Character-count size tiers (desktop) */
-.iv-title-tier-1 { font-size: clamp(2.25rem, 5.5vw, 5.5rem); }   /* ≤18 chars */
-.iv-title-tier-2 { font-size: clamp(2.25rem, 4.5vw, 4.5rem); }   /* 19-32 */
-.iv-title-tier-3 { font-size: clamp(2rem, 3.5vw, 3.5rem); }      /* 33-48 */
-.iv-title-tier-4 { font-size: clamp(1.75rem, 2.8vw, 2.75rem); }  /* 49-70 */
-.iv-title-tier-5 { font-size: clamp(1.5rem, 2.2vw, 2.25rem); letter-spacing: -0.005em; } /* 70+ */
+.iv-title-tier-1 { font-size: clamp(2.5rem, 6.5vw, 6.5rem); }    /* ≤18 chars */
+.iv-title-tier-2 { font-size: clamp(2.5rem, 5.5vw, 5.5rem); }    /* 19-32 */
+.iv-title-tier-3 { font-size: clamp(2.25rem, 4.2vw, 4.25rem); }  /* 33-48 */
+.iv-title-tier-4 { font-size: clamp(2rem, 3.3vw, 3.25rem); }     /* 49-70 */
+.iv-title-tier-5 { font-size: clamp(1.75rem, 2.6vw, 2.75rem); letter-spacing: -0.005em; } /* 70+ */
 
 /* All-caps: drop one tier, lighter weight */
 .iv-title-caps {
@@ -340,13 +384,6 @@
   cursor: pointer;
 }
 
-.iv-video-poster {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
 .iv-video-wash {
   position: absolute;
   inset: 0;
@@ -419,9 +456,8 @@
 /* ── Job description panel ── */
 .iv-desc-panel {
   position: relative;
-  padding: 32px 36px 28px;
-  max-height: 480px;
-  overflow: hidden;
+  padding: 24px 0 0;
+  border-top: 1px solid var(--iv-hairline);
 }
 
 .iv-desc-panel > * {
@@ -429,7 +465,13 @@
   z-index: 1;
 }
 
-.iv-desc-panel.expanded {
+.iv-desc-clip {
+  position: relative;
+  max-height: 480px;
+  overflow: hidden;
+}
+
+.iv-desc-clip.expanded {
   max-height: none;
 }
 
@@ -505,7 +547,7 @@
 
 .iv-desc-fade {
   position: absolute;
-  bottom: 48px;
+  bottom: 0;
   left: 0;
   right: 0;
   height: 60px;
@@ -517,7 +559,7 @@
   pointer-events: none;
 }
 
-.iv-desc-panel.expanded .iv-desc-fade {
+.iv-desc-clip.expanded .iv-desc-fade {
   display: none;
 }
 
@@ -567,6 +609,14 @@
 /* ── Underline field ── */
 .iv-field {
   margin-bottom: 20px;
+  position: relative;
+}
+
+/* The phone field's country dropdown must float above sibling fields —
+   .iv-form-panel > * gives every field its own stacking context, so a
+   nested popover's z-index alone can't escape a later sibling. */
+.iv-field:has(.iv-country-select) {
+  z-index: 5;
 }
 
 .iv-field-row {
@@ -622,25 +672,6 @@
   border-bottom-color: var(--iv-accent);
 }
 
-/* Locked field */
-.iv-field-locked {
-  position: relative;
-}
-
-.iv-field-locked .iv-field-input {
-  opacity: 0.5;
-  border-bottom-style: dashed;
-}
-
-.iv-field-lock-icon {
-  position: absolute;
-  right: 0;
-  bottom: 10px;
-  color: var(--iv-text-secondary);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
 /* Error text */
 .iv-field-error {
   font-size: 11px;
@@ -665,35 +696,147 @@
 }
 
 .iv-phone-code {
+  padding-bottom: 8px;
+}
+
+.iv-phone-flag {
+  width: 18px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Country code select (phone) ── */
+.iv-country-select {
+  position: relative;
+}
+
+.iv-country-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--iv-font-body);
   font-size: 15px;
   color: var(--iv-text-secondary);
-  padding-bottom: 8px;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+  min-height: 32px;
 }
 
-/* Optional links toggle */
-.iv-optional-toggle {
-  display: inline-block;
-  background: none;
-  border: none;
-  font-family: var(--iv-font-body);
-  font-size: 12px;
-  color: var(--iv-text-secondary);
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 24px;
-  transition: color 0.15s ease;
-}
-
-.iv-optional-toggle:hover {
+.iv-country-trigger:hover {
   color: var(--iv-text);
 }
 
-.iv-optional-toggle:focus-visible {
+.iv-country-trigger:focus-visible {
   outline: 2px solid var(--iv-accent);
-  outline-offset: 4px;
+  outline-offset: 2px;
   border-radius: 2px;
+}
+
+.iv-country-trigger-chevron {
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.iv-country-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  width: 280px;
+  max-width: 80vw;
+  background: var(--iv-surface);
+  border: 1px solid var(--iv-hairline);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.iv-country-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--iv-hairline);
+}
+
+.iv-country-search-icon {
+  color: var(--iv-text-secondary);
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.iv-country-search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text);
+  min-width: 0;
+}
+
+.iv-country-search-input::placeholder {
+  color: var(--iv-text-secondary);
+  opacity: 0.5;
+}
+
+.iv-country-list {
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 6px;
+}
+
+.iv-country-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text);
+  min-height: 36px;
+}
+
+.iv-country-option:hover,
+.iv-country-option:focus-visible {
+  background: var(--iv-hairline);
+  outline: none;
+}
+
+.iv-country-option.active {
+  background: var(--iv-hairline);
+}
+
+.iv-country-option-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.iv-country-option-code {
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.iv-country-empty {
+  padding: 16px 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--iv-text-secondary);
 }
 
 /* ── Resume field ── */
@@ -1091,13 +1234,6 @@
   .iv-right-col {
     margin-top: 48px;
   }
-  .iv-setup-grid {
-    gap: 40px;
-    padding: 20px 32px 60px;
-  }
-  .iv-setup-right {
-    margin-top: 48px;
-  }
 }
 
 /* 768–1023px: single column, form first */
@@ -1113,17 +1249,6 @@
   }
   .iv-form-panel {
     padding: 24px 28px 24px;
-  }
-  .iv-setup-grid {
-    grid-template-columns: 1fr;
-    gap: 32px;
-    padding: 24px;
-  }
-  .iv-setup-right {
-    margin-top: 0;
-  }
-  .iv-setup-panel {
-    padding: 24px 28px;
   }
 }
 
@@ -1178,7 +1303,10 @@
   }
 
   .iv-desc-panel {
-    padding: 20px;
+    padding: 20px 0 0;
+  }
+
+  .iv-desc-clip {
     max-height: 280px;
   }
 
@@ -1246,53 +1374,6 @@
 
   .iv-consent-item {
     min-height: 44px;
-  }
-
-  .iv-theme-toggle {
-    width: 44px;
-    height: 44px;
-  }
-
-  /* Setup screen mobile */
-  .iv-setup-grid {
-    padding: 20px;
-  }
-
-  .iv-camera-frame {
-    border-radius: 0;
-    margin-left: -20px;
-    margin-right: -20px;
-    width: calc(100% + 40px);
-  }
-
-  .iv-setup-panel {
-    padding: 20px 0;
-    background: transparent;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-    border: none;
-    border-top: 1px solid var(--iv-hairline);
-    border-radius: 0;
-  }
-
-  .iv-setup-panel::before {
-    display: none;
-  }
-
-  .iv-mic-bars {
-    gap: 2px;
-  }
-
-  .iv-setup-cta-wrap {
-    position: sticky;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    background: var(--iv-canvas);
-    padding: 16px 0;
-    margin-top: 24px;
-    border-top: 1px solid var(--iv-hairline);
   }
 }
 
@@ -1488,6 +1569,13 @@
 /* ── Setup status panel ── */
 .iv-setup-panel {
   padding: 36px 40px 32px;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+
+.iv-setup-panel::before {
+  opacity: 1;
 }
 
 .iv-setup-panel > * {
@@ -1595,6 +1683,64 @@
   margin-top: 2px;
 }
 
+/* ── Connection check row ── */
+.iv-connection-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 3px 9px;
+  border-radius: 9999px;
+}
+
+.iv-connection-badge.strong {
+  color: var(--iv-accent);
+  background: color-mix(in srgb, var(--iv-accent) 12%, transparent);
+}
+
+.iv-connection-badge.weak {
+  color: var(--iv-warning);
+  background: color-mix(in srgb, var(--iv-warning) 14%, transparent);
+}
+
+.iv-connection-speeds {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.iv-connection-speed-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.iv-connection-speed-icon {
+  flex-shrink: 0;
+  color: var(--iv-text-secondary);
+  opacity: 0.7;
+}
+
+.iv-connection-speed-label {
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  min-width: 56px;
+}
+
+.iv-connection-speed-value {
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--iv-text);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ── Device selector (underline style) ── */
 .iv-device-selector {
   position: relative;
@@ -1673,6 +1819,39 @@
   opacity: 0.35;
   cursor: not-allowed;
   text-decoration: none;
+}
+
+/* ── Setup practice button (outline pill, same shape as .iv-cta) ── */
+.iv-setup-practice-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 56px;
+  margin-top: 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--iv-hairline);
+  background: transparent;
+  color: var(--iv-text);
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.iv-setup-practice-btn:hover:not(:disabled) {
+  border-color: var(--iv-text-secondary);
+}
+
+.iv-setup-practice-btn:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+}
+
+.iv-setup-practice-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ── Setup meta row ── */
@@ -1850,6 +2029,87 @@
   gap: 10px;
 }
 
+/* ── Setup screen responsive ── */
+
+/* 1024–1279px: narrower gutters, reduced stagger */
+@media (max-width: 1279px) {
+  .iv-setup-grid {
+    gap: 40px;
+    padding: 20px 32px 60px;
+  }
+  .iv-setup-right {
+    margin-top: 48px;
+  }
+}
+
+/* 768–1023px: single column, form first */
+@media (max-width: 1023px) {
+  .iv-setup-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 24px;
+  }
+  .iv-setup-right {
+    margin-top: 0;
+  }
+  .iv-setup-panel {
+    padding: 24px 28px;
+  }
+}
+
+/* <768px: mobile */
+@media (max-width: 767px) {
+  .iv-setup-grid {
+    padding: 20px;
+  }
+
+  .iv-setup-heading {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+  }
+
+  .iv-camera-frame {
+    border-radius: 0;
+    margin-left: -20px;
+    margin-right: -20px;
+    width: calc(100% + 40px);
+  }
+
+  .iv-setup-panel {
+    padding: 20px 0;
+    background: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    box-shadow: none;
+    border: none;
+    border-top: 1px solid var(--iv-hairline);
+    border-radius: 0;
+  }
+
+  .iv-setup-panel::before {
+    display: none;
+  }
+
+  .iv-mic-bars {
+    gap: 2px;
+  }
+
+  .iv-setup-cta-wrap {
+    position: sticky;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    background: var(--iv-canvas);
+    padding: 16px 0;
+    margin-top: 24px;
+    border-top: 1px solid var(--iv-hairline);
+  }
+
+  .iv-setup-practice-btn {
+    height: 48px;
+  }
+}
+
 /* ── Focus ring improvements for keyboard navigation ── */
 .iv-field-input:focus-visible {
   outline: none;
@@ -1866,8 +2126,8 @@
   .iv-video-play,
   .iv-topbar-link,
   .iv-lang-selector,
-  .iv-theme-toggle,
-  .iv-optional-toggle,
+  .iv-theme-switch-track,
+  .iv-theme-switch-knob,
   .iv-desc-show-more,
   .iv-resume-remove,
   .iv-consent-checkbox,
@@ -1940,28 +2200,39 @@
 .iv-interview-shell {
   display: grid;
   grid-template-columns: 7fr 5fr;
+  /* Grid rows stretch children to the tallest sibling by default — with a
+     longer question (more lines, longer description) in the left column,
+     that stretched the answer card to match, leaving a large gap between
+     the video/audio surface and its controls that the shorter practice
+     question never showed. align-items: start lets each column size to
+     its own content instead of matching the other. */
+  align-items: start;
   gap: 56px;
   max-width: 1320px;
   margin: 0 auto;
   padding: 24px 48px 60px;
   position: relative;
   z-index: 2;
-  height: calc(100vh - 80px - 2px);
-  overflow: hidden;
+  /* A hard height + overflow:hidden here used to clip the answer card's
+     content (recording controls, retake links, play buttons) whenever a
+     shorter window left too little room — content was cut off with no
+     visible scrollbar to hint that anything was missing. min-height keeps
+     the "everything fits on one screen" layout on tall viewports, but lets
+     the page grow and scroll naturally, like every other page in this
+     flow, when it doesn't fit. */
+  min-height: calc(100vh - 80px - 2px);
 }
 
 .iv-question-col {
   display: flex;
   flex-direction: column;
   padding-top: 24px;
-  overflow: hidden;
 }
 
 .iv-answer-col {
   display: flex;
   flex-direction: column;
   margin-top: 80px;
-  overflow: hidden;
 }
 
 /* ── Question panel ── */
@@ -2258,6 +2529,11 @@
   display: block;
 }
 
+.iv-video-poster-overlay {
+  position: absolute;
+  inset: 0;
+}
+
 .iv-rec-wash {
   position: absolute;
   inset: 0;
@@ -2381,11 +2657,16 @@
   white-space: nowrap;
 }
 
-/* ── Audio recorder ── */
+/* ── Audio recorder ──
+   No camera feed to show, so this is sized to its content (waveform +
+   controls) rather than the video preview's 4:3 ratio — that extra
+   height was pushing the play button below the fold on shorter
+   viewports right after recording, before the candidate scrolled. */
 .iv-audio-recorder-surface {
   position: relative;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  min-height: 180px;
+  padding: 24px 16px;
   border-radius: 16px;
   background: var(--iv-hairline);
   opacity: 1;
@@ -2415,7 +2696,7 @@
   justify-content: center;
   gap: 2px;
   width: 80%;
-  height: 45%;
+  height: 80px;
 }
 
 .iv-wave-bar {
@@ -2438,7 +2719,7 @@
   justify-content: center;
   gap: 2px;
   width: 80%;
-  height: 45%;
+  height: 80px;
 }
 
 .iv-audio-waveform-static .iv-wave-bar {
@@ -2548,14 +2829,6 @@
 
 .iv-text-charcount.warning {
   color: var(--iv-warning);
-}
-
-.iv-text-saved {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--iv-text-secondary);
 }
 
 .iv-text-paste-warn {
@@ -2759,11 +3032,17 @@
 
 /* ── Disclosure plane ── */
 .iv-disclosure-wrap {
+  /* This is a single centered confirmation card, not the two-column
+     question/answer layout .iv-interview-shell's grid was built for —
+     without spanning both grid tracks it only centers within the left
+     (7fr) column, landing left-of-center on the page instead of centered
+     on the full width. */
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: calc(100vh - 80px);
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
   padding: 40px 24px;
   position: relative;
@@ -2771,7 +3050,37 @@
 }
 
 .iv-disclosure-plane {
-  padding: 36px 40px 32px;
+  padding: 40px 44px 36px;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.iv-disclosure-welcome {
+  font-family: var(--iv-font-display);
+  font-size: 17px;
+  line-height: 1.5;
+  color: var(--iv-text);
+  margin: 0 0 10px 0;
+  letter-spacing: -0.005em;
+}
+
+.iv-disclosure-section {
+  margin-bottom: 24px;
+  padding-top: 20px;
+  border-top: 1px solid var(--iv-hairline);
+}
+
+.iv-disclosure-section .iv-micro-label {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.iv-disclosure-section .iv-disclosure-list {
+  margin-bottom: 0;
+}
+
+.iv-disclosure-section .iv-disclosure-intro {
+  margin-bottom: 14px;
 }
 
 .iv-disclosure-plane > * {
@@ -2872,6 +3181,9 @@
 
 /* ── Practice screen ── */
 .iv-practice-confirm-wrap {
+  /* Same fix as .iv-disclosure-wrap above — a single centered card must
+     span both grid tracks or it only centers within the left column. */
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   justify-content: center;
