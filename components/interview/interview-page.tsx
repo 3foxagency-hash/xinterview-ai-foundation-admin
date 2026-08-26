@@ -63,7 +63,7 @@ export function InterviewPage({ token }: { token: string }) {
           <StatePage state={config.state as Exclude<typeof config.state, 'active'>} companyName={config.company.name} />
         ) : scenario === 'neither' ? (
           // Scenario D — single centred column
-          <div className="iv-layout-centre">
+          <div className="iv-layout-mode-d">
             <div className="iv-centre-content">
               <div
                 style={{

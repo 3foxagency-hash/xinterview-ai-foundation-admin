@@ -34,7 +34,7 @@ export const strings = {
   portfolio: 'Portfolio URL',
   resumeLabel: 'Resume',
   resume: 'Attach your CV',
-  resumeHint: 'PDF · 5MB',
+  resumeHint: 'PDF · max 5MB',
 
   // Consent
   consentLabel: 'CONSENT',

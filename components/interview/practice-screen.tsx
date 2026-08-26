@@ -25,6 +25,7 @@ type PracticePhase = 'questions' | 'confirmation';
 
 export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenProps) {
   const [phase, setPhase] = React.useState<PracticePhase>('questions');
+  const [showStartConfirm, setShowStartConfirm] = React.useState(false);
   const [index, setIndex] = React.useState(0);
   const [lifecycle, setLifecycle] = React.useState<LifecycleState>(() =>
     initialLifecycleState(session.practice.questions[0]),
@@ -47,6 +48,7 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
   const questions = session.practice.questions;
   const question = questions[index];
   const retakesRemaining = question.retakesAllowed - retakesUsed;
+  const progressPercent = ((index + 1) / questions.length) * 100;
   const isVideoOrAudio = question.type === 'video' || question.type === 'audio';
 
   const { remainingMs, warning } = useServerAnchoredTimer(
@@ -313,43 +315,84 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
     (question.type === 'text' && textContent.trim().length === 0 && lifecycle === 'review');
 
   return (
-    <InterviewShell session={session} showProgressLine={false} practiceMode>
-      <div className="iv-question-col">
-        <QuestionPanel
-          question={question}
-          index={index}
-          total={questions.length}
+    <>
+      <div className="iv-practice-progress-line" aria-hidden="true">
+        <div
+          className="iv-practice-progress-fill"
+          style={{ width: `${progressPercent}%` }}
         />
       </div>
-      <div className="iv-answer-col">
-        <AnswerPlane
-          question={question}
-          state={lifecycle}
-          timerRow={timerRow}
-          secondaryLine={secondaryLine}
-          controls={
-            <RecordingControls
-              state={lifecycle}
-              questionType={question.type}
-              onStart={handleStart}
-              onStop={handleStop}
-              onSubmit={handleSubmit}
-              onRetake={handleRetake}
-              retakesRemaining={retakesRemaining}
-              inactivityCountdown={null}
-              onCancelInactivity={() => {}}
-              disabled={controlsDisabled}
-            />
-          }
-        >
-          {renderAnswerSurface()}
-        </AnswerPlane>
-      </div>
-      <div className="iv-practice-back">
-        <button type="button" className="iv-link-button" onClick={onBack}>
-          {strings.practiceBackLink}
-        </button>
-      </div>
-    </InterviewShell>
+      <InterviewShell session={session} showProgressLine={false} practiceMode>
+        <div className="iv-question-col">
+          <QuestionPanel
+            question={question}
+            index={index}
+            total={questions.length}
+          />
+        </div>
+        <div className="iv-answer-col">
+          <AnswerPlane
+            question={question}
+            state={lifecycle}
+            timerRow={timerRow}
+            secondaryLine={secondaryLine}
+            controls={
+              <RecordingControls
+                state={lifecycle}
+                questionType={question.type}
+                onStart={handleStart}
+                onStop={handleStop}
+                onSubmit={handleSubmit}
+                onRetake={handleRetake}
+                retakesRemaining={retakesRemaining}
+                inactivityCountdown={null}
+                onCancelInactivity={() => {}}
+                disabled={controlsDisabled}
+              />
+            }
+          >
+            {renderAnswerSurface()}
+          </AnswerPlane>
+        </div>
+        <div className="iv-practice-back">
+          <button
+            type="button"
+            className="iv-cta"
+            style={{ width: 'auto', maxWidth: '200px', margin: '0 auto' }}
+            onClick={() => setShowStartConfirm(true)}
+          >
+            Start Interview
+            <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
+          </button>
+        </div>
+      </InterviewShell>
+      {showStartConfirm && (
+        <div className="iv-confirm-overlay" role="dialog" aria-modal="true" aria-label="Start the real interview?">
+          <div className="iv-confirm-plane iv-plane">
+            <h2 className="iv-confirm-title">Start the real interview?</h2>
+            <p className="iv-confirm-body">
+              Practice is over. Your answers will be recorded and submitted from now on.
+            </p>
+            <div className="iv-confirm-actions">
+              <button
+                type="button"
+                className="iv-cta"
+                onClick={onComplete}
+              >
+                Start interview
+                <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
+              </button>
+              <button
+                type="button"
+                className="iv-link-button"
+                onClick={() => setShowStartConfirm(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
