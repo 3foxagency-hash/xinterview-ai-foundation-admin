@@ -17,14 +17,17 @@ export function TopBar({ config }: TopBarProps) {
   const [lang, setLang] = React.useState(locale.current);
 
   const logoSrc = resolved === 'dark' ? company.logoDarkUrl : company.logoUrl;
-  const showLogo = logoSrc !== null;
-  const showWordmark = !showLogo;
+  // `showLogo` is the job-level switch for the whole brand block; the
+  // image-vs-wordmark choice below only applies when it is on.
+  const logoEnabled = config.showLogo !== false;
+  const showImage = logoEnabled && logoSrc !== null;
+  const showWordmark = logoEnabled && logoSrc === null;
 
   return (
     <header className="iv-topbar">
       {/* Logo / wordmark */}
       <div className="iv-topbar-logo">
-        {showLogo && (
+        {showImage && (
           <img src={logoSrc!} alt={`${company.name} logo`} />
         )}
         {showWordmark && (

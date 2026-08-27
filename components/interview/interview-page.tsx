@@ -14,35 +14,81 @@ import { JobDescription } from '@/components/interview/job-description';
 import { ApplicationForm } from '@/components/interview/application-form';
 import { StatePage } from '@/components/interview/state-page';
 import { DevPanel } from '@/components/interview/dev-panel';
+import { DisplayToggles } from '@/components/interview/display-toggles';
 import type { InterviewConfig } from '@/config/interview.mock';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
+import { strings } from '@/lib/interview/strings';
+import { Clock } from 'lucide-react';
+import { titleTierClass } from '@/components/interview/job-header';
 
 type Scenario = 'both' | 'description' | 'video' | 'neither';
 
-function resolveScenario(config: InterviewConfig): Scenario {
-  const hasDescription =
-    config.job.descriptionHtml !== null &&
-    config.job.descriptionHtml.replace(/<[^>]*>/g, '').trim().length >= 200;
-  const hasVideo = config.introVideo !== null;
+/** Section 3 layout mode. A/B/C/D map onto the existing scenario
+ *  names: A = both, B = video only, C = description only, D = neither. */
+type LayoutMode = 'A' | 'B' | 'C' | 'D';
 
-  if (hasDescription && hasVideo) return 'both';
-  if (hasDescription) return 'description';
-  if (hasVideo) return 'video';
-  return 'neither';
+const MODE_TO_SCENARIO: Record<LayoutMode, Scenario> = {
+  A: 'both',
+  B: 'video',
+  C: 'description',
+  D: 'neither',
+};
+
+function hasRealDescription(config: InterviewConfig): boolean {
+  return (
+    config.job.descriptionHtml !== null &&
+    config.job.descriptionHtml.replace(/<[^>]*>/g, '').trim().length >= 200
+  );
+}
+
+/** A block shows only when the job's display flag is on AND it has
+ *  content to show. The flag is the hiring manager's switch; the
+ *  content check stops an empty card rendering when the flag is on
+ *  but there is nothing behind it. */
+function resolveLayoutMode(config: InterviewConfig): LayoutMode {
+  const showVideo = config.showIntroVideo && config.introVideo !== null;
+  const showDescription = config.showJobDescription && hasRealDescription(config);
+
+  return showVideo ? (showDescription ? 'A' : 'B') : showDescription ? 'C' : 'D';
 }
 
 export function InterviewPage({ token }: { token: string }) {
   const router = useRouter();
   const [config, setConfig] = React.useState<InterviewConfig>(defaultConfig);
   const [isDev, setIsDev] = React.useState(false);
+  /** ?preview=A|B|C|D — testing override so all four modes can be
+   *  checked without editing job settings. Testing only. */
+  const [previewMode, setPreviewMode] = React.useState<LayoutMode | null>(null);
 
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setIsDev(params.has('dev'));
+    const preview = params.get('preview')?.toUpperCase();
+    if (preview === 'A' || preview === 'B' || preview === 'C' || preview === 'D') {
+      setPreviewMode(preview);
+    }
   }, []);
 
-  const scenario = resolveScenario(config);
+  const layoutMode = previewMode ?? resolveLayoutMode(config);
+  const scenario = MODE_TO_SCENARIO[layoutMode];
   const isStatePage = config.state !== 'active';
+
+  // Never render an empty wrapper for a hidden block — these gate the
+  // JSX itself rather than hiding it with visibility/opacity.
+  const renderVideo = layoutMode === 'A' || layoutMode === 'B';
+  const renderDescription = layoutMode === 'A' || layoutMode === 'C';
+
+  /** The apply form is one shared child in all four modes. */
+  // Mode D's title is the page's only visual anchor, so it may scale up
+  // a tier — but still bounded by length so it never overflows.
+  const centreTitleTier = titleTierClass(config.job.title);
+
+  const applyForm = (
+    <ApplicationForm
+      config={config}
+      onSubmitSuccess={() => router.push(`/interview/${token}/setup`)}
+    />
+  );
 
   return (
     <>
@@ -61,29 +107,29 @@ export function InterviewPage({ token }: { token: string }) {
 
         {isStatePage ? (
           <StatePage state={config.state as Exclude<typeof config.state, 'active'>} companyName={config.company.name} />
-        ) : scenario === 'neither' ? (
-          // Scenario D — single centred column
+        ) : layoutMode === 'D' ? (
+          // Mode D — no left-column content at all, so the page
+          // becomes a single centred column rather than an empty half.
+          // This is the one mode where the two-column rule (1.1) does
+          // not apply.
           <div className="iv-layout-centre">
             <div className="iv-centre-content">
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}
-              >
-                <span className="iv-brand-mark iv-brand-mark-sm" aria-hidden="true">
-                  {config.company.name.charAt(0).toUpperCase()}
-                </span>
+              {/* Eyebrow — the brand mark reads as a small dot above the
+                  label in this centred layout. */}
+              <div className="iv-centre-eyebrow">
+                <span
+                  className="iv-brand-mark iv-brand-mark-dot"
+                  aria-hidden="true"
+                />
                 <span className="iv-micro-label">
-                  {config.company.name.toUpperCase()} · INTERVIEW
+                  {strings.eyebrow(config.company.name)}
                 </span>
               </div>
 
-              <h1
-                className="iv-job-title iv-title-tier-1"
-                style={{ fontSize: 'clamp(2.5rem, 6vw, 6rem)' }}
-              >
+              {/* Title sized by the shared tier system rather than a
+                  hardcoded 6rem clamp, which overflowed and truncated
+                  longer roles ("Senior Product Designer –…"). */}
+              <h1 className={`iv-job-title ${centreTitleTier}`}>
                 {config.job.title}
               </h1>
 
@@ -91,24 +137,33 @@ export function InterviewPage({ token }: { token: string }) {
 
               <div className="iv-meta-row">
                 <span className="iv-meta-item">
-                  {config.job.questionCount} questions
+                  {strings.metaQuestions(config.job.questionCount)}
                 </span>
                 <span className="iv-meta-divider" aria-hidden="true" />
                 <span className="iv-meta-item">
-                  ≈{config.job.estimatedMinutes} min
+                  <Clock
+                    size={13}
+                    strokeWidth={1.5}
+                    className="iv-meta-icon"
+                    aria-hidden="true"
+                  />
+                  {strings.metaEstimatedPlain(config.job.estimatedMinutes)}
                 </span>
                 <span className="iv-meta-divider" aria-hidden="true" />
-                <span className="iv-meta-item">Record anytime</span>
+                <span className="iv-meta-item">{strings.metaRecord}</span>
               </div>
 
-              <div className="iv-centre-form">
-                <ApplicationForm config={config} onSubmitSuccess={() => router.push(`/interview/${token}/setup`)} />
+              <div className="iv-centre-form">{applyForm}</div>
+
+              <div className="iv-trust-row iv-centre-trust">
+                {strings.trustRow}
               </div>
             </div>
           </div>
         ) : (
-          // Scenarios A, B, C — two columns
-          <div className="iv-layout-two-col">
+          // Modes A, B, C — two columns. data-mode drives the
+          // per-mode sizing (hero video in B, full-height JD in C).
+          <div className="iv-layout-two-col" data-mode={layoutMode}>
             {/* Left column */}
             <div className="iv-left-col">
               <JobHeader
@@ -119,25 +174,38 @@ export function InterviewPage({ token }: { token: string }) {
                 scenario={scenario}
               />
 
-              {config.introVideo && (
+              {renderVideo && config.introVideo && (
                 <IntroVideo video={config.introVideo} />
               )}
 
-              {config.job.descriptionHtml &&
-                config.job.descriptionHtml.replace(/<[^>]*>/g, '').trim()
-                  .length >= 200 && (
-                  <JobDescription
-                    descriptionHtml={config.job.descriptionHtml}
-                  />
-                )}
+              {/* No "About this interview" block here: it restated the
+                  question count, duration and "record anytime" that the
+                  meta row above the video already shows. Mode B fills
+                  its column by letting the video take the full width
+                  instead (see the data-mode='B' rules in the CSS). */}
+
+              {renderDescription && config.job.descriptionHtml && (
+                <JobDescription
+                  descriptionHtml={config.job.descriptionHtml}
+                  fillColumn={layoutMode === 'C'}
+                />
+              )}
             </div>
 
-            {/* Right column — form */}
-            <div className="iv-right-col">
-              <ApplicationForm config={config} onSubmitSuccess={() => router.push(`/interview/${token}/setup`)} />
+            {/* Right column — form (same shared child as every mode) */}
+            <div
+              className={`iv-right-col ${
+                config.stickyForm === false ? 'is-static' : ''
+              }`}
+            >
+              {applyForm}
             </div>
           </div>
         )}
+
+        {/* TEMPORARY — remove with the API integration (see
+            components/interview/display-toggles.tsx). */}
+        <DisplayToggles config={config} onChange={setConfig} />
 
         {isDev && <DevPanel config={config} onChange={setConfig} />}
       </InterviewThemeProvider>

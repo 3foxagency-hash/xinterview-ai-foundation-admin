@@ -18,6 +18,10 @@ import {
 } from '@/components/interview/integrity-guard';
 import { MonitoringDisclosure } from '@/components/interview/monitoring-disclosure';
 import { strings } from '@/lib/interview/strings';
+import {
+  useCaptureOrientation,
+  videoConstraintsFor,
+} from '@/lib/interview/capture-orientation';
 import { CompletionScreen } from '@/components/interview/completion-screen';
 import type {
   InterviewSession,
@@ -164,6 +168,8 @@ export function InterviewScreen({
     setReviewPlaying(false);
   }, [effectiveIndex, forcedState]);
 
+  const captureOrientation = useCaptureOrientation();
+
   // Acquire media stream for video/audio questions
   React.useEffect(() => {
     if (forcedState) return;
@@ -171,8 +177,13 @@ export function InterviewScreen({
     if (question.type !== 'video' && question.type !== 'audio') return;
 
     let active = true;
+    // 2.7 — mobile captures portrait (9:16), desktop landscape (16:9).
+    // Orientation comes from viewport + pointer, never UA sniffing.
     const constraints: MediaStreamConstraints = {
-      video: question.type === 'video',
+      video:
+        question.type === 'video'
+          ? videoConstraintsFor(captureOrientation)
+          : false,
       audio: true,
     };
     navigator.mediaDevices?.getUserMedia(constraints)
@@ -184,7 +195,7 @@ export function InterviewScreen({
       if (stream) stream.getTracks().forEach((t) => t.stop());
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question.type, phase, effectiveIndex]);
+  }, [question.type, phase, effectiveIndex, captureOrientation]);
 
   // Cleanup stream on unmount
   React.useEffect(() => {
@@ -393,6 +404,12 @@ export function InterviewScreen({
       remainingMs={effectiveState === 'thinking' ? thinkingRemaining : remainingMs}
       warning={effectiveState === 'thinking' ? false : warning}
       variant={effectiveState === 'thinking' ? 'thinking' : 'recording'}
+      metaLabel={
+        effectiveState === 'thinking'
+          ? undefined
+          : strings.warningTimeRemaining(Math.max(0, Math.ceil(remainingMs / 1000)))
+      }
+      retakesRemaining={effectiveState === 'thinking' ? undefined : retakesRemaining}
     />
   ) : null;
 

@@ -34,6 +34,25 @@ export interface InterviewConfig {
     estimatedMinutes: number;
   };
 
+  /** Landing-page display flags (Section 3). These gate the two
+   *  optional left-column blocks. A block renders only when its flag
+   *  is on AND it actually has content — the flag alone can't
+   *  conjure a video that doesn't exist, and content alone can't
+   *  override a hiring manager who switched the block off. */
+  showIntroVideo: boolean;
+  showJobDescription: boolean;
+  /** Top-bar company logo/wordmark. Same story as the two flags above:
+   *  the backend will supply this once the API is wired up. */
+  showLogo: boolean;
+
+  /** TEMPORARY — which "Attach your CV" design to render (1–4), while
+   *  the team compares them. Remove once a design is chosen. */
+  cvDesign?: 1 | 2 | 3 | 4;
+
+  /** Whether the apply form holds its position while the left column
+   *  scrolls (desktop only — always off on mobile). */
+  stickyForm?: boolean;
+
   introVideo: {
     url: string;
     durationLabel: string;
@@ -101,6 +120,12 @@ export const interviewConfig: InterviewConfig = {
     questionCount: 4,
     estimatedMinutes: 12
   },
+
+  showIntroVideo: true,
+  showJobDescription: true,
+  showLogo: true,
+  cvDesign: 1,
+  stickyForm: true,
 
   introVideo: {
     // Drop a real 16:9 (or wider) clip at public/videos/intro-sample.mp4 —

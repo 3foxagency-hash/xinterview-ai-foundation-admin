@@ -34,10 +34,12 @@ export function ConsentBlock({
         {/* Platform consent */}
         <label className="iv-consent-item">
           <input
+            id="iv-consent-platform"
             type="checkbox"
             className="iv-consent-checkbox"
             checked={values.platform}
             onChange={(e) => onChange('platform', e.target.checked)}
+            aria-invalid={touched.platform && errors.platform ? 'true' : 'false'}
             aria-describedby={
               touched.platform && errors.platform ? 'consent-platform-error' : undefined
             }
@@ -76,10 +78,12 @@ export function ConsentBlock({
           <>
             <label className="iv-consent-item">
               <input
+                id="iv-consent-employer"
                 type="checkbox"
                 className="iv-consent-checkbox"
                 checked={values.employer}
                 onChange={(e) => onChange('employer', e.target.checked)}
+                aria-invalid={touched.employer && errors.employer ? 'true' : 'false'}
                 aria-describedby={
                   touched.employer && errors.employer
                     ? 'consent-employer-error'
