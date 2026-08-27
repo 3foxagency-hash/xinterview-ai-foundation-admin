@@ -1165,16 +1165,12 @@
 /* ── CTA ── */
 .iv-cta-wrap {
   margin-top: 28px;
-  /* Pinned to the bottom of the form panel. When the form is taller
-     than the sticky panel it scrolls internally (1.5), which would
-     otherwise push the primary CTA below the fold — it has to stay
-     reachable without scrolling the panel first (see 2.1c). Inert
-     when the form fits, since there is nothing to scroll. */
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  background: var(--iv-surface);
-  padding-bottom: 4px;
+  position: relative;
+  /* The CTA scrolls with the rest of the form. It used to be pinned to
+     the bottom of the panel so it stayed reachable while the form
+     scrolled internally, but that left it hovering over the fields —
+     the sticky behaviour belongs to the panel as a whole, not to one
+     button inside it. The mobile rule below is separate and stays. */
 }
 
 .iv-cta-wrap:hover .iv-cta-tooltip {
