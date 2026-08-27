@@ -13,23 +13,37 @@ import { AudioRecorder } from '@/components/interview/audio-recorder';
 import { TextAnswerInput } from '@/components/interview/text-answer-input';
 import { ChoiceAnswer } from '@/components/interview/choice-answer';
 import { strings } from '@/lib/interview/strings';
+import {
+  useCaptureOrientation,
+  videoConstraintsFor,
+} from '@/lib/interview/capture-orientation';
 import type { InterviewSession } from '@/config/interview-session';
 
 interface PracticeScreenProps {
   session: InterviewSession;
   onComplete: () => void;
+  /** Retained for API compatibility. The "Back to Setup" control that
+   *  called this was replaced by "Start Interview" in 2.3c, so nothing
+   *  invokes it today. */
   onBack: () => void;
 }
 
 type PracticePhase = 'questions' | 'confirmation';
 
-export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenProps) {
+export function PracticeScreen({ session, onComplete }: PracticeScreenProps) {
   const [phase, setPhase] = React.useState<PracticePhase>('questions');
   const [index, setIndex] = React.useState(0);
   const [lifecycle, setLifecycle] = React.useState<LifecycleState>(() =>
     initialLifecycleState(session.practice.questions[0]),
   );
   const [stream, setStream] = React.useState<MediaStream | null>(null);
+  /** Mirrors `stream` for callbacks that outlive their closure. The
+   *  countdown interval is created once per countdown, so reading the
+   *  `stream` state variable inside it captured whatever value existed
+   *  when the effect ran — usually null, since getUserMedia resolves
+   *  after the countdown starts. That made the countdown reach 0 and
+   *  do nothing even when a camera was available (2.3a). */
+  const streamRef = React.useRef<MediaStream | null>(null);
   const [elapsed, setElapsed] = React.useState(0);
   const [timerStart, setTimerStart] = React.useState<number | null>(null);
   const [retakesUsed, setRetakesUsed] = React.useState(0);
@@ -38,6 +52,16 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
   const [reviewElapsed, setReviewElapsed] = React.useState(0);
   const [thinkingRemaining, setThinkingRemaining] = React.useState(0);
   const [thinkingStart, setThinkingStart] = React.useState<number | null>(null);
+  /** Set when getUserMedia fails, so the countdown reaching 0 shows the
+   *  permission-error state instead of silently doing nothing (2.3a). */
+  const [mediaError, setMediaError] = React.useState<'permission' | null>(null);
+  /** Guards against double-starting when the countdown fires at the same
+   *  moment the candidate clicks "Start now" (2.3a). */
+  const startingRef = React.useRef(false);
+  /** Bumped by "Try again" to re-run the getUserMedia effect. */
+  const [streamAttempt, setStreamAttempt] = React.useState(0);
+  /** 2.3c — confirmation before leaving practice for the real interview. */
+  const [showStartConfirm, setShowStartConfirm] = React.useState(false);
   const [textContent, setTextContent] = React.useState('');
   const [choiceSelected, setChoiceSelected] = React.useState<string[]>([]);
   const recorderRef = React.useRef<MediaRecorder | null>(null);
@@ -48,6 +72,7 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
   const question = questions[index];
   const retakesRemaining = question.retakesAllowed - retakesUsed;
   const isVideoOrAudio = question.type === 'video' || question.type === 'audio';
+  const captureOrientation = useCaptureOrientation();
 
   const { remainingMs, warning } = useServerAnchoredTimer(
     question.answerSeconds ?? 0,
@@ -71,14 +96,22 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
     setThinkingRemaining(question.thinkingSeconds * 1000);
   }, [lifecycle, question.thinkingSeconds, index]);
 
+  // 2.3a — when the countdown reaches 0 recording must actually start.
+  // Remaining time is derived from the stored `thinkingStart` timestamp
+  // rather than a decrementing counter, so a throttled/background tab
+  // can't stretch the countdown.
   React.useEffect(() => {
     if (lifecycle !== 'thinking' || thinkingStart === null) return;
+    let fired = false;
     const id = setInterval(() => {
-      const elapsed = Date.now() - thinkingStart;
-      const remaining = question.thinkingSeconds * 1000 - elapsed;
+      const remaining =
+        question.thinkingSeconds * 1000 - (Date.now() - thinkingStart);
       if (remaining <= 0) {
+        if (fired) return;
+        fired = true;
+        clearInterval(id);
         setThinkingRemaining(0);
-        startRecording();
+        beginRecording();
       } else {
         setThinkingRemaining(remaining);
       }
@@ -91,30 +124,69 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
   React.useEffect(() => {
     if (!isVideoOrAudio) return;
     let active = true;
+    // 2.7 — mobile captures portrait (9:16), desktop landscape (16:9).
+    // Orientation comes from viewport + pointer, never UA sniffing.
     const constraints: MediaStreamConstraints = {
-      video: question.type === 'video',
+      video:
+        question.type === 'video'
+          ? videoConstraintsFor(captureOrientation)
+          : false,
       audio: true,
     };
+    setMediaError(null);
     navigator.mediaDevices?.getUserMedia(constraints)
-      .then((s) => { if (active) setStream(s); })
-      .catch(() => {});
+      .then((s) => {
+        if (!active) { s.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = s;
+        setStream(s);
+      })
+      .catch(() => {
+        // 2.3a — a failure here used to be swallowed, so the countdown
+        // would reach 0 and silently do nothing. Surface it instead.
+        if (active) setMediaError('permission');
+      });
     return () => {
       active = false;
-      if (stream) stream.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [question.type, index]);
+  }, [question.type, index, streamAttempt, captureOrientation]);
 
   React.useEffect(() => {
     return () => {
-      if (stream) stream.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
       if (recordingUrl) URL.revokeObjectURL(recordingUrl);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Single entry point for starting an answer — from the countdown
+   *  hitting 0 or from "Start now". Guards against double-starting and,
+   *  crucially, surfaces a missing stream rather than returning
+   *  silently the way startRecording() alone used to (2.3a). */
+  function beginRecording() {
+    if (startingRef.current) return;
+    if (lifecycle === 'active' || lifecycle === 'warning') return;
+    if (!streamRef.current) {
+      // Countdown finished but we never got a camera/mic — stop the
+      // countdown and show the permission-error state.
+      setMediaError('permission');
+      setThinkingStart(null);
+      setLifecycle('ready');
+      return;
+    }
+    startingRef.current = true;
+    startRecording();
+    // Released on the next tick; the lifecycle check above covers the
+    // rest of the recording.
+    window.setTimeout(() => { startingRef.current = false; }, 0);
+  }
+
   function startRecording() {
-    if (!stream) return;
+    const activeStream = streamRef.current;
+    if (!activeStream) return;
     setElapsed(0);
     chunksRef.current = [];
     setRecordingUrl(null);
@@ -128,7 +200,7 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
           : ['video/webm;codecs=vp8,opus', 'video/webm;codecs=vp8', 'video/webm'];
       const mimeType = preferredMimeType.find((t) => MediaRecorder.isTypeSupported(t));
 
-      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const recorder = new MediaRecorder(activeStream, mimeType ? { mimeType } : undefined);
       recorderRef.current = recorder;
       recorder.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
@@ -157,7 +229,29 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
   // Only video/audio ever reach 'thinking'/'ready'/'active' — text and
   // choice questions start directly in 'review' (see initialLifecycleState).
   function handleStart() {
-    if (lifecycle === 'thinking' || lifecycle === 'ready') startRecording();
+    if (lifecycle === 'thinking' || lifecycle === 'ready') beginRecording();
+  }
+
+  /** "Start now" — skip the remaining countdown and record immediately. */
+  function handleStartNow() {
+    if (lifecycle !== 'thinking') return;
+    setThinkingRemaining(0);
+    setThinkingStart(null);
+    beginRecording();
+  }
+
+  /** "Cancel" — abandon the countdown and return to the ready state. */
+  function handleCancelCountdown() {
+    if (lifecycle !== 'thinking') return;
+    setThinkingStart(null);
+    setThinkingRemaining(0);
+    setLifecycle('ready');
+  }
+
+  /** Retry after a permission failure — re-request the stream. */
+  function handleRetryPermission() {
+    setMediaError(null);
+    setStreamAttempt((n) => n + 1);
   }
 
   function handleStop() {
@@ -235,12 +329,19 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
     );
   }
 
+
   const timerRow = (isVideoOrAudio && (lifecycle === 'active' || lifecycle === 'warning' || lifecycle === 'thinking')) ? (
     <TimerTrack
       totalSeconds={lifecycle === 'thinking' ? question.thinkingSeconds : (question.answerSeconds ?? 0)}
       remainingMs={lifecycle === 'thinking' ? thinkingRemaining : remainingMs}
       warning={lifecycle === 'thinking' ? false : warning}
       variant={lifecycle === 'thinking' ? 'thinking' : 'recording'}
+      metaLabel={
+        lifecycle === 'thinking'
+          ? undefined
+          : strings.warningTimeRemaining(Math.max(0, Math.ceil(remainingMs / 1000)))
+      }
+      retakesRemaining={lifecycle === 'thinking' ? undefined : retakesRemaining}
     />
   ) : null;
 
@@ -312,14 +413,38 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
     (question.type === 'choice' && choiceSelected.length === 0 && lifecycle === 'review') ||
     (question.type === 'text' && textContent.trim().length === 0 && lifecycle === 'review');
 
+  // 2.3b — the same top progress bar the live interview uses, showing
+  // Question X of Y progress through the practice set.
+  const progressPercent = ((index + 1) / questions.length) * 100;
+
   return (
-    <InterviewShell session={session} showProgressLine={false} practiceMode>
+    <InterviewShell
+      session={session}
+      showProgressLine
+      progressPercent={progressPercent}
+      practiceMode
+    >
       <div className="iv-question-col">
         <QuestionPanel
           question={question}
           index={index}
           total={questions.length}
         />
+
+        {/* 2.3c — "Back to Setup" replaced by the primary forward
+            action. It lives in the left column, which is otherwise
+            empty below the question meta, rather than under the answer
+            panel where it competed with the recording controls. */}
+        <div className="iv-practice-start-row">
+          <button
+            type="button"
+            className="iv-cta"
+            onClick={() => setShowStartConfirm(true)}
+          >
+            {strings.practiceStartInterview}
+            <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
+          </button>
+        </div>
       </div>
       <div className="iv-answer-col">
         <AnswerPlane
@@ -338,18 +463,75 @@ export function PracticeScreen({ session, onComplete, onBack }: PracticeScreenPr
               retakesRemaining={retakesRemaining}
               inactivityCountdown={null}
               onCancelInactivity={() => {}}
+              onCancelCountdown={
+                lifecycle === 'thinking' ? handleCancelCountdown : undefined
+              }
               disabled={controlsDisabled}
             />
           }
         >
           {renderAnswerSurface()}
+
+          {/* 2.3a — the countdown reaching 0 with no camera/mic shows
+              this instead of silently doing nothing. */}
+          {mediaError === 'permission' && (
+            <div className="iv-practice-permission" role="alert">
+              <p className="iv-practice-permission-title">
+                {strings.practicePermissionTitle}
+              </p>
+              <p className="iv-practice-permission-body">
+                {strings.practicePermissionBody}
+              </p>
+              <button
+                type="button"
+                className="iv-link-button"
+                onClick={handleRetryPermission}
+              >
+                {strings.practicePermissionRetry}
+              </button>
+            </div>
+          )}
         </AnswerPlane>
       </div>
-      <div className="iv-practice-back">
-        <button type="button" className="iv-link-button" onClick={onBack}>
-          {strings.practiceBackLink}
-        </button>
-      </div>
+
+      {showStartConfirm && (
+        <div
+          className="iv-confirm-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="iv-confirm-title"
+          aria-describedby="iv-confirm-body"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setShowStartConfirm(false);
+          }}
+        >
+          <div className="iv-confirm-dialog iv-plane">
+            <h2 id="iv-confirm-title" className="iv-confirm-title">
+              {strings.practiceConfirmTitle}
+            </h2>
+            <p id="iv-confirm-body" className="iv-confirm-body">
+              {strings.practiceConfirmBody}
+            </p>
+            <div className="iv-confirm-actions">
+              <button
+                type="button"
+                className="iv-confirm-secondary"
+                onClick={() => setShowStartConfirm(false)}
+              >
+                {strings.practiceConfirmCancel}
+              </button>
+              <button
+                type="button"
+                className="iv-cta iv-confirm-primary"
+                onClick={onComplete}
+                autoFocus
+              >
+                {strings.practiceConfirmStart}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </InterviewShell>
   );
 }

@@ -14,6 +14,10 @@ interface RecordingControlsProps {
   onRetake: () => void;
   retakesRemaining: number;
   inactivityCountdown: number | null;
+  /** Optional "Cancel" beside "Start now" during the countdown (2.3a). */
+  onCancelCountdown?: () => void;
+  /** Retained for API compatibility; the "Hold on" control that called
+   *  this was removed in 2.5a, so nothing invokes it today. */
   onCancelInactivity: () => void;
   disabled?: boolean;
 }
@@ -27,7 +31,7 @@ export function RecordingControls({
   onRetake,
   retakesRemaining,
   inactivityCountdown,
-  onCancelInactivity,
+  onCancelCountdown,
   disabled,
 }: RecordingControlsProps) {
   const isVideoOrAudio = questionType === 'video' || questionType === 'audio';
@@ -45,6 +49,17 @@ export function RecordingControls({
           <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
         </button>
         <div className="iv-cta-bloom" aria-hidden="true" />
+        {/* 2.3a — Cancel returns to the ready state instead of leaving
+            the countdown as the only way forward. */}
+        {onCancelCountdown && (
+          <button
+            type="button"
+            className="iv-link-button"
+            onClick={onCancelCountdown}
+          >
+            {strings.practiceCancelCountdown}
+          </button>
+        )}
       </div>
     );
   }
@@ -93,18 +108,13 @@ export function RecordingControls({
   if (state === 'review') {
     return (
       <div className="iv-controls-group">
+        {/* 2.5a — the "Hold on" control and its click handler are
+            removed. The countdown text itself stays. */}
         {inactivityCountdown !== null && inactivityCountdown > 0 && (
           <div className="iv-inactivity-row">
             <span className="iv-inactivity-text">
               {strings.inactivityCountdown(inactivityCountdown)}
             </span>
-            <button
-              type="button"
-              className="iv-link-button"
-              onClick={onCancelInactivity}
-            >
-              {strings.inactivityHoldOn}
-            </button>
           </div>
         )}
         <div className="iv-review-controls">

@@ -42,18 +42,9 @@ interface QuestionPanelProps {
 }
 
 export function QuestionPanel({ question, index, total }: QuestionPanelProps) {
-  const [descExpanded, setDescExpanded] = React.useState(false);
   const tier = questionTier(question.text);
   const items = metaItems(question);
   const hasDescription = !!question.descriptionHtml;
-  const descRef = React.useRef<HTMLDivElement>(null);
-  const [descOverflow, setDescOverflow] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!hasDescription || !descRef.current) return;
-    const el = descRef.current;
-    setDescOverflow(el.scrollHeight > el.clientHeight);
-  }, [hasDescription, question.descriptionHtml]);
 
   return (
     <div className="iv-question-panel">
@@ -70,22 +61,16 @@ export function QuestionPanel({ question, index, total }: QuestionPanelProps) {
 
       {hasDescription && (
         <div className="iv-question-desc-wrap">
+          {/* Shown in full — see 2.4a. The expander that used to sit
+              here only existed to reveal text hidden by a max-height
+              and gradient fade; with nothing clipped it had no state
+              to toggle into. */}
           <div
-            ref={descRef}
-            className={`iv-question-desc ${descExpanded ? 'expanded' : ''}`}
+            className="iv-question-desc"
             dangerouslySetInnerHTML={{
               __html: sanitiseHtml(question.descriptionHtml!),
             }}
           />
-          {descOverflow && (
-            <button
-              type="button"
-              className="iv-desc-show-more"
-              onClick={() => setDescExpanded((p) => !p)}
-            >
-              {descExpanded ? strings.descriptionShowLess : strings.descriptionShowMore}
-            </button>
-          )}
         </div>
       )}
 

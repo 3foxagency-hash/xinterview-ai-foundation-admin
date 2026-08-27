@@ -1,5 +1,6 @@
 'use client';
 
+import { Clock } from 'lucide-react';
 import { strings } from '@/lib/interview/strings';
 
 interface JobHeaderProps {
@@ -11,7 +12,7 @@ interface JobHeaderProps {
 }
 
 /** Determine title size tier from character count (§8). */
-function titleTierClass(title: string): string {
+export function titleTierClass(title: string): string {
   const len = title.length;
   const isCaps = title.replace(/[^A-Z]/g, '').length / title.replace(/\s/g, '').length > 0.8;
 
@@ -42,6 +43,7 @@ export function JobHeader({
 
   return (
     <div
+      className="iv-job-header"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -80,7 +82,14 @@ export function JobHeader({
         </span>
         <span className="iv-meta-divider" aria-hidden="true" />
         <span className="iv-meta-item">
-          {strings.metaEstimated(estimatedMinutes)}
+          {/* Clock icon in place of the "≈" glyph. */}
+          <Clock
+            size={13}
+            strokeWidth={1.5}
+            className="iv-meta-icon"
+            aria-hidden="true"
+          />
+          {strings.metaEstimatedPlain(estimatedMinutes)}
         </span>
         <span className="iv-meta-divider" aria-hidden="true" />
         <span className="iv-meta-item">

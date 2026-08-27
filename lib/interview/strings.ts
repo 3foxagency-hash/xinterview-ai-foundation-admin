@@ -14,6 +14,9 @@ export const strings = {
   // Meta row
   metaQuestions: (n: number) => `${n} questions`,
   metaEstimated: (n: number) => `≈${n} min`,
+  /** Same duration without the "≈" glyph, for places that pair it with
+   *  a clock icon instead (see JobHeader). */
+  metaEstimatedPlain: (n: number) => `${n} min`,
   metaRecord: 'Record anytime',
 
   // Job description
@@ -33,6 +36,16 @@ export const strings = {
   linkedin: 'LinkedIn URL',
   portfolio: 'Portfolio URL',
   resumeLabel: 'Resume',
+
+  // Field placeholders — every input gets one. These are format hints,
+  // not values: `prefilled` (actual candidate data) is written into the
+  // field's value, not shown as ghost text.
+  firstNamePlaceholder: 'Jane',
+  lastNamePlaceholder: 'Doe',
+  emailPlaceholder: 'jane.doe@example.com',
+  phonePlaceholder: '(555) 123-4567',
+  linkedinPlaceholder: 'https://linkedin.com/in/...',
+  portfolioPlaceholder: 'https://...',
   resume: 'Attach your CV',
   resumeHint: 'PDF · 5MB',
 
@@ -50,6 +63,23 @@ export const strings = {
   // CTA
   ctaBegin: 'Begin interview',
   ctaDisabledTooltip: 'Please complete all required fields and consents',
+  // Validation summary shown near the CTA when it is clicked with
+  // invalid data (2.1c). The button itself is never disabled.
+  ctaValidationSummary: (count: number) =>
+    `Please complete ${count} required ${count === 1 ? 'field' : 'fields'} to continue`,
+  ctaSubmitting: 'Starting…',
+
+  // Resume upload states (2.1b)
+  resumeDropHint: 'Click to attach or drop a file here',
+  resumeUploading: 'Uploading…',
+  resumeRemove: 'Remove file',
+  resumeReplace: 'Replace',
+  resumeBrowse: 'Browse',
+  resumeSize: (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  },
 
   // Beneath CTA
   cameraNext: 'Camera and microphone check comes next.',
@@ -143,6 +173,26 @@ export const strings = {
   setupDownloadLabel: 'Download',
   setupSpeedMbps: (mbps: number) => `${mbps} Mbps`,
 
+  // 2.2a — status tiers driven by upload speed (the candidate is
+  // uploading video, so upload is what matters).
+  setupConnectionAdequateBadge: 'Adequate connection',
+  setupConnectionFailedBadge: "Couldn't measure",
+  setupConnectionNotTested: 'Connection not tested',
+  setupConnectionAdequate:
+    'Good enough to record — answers may take a moment to upload.',
+  setupConnectionFailedBody:
+    "We couldn't measure your connection. You can still continue.",
+  setupConnectionRetry: 'Retry test',
+  setupConnectionCancel: 'Cancel test',
+  setupMeasuring: 'Measuring…',
+  setupLatencyLabel: 'Latency',
+  setupJitterLabel: 'Jitter',
+  setupMs: (ms: number) => `${Math.round(ms)} ms`,
+  /** e.g. "24 Mbps (2 Mbps needed)" — shows the required minimum
+   *  next to the measured result. */
+  setupRequiredMinimum: (needed: number) => `${needed} Mbps needed`,
+  setupAudioOnlyOffer: 'Switch to audio-only answers',
+
   // Device selectors
   setupCameraSelectLabel: 'Camera',
   setupMicSelectLabel: 'Microphone',
@@ -193,6 +243,22 @@ export const strings = {
   practiceHeading: 'Try a practice question',
   practiceSubtext: 'Get comfortable with the format. Nothing here is saved or sent to the hiring team.',
   practiceMicroLabel: 'PRACTICE',
+  // Practice countdown controls (2.3a)
+  practiceStartNow: 'Start now',
+  practiceCancelCountdown: 'Cancel',
+  practicePermissionTitle: 'We can\'t reach your camera or microphone',
+  practicePermissionBody:
+    'Allow access in your browser, then try again. Nothing is recorded until you start an answer.',
+  practicePermissionRetry: 'Try again',
+
+  // Start-the-real-interview confirmation (2.3c)
+  practiceStartInterview: 'Start Interview',
+  practiceConfirmTitle: 'Start the real interview?',
+  practiceConfirmBody:
+    'Practice is over. Your answers will be recorded and submitted from now on.',
+  practiceConfirmCancel: 'Cancel',
+  practiceConfirmStart: 'Start interview',
+
   practiceReadyHeading: 'Ready to begin?',
   practiceReadyBody: 'Practice answers aren\'t saved. The real interview starts now.',
   practiceBeginCta: 'Begin interview',
@@ -251,6 +317,11 @@ export const strings = {
   },
 
   expiredSaved: 'Time\'s up — your answer was saved.',
+
+  // Meta line beneath the answer timer: time status on the left,
+  // takes remaining on the right.
+  takesLeft: (n: number) => `${n} ${n === 1 ? 'take' : 'takes'} left`,
+  takesNone: 'Final take',
 
   reviewHeading: 'Review your answer',
   reviewSubmitContinue: 'Submit and continue',

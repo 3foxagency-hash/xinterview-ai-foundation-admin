@@ -75,6 +75,7 @@ export function CompletionScreen({ session, state }: CompletionScreenProps) {
         <AmbientLight />
         <TopBar config={landingConfig} />
 
+        <div className="iv-completion-page">
         <div className="iv-completion-wrap">
           {state === 'complete' && (
             <>
@@ -201,6 +202,7 @@ export function CompletionScreen({ session, state }: CompletionScreenProps) {
               </a>
             </>
           )}
+        </div>
         </div>
       </InterviewThemeProvider>
     </>

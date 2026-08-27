@@ -118,7 +118,11 @@ export function deriveTokens(brand: string): ThemeTokens {
     ? hslToHex(h, 2, 97)
     : hslToHex(h, Math.min(s, 4), 97);
   const lText = hslToHex(h, Math.min(s, 8), 12);
-  const lTextSecondary = hslToHex(h, 8, 48);
+  // 2.1a — was lightness 48, which measured 4.36:1 against the 97
+  // canvas and failed WCAG AA for labels, placeholders and helper
+  // text. 44 measures ~5.06:1, leaving headroom across brand hues
+  // rather than sitting just over the line.
+  const lTextSecondary = hslToHex(h, 8, 44);
   const lHairline = hslToHex(h, 10, 88);
   const lAccent = isNearBlack ? adjustLightness(brand, 0.4) : ctaFill(brand);
   const lOnAccent = onColor(lAccent);

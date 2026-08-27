@@ -15,6 +15,14 @@ import { ConnectionCheckRow } from '@/components/interview/connection-check-row'
 import { type DeviceOption } from '@/components/interview/device-selector';
 import { HelpPanel } from '@/components/interview/help-panel';
 import { strings } from '@/lib/interview/strings';
+import {
+  useConnectionSpeed,
+  UPLOAD_REQUIRED_MBPS,
+} from '@/lib/interview/use-connection-speed';
+import {
+  useCaptureOrientation,
+  videoConstraintsFor,
+} from '@/lib/interview/capture-orientation';
 import type { InterviewConfig } from '@/config/interview.mock';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 
@@ -50,58 +58,13 @@ function getMics(devices: MediaDeviceInfo[]): DeviceOption[] {
     }));
 }
 
-const DOWNLOAD_TEST_URL = '/speed-test/probe.bin';
-const DOWNLOAD_TEST_BYTES = 256 * 1024;
-const UPLOAD_TEST_URL = '/api/speed-test/upload';
-const UPLOAD_TEST_BYTES = 256 * 1024;
-
-/**
- * Measures real downlink throughput by timing a fetch of a fixed-size,
- * incompressible payload — works in every browser (unlike the Network
- * Information API, which is Chrome/Edge only) and reflects the connection
- * right now rather than a cached OS-level estimate. A cache-busting query
- * param keeps the browser/CDN from serving a free instant "download".
- */
-async function measureDownloadSpeed(): Promise<number | null> {
-  try {
-    const start = performance.now();
-    const res = await fetch(`${DOWNLOAD_TEST_URL}?cb=${Date.now()}`, { cache: 'no-store' });
-    if (!res.ok) return null;
-    await res.arrayBuffer();
-    const seconds = (performance.now() - start) / 1000;
-    if (seconds <= 0) return null;
-    const mbps = (DOWNLOAD_TEST_BYTES * 8) / seconds / 1_000_000;
-    return Math.round(mbps * 10) / 10;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Measures real upload throughput by POSTing a fixed-size, incompressible
- * payload to our own API route and timing the round trip. This is what
- * actually matters for this product — every answer the candidate records
- * has to be uploaded, so download speed alone can be misleadingly
- * reassuring on connections with the (common) asymmetric upload profile.
- */
-async function measureUploadSpeed(): Promise<number | null> {
-  try {
-    const payload = new Blob([new Uint8Array(UPLOAD_TEST_BYTES)]);
-    const start = performance.now();
-    const res = await fetch(UPLOAD_TEST_URL, {
-      method: 'POST',
-      body: payload,
-      cache: 'no-store',
-    });
-    if (!res.ok) return null;
-    const seconds = (performance.now() - start) / 1000;
-    if (seconds <= 0) return null;
-    const mbps = (UPLOAD_TEST_BYTES * 8) / seconds / 1_000_000;
-    return Math.round(mbps * 10) / 10;
-  } catch {
-    return null;
-  }
-}
+/* The homemade single-fetch speed probes that lived here (a 256KB
+   download from /speed-test/probe.bin and a 256KB POST to
+   /api/speed-test/upload) have been replaced by @cloudflare/speedtest
+   via useConnectionSpeed — see lib/interview/use-connection-speed.ts.
+   One short transfer could not saturate a slow link or see past
+   connection setup on a fast one, so the figures it produced were not
+   a dependable read of the connection. */
 
 export function SetupScreen({
   config = defaultConfig,
@@ -115,8 +78,12 @@ export function SetupScreen({
   const [mics, setMics] = React.useState<DeviceOption[]>([]);
   const [selectedCamera, setSelectedCamera] = React.useState('');
   const [selectedMic, setSelectedMic] = React.useState('');
-  const [downloadSpeed, setDownloadSpeed] = React.useState<number | null>(null);
-  const [uploadSpeed, setUploadSpeed] = React.useState<number | null>(null);
+  const {
+    status: connectionStatus,
+    result: connection,
+    start: startSpeedTest,
+    cancel: cancelSpeedTest,
+  } = useConnectionSpeed();
   const [helpOpen, setHelpOpen] = React.useState(false);
   const streamRef = React.useRef<MediaStream | null>(null);
 
@@ -130,11 +97,18 @@ export function SetupScreen({
     }
   }, []);
 
+  const captureOrientation = useCaptureOrientation();
+
   const startStream = React.useCallback(
     async (videoId?: string, audioId?: string) => {
       try {
+        // 2.7 — the preview here must match what we actually record:
+        // portrait (9:16) on mobile, landscape (16:9) on desktop. This
+        // page was still requesting an unconstrained `video: true`, so
+        // the setup preview came back landscape on phones while the
+        // practice/interview screens were portrait.
         const constraints: MediaStreamConstraints = {
-          video: videoId ? { deviceId: { exact: videoId } } : true,
+          video: videoConstraintsFor(captureOrientation, videoId),
           audio: audioId ? { deviceId: { exact: audioId } } : true,
         };
         const newStream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -157,20 +131,11 @@ export function SetupScreen({
         } else if (!audioTrack) {
           setRealState('no_device');
         } else {
-          // Every answer the candidate records gets uploaded, so upload
-          // speed — not download — is what determines whether the
-          // connection is actually going to be a problem here.
-          const [download, upload] = await Promise.all([
-            measureDownloadSpeed(),
-            measureUploadSpeed(),
-          ]);
-          setDownloadSpeed(download);
-          setUploadSpeed(upload);
-          if (upload !== null && upload < 1.5) {
-            setRealState('weak_connection');
-          } else {
-            setRealState('ready');
-          }
+          // Devices are ready as soon as we have both tracks. The speed
+          // test runs on its own (see the effect below) and must not
+          // block this — awaiting it here made the whole setup page sit
+          // on "Checking your setup" until the network test finished.
+          setRealState('ready');
         }
 
         if (videoTrack && !selectedCamera) {
@@ -194,7 +159,7 @@ export function SetupScreen({
         }
       }
     },
-    [selectedCamera, selectedMic],
+    [selectedCamera, selectedMic, captureOrientation],
   );
 
   React.useEffect(() => {
@@ -212,8 +177,33 @@ export function SetupScreen({
     return () => stopTracks();
   }, [stopTracks]);
 
+  // 2.2a — the speed test runs independently of the device check, so it
+  // never blocks the page. Started once the devices are confirmed.
+  const speedTestStartedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (forcedState) return;
+    if (realState !== 'ready' && realState !== 'weak_connection') return;
+    if (speedTestStartedRef.current) return;
+    speedTestStartedRef.current = true;
+    startSpeedTest();
+  }, [forcedState, realState, startSpeedTest]);
+
+  // A measured-weak upload escalates the page into its weak-connection
+  // state (warning + audio-only offer). 'adequate' and 'failed' let the
+  // candidate carry on — only a genuinely weak upload warrants the
+  // interstitial.
+  React.useEffect(() => {
+    if (forcedState) return;
+    if (connectionStatus === 'weak') {
+      setRealState((prev) => (prev === 'ready' ? 'weak_connection' : prev));
+    } else if (connectionStatus === 'strong' || connectionStatus === 'adequate') {
+      setRealState((prev) => (prev === 'weak_connection' ? 'ready' : prev));
+    }
+  }, [connectionStatus, forcedState]);
+
   const handleTryAgain = () => {
     stopTracks();
+    speedTestStartedRef.current = false;
     setRealState('checking');
     setCameras([]);
     setMics([]);
@@ -270,22 +260,36 @@ export function SetupScreen({
     state === 'no_device' ? 'warning' :
     'passed';
 
-  const connectionStatus: CheckStatus =
-    state === 'checking' ? 'checking' :
-    state === 'weak_connection' ? 'warning' :
-    'passed';
-
   // forcedState previews a weak connection from the dev panel without an
   // actual slow network to measure — show a plausible mock reading rather
   // than the real (likely fast) numbers this machine actually measured.
   const isForcedWeak = !!forcedState && state === 'weak_connection';
-  const displayUploadSpeed = isForcedWeak ? 0.8 : uploadSpeed;
-  const displayDownloadSpeed = isForcedWeak ? 3.2 : downloadSpeed;
 
-  const connectionSecondary =
-    state === 'weak_connection' ? strings.setupConnectionWeak :
-    state === 'checking' ? undefined :
-    strings.setupConnectionStable;
+  // Row status comes from the measurement itself (2.2a): it keeps
+  // showing "measuring" while the test runs, so the page never
+  // displays a frozen 0 Mbps, and reports a distinct failed state.
+  const connectionRowStatus: CheckStatus = isForcedWeak
+    ? 'warning'
+    : connectionStatus === 'measuring' || connectionStatus === 'idle'
+      ? 'checking'
+      : connectionStatus === 'weak' || connectionStatus === 'failed'
+        ? 'warning'
+        : 'passed';
+
+  const displayUploadSpeed = isForcedWeak ? 0.8 : connection.uploadMbps;
+  const displayDownloadSpeed = isForcedWeak ? 3.2 : connection.downloadMbps;
+
+  const connectionSecondary = isForcedWeak
+    ? strings.setupConnectionWeak
+    : connectionStatus === 'failed'
+      ? strings.setupConnectionFailedBody
+      : connectionStatus === 'weak'
+        ? strings.setupConnectionWeak
+        : connectionStatus === 'adequate'
+          ? strings.setupConnectionAdequate
+          : connectionStatus === 'strong'
+            ? strings.setupConnectionStable
+            : undefined;
 
   const ctaClick = blocked ? handleTryAgain : onBeginInterview;
 
@@ -358,9 +362,15 @@ export function SetupScreen({
                 />
 
                 <ConnectionCheckRow
-                  status={connectionStatus}
+                  status={connectionRowStatus}
+                  tier={isForcedWeak ? 'weak' : connectionStatus}
                   uploadMbps={displayUploadSpeed}
                   downloadMbps={displayDownloadSpeed}
+                  latencyMs={isForcedWeak ? 120 : connection.latencyMs}
+                  jitterMs={isForcedWeak ? 40 : connection.jitterMs}
+                  requiredUploadMbps={UPLOAD_REQUIRED_MBPS}
+                  onRetry={startSpeedTest}
+                  onCancel={cancelSpeedTest}
                   secondaryText={connectionSecondary}
                 />
               </div>

@@ -1,10 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { FileText, X, ArrowRight } from 'lucide-react';
+import { FileText, X, ArrowRight, UploadCloud, Loader2 } from 'lucide-react';
 import { UnderlineField } from '@/components/interview/underline-field';
 import { ConsentBlock } from '@/components/interview/consent-block';
 import { CountryCodeSelect } from '@/components/interview/country-code-select';
+import { CvUpload } from '@/components/interview/cv-upload';
 import { strings } from '@/lib/interview/strings';
 import { DEFAULT_COUNTRY } from '@/lib/interview/country-codes';
 import { useDetectedCountry } from '@/lib/interview/use-detected-country';
@@ -45,6 +46,33 @@ interface FormErrors {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const URL_RE = /^https?:\/\/.+/;
 
+/** Visual order of the form, so "the first invalid field" (2.1c) means
+ *  the first one the candidate can see, not the first key on an object. */
+const FIELD_ORDER = [
+  'firstName',
+  'lastName',
+  'email',
+  'phone',
+  'linkedin',
+  'portfolio',
+  'resume',
+  'platformConsent',
+  'employerConsent',
+] as const;
+
+/** DOM id for each error-able field, used to scroll/focus it. */
+const FIELD_DOM_ID: Record<string, string> = {
+  firstName: 'iv-field-firstName',
+  lastName: 'iv-field-lastName',
+  email: 'iv-field-email',
+  phone: 'iv-field-phone',
+  linkedin: 'iv-field-linkedin',
+  portfolio: 'iv-field-portfolio',
+  resume: 'iv-resume-input',
+  platformConsent: 'iv-consent-platform',
+  employerConsent: 'iv-consent-employer',
+};
+
 export function ApplicationForm({
   config,
   onSubmitSuccess,
@@ -52,10 +80,16 @@ export function ApplicationForm({
   config: InterviewConfig;
   onSubmitSuccess?: () => void;
 }) {
-  const { fields, prefilled, consent, company, disclosures } = config;
+  // NOTE: config.prefilled is intentionally not read — the form starts
+  // empty by design (see the values state below). The config field is
+  // retained for API compatibility.
+  const { fields, consent, company, disclosures } = config;
   const showEmployer =
     consent.employerTermsUrl !== null && consent.employerPrivacyUrl !== null;
 
+  // Every field starts empty — no prefilled values. The fields show
+  // placeholders only, so a candidate always types their own answer
+  // rather than editing text that was put there for them.
   const [values, setValues] = React.useState<FormValues>({
     firstName: '',
     lastName: '',
@@ -70,7 +104,16 @@ export function ApplicationForm({
 
   const [errors, setErrors] = React.useState<FormErrors>({});
   const [touched, setTouched] = React.useState<Record<string, boolean>>({});
+  /** True once an invalid submit has been attempted — drives the
+   *  summary message near the CTA. Distinct from isSubmitting. */
   const [submitted, setSubmitted] = React.useState(false);
+  /** The real submit in flight (spinner, temporarily non-clickable) —
+   *  a separate concern from validation blocking (2.1c). */
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  /** Resume upload states (2.1b). */
+  const [isUploading, setIsUploading] = React.useState(false);
+  const [uploadProgress, setUploadProgress] = React.useState(0);
+  const [isDragging, setIsDragging] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const update = (key: keyof FormValues, value: string | File | null | boolean) => {
@@ -98,7 +141,7 @@ export function ApplicationForm({
     if (fields.portfolio.enabled && values.portfolio && !URL_RE.test(values.portfolio))
       e.portfolio = strings.errorUrl;
     if (fields.resume.enabled && fields.resume.required && !values.resume)
-      e.resume = strings.errorRequired(strings.resume);
+      e.resume = strings.errorRequired(strings.resumeLabel);
     if (!values.platformConsent)
       e.platformConsent = strings.consentRequired;
     if (showEmployer && !values.employerConsent)
@@ -110,9 +153,24 @@ export function ApplicationForm({
 
   const isValid = Object.keys(currentErrors).length === 0;
 
+  /** Moves focus to a field and scrolls it into view smoothly (2.1c). */
+  const focusField = (key: string) => {
+    const id = FIELD_DOM_ID[key];
+    if (!id) return;
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    // Focus after the scroll starts so the browser doesn't jump-scroll
+    // to the element and cancel the smooth animation.
+    window.setTimeout(() => {
+      (el as HTMLElement).focus({ preventScroll: true });
+    }, 300);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    if (isSubmitting) return;
+
     setTouched({
       firstName: true,
       lastName: true,
@@ -125,16 +183,29 @@ export function ApplicationForm({
       employerConsent: true,
     });
     setErrors(currentErrors);
-    if (isValid) {
-      // Mock submit — no backend
-      console.log('Interview form submitted', values);
-      onSubmitSuccess?.();
+
+    // 2.1c — the button is always enabled, so an invalid click must be
+    // blocked here rather than by a disabled attribute: mark every
+    // invalid field, announce the count, and send the candidate to the
+    // first problem. It must not submit and must not navigate.
+    if (!isValid) {
+      setSubmitted(true);
+      const firstInvalid = FIELD_ORDER.find((k) => currentErrors[k as keyof FormErrors]);
+      if (firstInvalid) focusField(firstInvalid);
+      return;
     }
+
+    setSubmitted(false);
+    setIsSubmitting(true);
+    // Mock submit — no backend
+    console.log('Interview form submitted', values);
+    onSubmitSuccess?.();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  /** Shared by the file input and the drop zone. Validates type and
+   *  size first, then runs the uploading state before settling on the
+   *  selected state (2.1b). */
+  const acceptFile = (file: File) => {
     setTouched((prev) => ({ ...prev, resume: true }));
     const isPdf =
       file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
@@ -148,12 +219,48 @@ export function ApplicationForm({
       if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
-    update('resume', file);
+
     setErrors((prev) => ({ ...prev, resume: undefined }));
+    // There is no backend yet, so this reflects the local read rather
+    // than a network upload — it is real progress over the file, not a
+    // fabricated bar, and it settles on the selected state either way.
+    setIsUploading(true);
+    setUploadProgress(0);
+    const reader = new FileReader();
+    reader.onprogress = (ev) => {
+      if (ev.lengthComputable) {
+        setUploadProgress(Math.round((ev.loaded / ev.total) * 100));
+      }
+    };
+    reader.onloadend = () => {
+      setUploadProgress(100);
+      setIsUploading(false);
+      update('resume', file);
+    };
+    reader.onerror = () => {
+      setIsUploading(false);
+      setErrors((prev) => ({ ...prev, resume: strings.errorFileType }));
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    acceptFile(file);
+  };
+
+  const handleFileDrop = (e: React.DragEvent) => {
+    setIsDragging(false);
+    if (values.resume || isUploading) return;
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) acceptFile(file);
   };
 
   const handleFileRemove = () => {
     update('resume', null);
+    setUploadProgress(0);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
@@ -175,7 +282,10 @@ export function ApplicationForm({
     setPhoneCountry(countryCode);
   };
 
-  const ctaDisabled = !isValid;
+  const invalidCount = Object.keys(currentErrors).length;
+  /** Only after an invalid submit attempt — not while the candidate is
+   *  still filling the form in for the first time. */
+  const showValidationSummary = submitted && !isValid;
 
   return (
     <form className="iv-plane iv-form-panel" onSubmit={handleSubmit} noValidate>
@@ -193,8 +303,8 @@ export function ApplicationForm({
               onChange={(v) => update('firstName', v)}
               onBlur={() => handleBlur('firstName')}
               required={fields.firstName.required}
-              placeholder={prefilled.firstName}
-              error={touched.firstName ? errors.firstName : undefined}
+              placeholder={strings.firstNamePlaceholder}
+              error={touched.firstName ? currentErrors.firstName : undefined}
               autoComplete="given-name"
             />
           )}
@@ -206,8 +316,8 @@ export function ApplicationForm({
               onChange={(v) => update('lastName', v)}
               onBlur={() => handleBlur('lastName')}
               required={fields.lastName.required}
-              placeholder={prefilled.lastName}
-              error={touched.lastName ? errors.lastName : undefined}
+              placeholder={strings.lastNamePlaceholder}
+              error={touched.lastName ? currentErrors.lastName : undefined}
               autoComplete="family-name"
             />
           )}
@@ -224,8 +334,8 @@ export function ApplicationForm({
           onChange={(v) => update('email', v)}
           onBlur={() => handleBlur('email')}
           required={fields.email.required}
-          placeholder={prefilled.email}
-          error={touched.email ? errors.email : undefined}
+          placeholder={strings.emailPlaceholder}
+          error={touched.email ? currentErrors.email : undefined}
           autoComplete="email"
         />
       )}
@@ -240,8 +350,8 @@ export function ApplicationForm({
           onChange={(v) => update('phone', v)}
           onBlur={() => handleBlur('phone')}
           required={fields.phone.required}
-          placeholder={prefilled.phone}
-          error={touched.phone ? errors.phone : undefined}
+          placeholder={strings.phonePlaceholder}
+          error={touched.phone ? currentErrors.phone : undefined}
           leftSlot={
             <CountryCodeSelect value={phoneCountry} onChange={handlePhoneCountryChange} />
           }
@@ -259,8 +369,8 @@ export function ApplicationForm({
           onChange={(v) => update('linkedin', v)}
           onBlur={() => handleBlur('linkedin')}
           required={fields.linkedin.required}
-          error={touched.linkedin ? errors.linkedin : undefined}
-          placeholder={prefilled.linkedin ?? 'https://linkedin.com/in/...'}
+          error={touched.linkedin ? currentErrors.linkedin : undefined}
+          placeholder={strings.linkedinPlaceholder}
         />
       )}
       {fields.portfolio.enabled && (
@@ -272,8 +382,8 @@ export function ApplicationForm({
           onChange={(v) => update('portfolio', v)}
           onBlur={() => handleBlur('portfolio')}
           required={fields.portfolio.required}
-          error={touched.portfolio ? errors.portfolio : undefined}
-          placeholder={prefilled.portfolio ?? 'https://...'}
+          error={touched.portfolio ? currentErrors.portfolio : undefined}
+          placeholder={strings.portfolioPlaceholder}
         />
       )}
 
@@ -283,52 +393,29 @@ export function ApplicationForm({
           <label className="iv-field-label" htmlFor="iv-resume-input">
             {strings.resumeLabel}
           </label>
-          <div
-            className="iv-resume-row"
-            onClick={() => !values.resume && fileInputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                if (!values.resume) fileInputRef.current?.click();
-              }
+          {/* Four interchangeable designs while the team compares
+              them; see components/interview/cv-upload.tsx. */}
+          <CvUpload
+            design={config.cvDesign ?? 1}
+            file={values.resume}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
+            isDragging={isDragging}
+            error={touched.resume ? (errors.resume || currentErrors.resume) : undefined}
+            inputRef={fileInputRef}
+            onFileChange={handleFileChange}
+            onDrop={handleFileDrop}
+            onDragOver={(e) => {
+              if (values.resume || isUploading) return;
+              e.preventDefault();
+              setIsDragging(true);
             }}
-          >
-            <FileText size={16} strokeWidth={1.5} className="iv-resume-icon" />
-            {values.resume ? (
-              <>
-                <span className="iv-resume-filename">{values.resume.name}</span>
-                <button
-                  type="button"
-                  className="iv-resume-remove"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleFileRemove();
-                  }}
-                  aria-label="Remove file"
-                >
-                  <X size={14} strokeWidth={1.5} />
-                </button>
-              </>
-            ) : (
-              <>
-                <span className="iv-resume-label">{strings.resume}</span>
-                <span className="iv-resume-hint">{strings.resumeHint}</span>
-              </>
-            )}
-            <input
-              ref={fileInputRef}
-              id="iv-resume-input"
-              type="file"
-              accept="application/pdf"
-              className="iv-resume-input"
-              onChange={handleFileChange}
-            />
-          </div>
-          {touched.resume && errors.resume && (
+            onDragLeave={() => setIsDragging(false)}
+            onRemove={handleFileRemove}
+          />
+          {touched.resume && (errors.resume || currentErrors.resume) && (
             <span className="iv-field-error" role="alert">
-              {errors.resume}
+              {errors.resume || currentErrors.resume}
             </span>
           )}
         </div>
@@ -345,8 +432,8 @@ export function ApplicationForm({
           update(key === 'platform' ? 'platformConsent' : 'employerConsent', val)
         }
         errors={{
-          platform: errors.platformConsent,
-          employer: errors.employerConsent,
+          platform: currentErrors.platformConsent,
+          employer: currentErrors.employerConsent,
         }}
         touched={{
           platform: touched.platformConsent,
@@ -354,44 +441,37 @@ export function ApplicationForm({
         }}
       />
 
-      {/* CTA */}
+      {/* CTA — 2.1c: always rendered in the full primary style, never
+          greyed out. Clicking it with invalid data is blocked in
+          handleSubmit (which marks the fields and scrolls to the first
+          one) rather than by a disabled attribute. `disabled` applies
+          only to the real in-flight submit. */}
       <div className="iv-cta-wrap">
         <button
           type="submit"
           className="iv-cta"
-          disabled={ctaDisabled}
-          aria-busy={submitted && isValid}
-          aria-describedby={ctaDisabled ? 'iv-cta-disabled-reason' : undefined}
+          disabled={isSubmitting}
+          aria-busy={isSubmitting}
+          aria-describedby={showValidationSummary ? 'iv-cta-validation' : undefined}
         >
-          {strings.ctaBegin}
-          <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
+          {isSubmitting ? strings.ctaSubmitting : strings.ctaBegin}
+          {isSubmitting ? (
+            <span className="iv-cta-spinner" aria-hidden="true" />
+          ) : (
+            <ArrowRight size={16} strokeWidth={1.5} className="iv-cta-arrow" />
+          )}
         </button>
-        {!isValid && ctaDisabled && (
-          <div
-            id="iv-cta-disabled-reason"
-            role="tooltip"
-            style={{
-              position: 'absolute',
-              bottom: '100%',
-              left: '50%',
-              transform: 'translateX(-50%)',
-              marginBottom: '8px',
-              padding: '6px 12px',
-              fontSize: '11px',
-              color: 'var(--iv-text)',
-              background: 'var(--iv-surface)',
-              borderRadius: '6px',
-              whiteSpace: 'nowrap',
-              opacity: 0,
-              pointerEvents: 'none',
-              transition: 'opacity 0.15s ease',
-            }}
-            className="iv-cta-tooltip"
-          >
-            {strings.ctaDisabledTooltip}
-          </div>
-        )}
         <div className="iv-cta-bloom" aria-hidden="true" />
+      </div>
+
+      {/* Validation summary — announced assertively so a screen reader
+          hears why the click did nothing (2.1c). */}
+      <div className="iv-cta-validation-live" aria-live="assertive">
+        {showValidationSummary && (
+          <p id="iv-cta-validation" className="iv-cta-validation">
+            {strings.ctaValidationSummary(invalidCount)}
+          </p>
+        )}
       </div>
 
       {/* Beneath CTA */}
