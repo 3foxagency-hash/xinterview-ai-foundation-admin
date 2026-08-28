@@ -427,6 +427,29 @@ export const strings = {
   errorSecondTabBody: 'This interview is now open in another tab. You can continue it there.',
   errorSecondTabContinue: 'Continue here',
 
+  // ── Voice interview ──
+  voiceInterviewInProgress: 'Interview in progress',
+  voiceInterviewer: 'Interviewer',
+  voiceYou: 'You',
+  voiceSpeaking: 'Speaking',
+  voiceListening: 'Listening',
+  voiceThinking: 'Thinking',
+  voiceConnecting: 'Connecting',
+  voicePaused: 'Paused',
+  voiceMute: 'Mute',
+  voiceUnmute: 'Unmute',
+  voiceVolume: 'Volume',
+  voiceVolumeMuted: 'Muted',
+  voiceEndInterview: 'End interview',
+  voiceConversation: 'This conversation',
+  voiceRecordingNotice: 'This conversation is recorded and transcribed for the hiring team.',
+  voiceEndedAnytime: 'You can end the interview at any time.',
+  voiceBargeIn: 'Go ahead — the interviewer stopped to listen.',
+  voiceReconnecting: 'Reconnecting to the interviewer…',
+  voiceUnstable: 'Your connection is unstable — the interviewer may pause.',
+  voiceCaptionsShow: 'Show captions',
+  voiceCaptionsHide: 'Hide captions',
+
   // ── Completion ──
 
   completeEyebrow: (company: string) => `${company.toUpperCase()} · INTERVIEW COMPLETE`,

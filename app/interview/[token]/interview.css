@@ -4935,3 +4935,422 @@
   color: var(--iv-text-secondary);
   flex-shrink: 0;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Voice interview — live conversational AI interview
+   No-scroll layout. All colours from --iv-* tokens.
+   ═══════════════════════════════════════════════════════════ */
+
+.iv-voice-page {
+  position: relative;
+  z-index: 2;
+  height: calc(100vh - var(--iv-topbar-height) - 2px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0 48px 24px;
+}
+
+/* Elapsed-time line */
+.iv-voice-progress {
+  height: 2px;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
+}
+
+.iv-voice-progress > span {
+  display: block;
+  height: 100%;
+  background: var(--iv-accent);
+  transition: width 1s linear;
+}
+
+/* Header */
+.iv-voice-header {
+  padding-top: var(--page-top-offset);
+  padding-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.iv-voice-header-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iv-voice-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.iv-voice-header h1 {
+  font-family: var(--iv-font-display);
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--iv-text);
+  margin: 0;
+}
+
+.iv-voice-inline-notice {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  line-height: 1.5;
+}
+
+.iv-voice-inline-notice.is-warning {
+  color: var(--iv-warning);
+}
+
+/* Two-column layout */
+.iv-voice-layout {
+  display: grid;
+  grid-template-columns: 8fr 4fr;
+  gap: 40px;
+  flex: 1;
+  min-height: 0;
+  align-items: stretch;
+}
+
+/* Agent column */
+.iv-voice-agent-column {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.iv-voice-agent {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+.iv-voice-agent canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Agent section label row */
+.iv-voice-section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--iv-hairline);
+  flex-shrink: 0;
+}
+
+.iv-voice-turn-status {
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--iv-text-secondary);
+  letter-spacing: 0.01em;
+}
+
+/* Candidate column */
+.iv-voice-candidate-column {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+}
+
+.iv-voice-self-view {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
+  transition: opacity 0.3s ease;
+  opacity: 0.88;
+}
+
+.iv-voice-self-view.is-speaking {
+  opacity: 1;
+  border-top: 2px solid var(--iv-accent);
+  border-left: 2px solid var(--iv-accent);
+  box-shadow: -1px 0 12px var(--iv-glow);
+}
+
+.iv-voice-self-view.is-disconnected {
+  opacity: 0.5;
+}
+
+.iv-voice-self-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  display: block;
+}
+
+.iv-voice-self-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--iv-accent);
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.iv-voice-self-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--iv-text-secondary);
+  opacity: 0.4;
+}
+
+/* Waveform */
+.iv-voice-waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.iv-voice-waveform span {
+  flex: 1;
+  min-width: 2px;
+  background: var(--iv-hairline);
+  border-radius: 1px;
+  transition: height 0.06s linear;
+  min-height: 2px;
+}
+
+.iv-voice-waveform.is-active span {
+  background: var(--iv-accent);
+}
+
+.iv-voice-candidate-rule {
+  border: none;
+  border-top: 1px solid var(--iv-hairline);
+  margin: 0;
+}
+
+/* Controls */
+.iv-voice-controls {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+}
+
+.iv-voice-controls button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--iv-text-secondary);
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 16px;
+  transition: color 0.15s ease;
+}
+
+.iv-voice-controls button:hover:not(:disabled) {
+  color: var(--iv-text);
+}
+
+.iv-voice-controls button:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.iv-voice-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.iv-voice-control-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--iv-hairline);
+  flex-shrink: 0;
+}
+
+/* Captions toggle */
+.iv-voice-captions-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--iv-text-secondary);
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.iv-voice-captions-toggle:hover {
+  color: var(--iv-text);
+}
+
+.iv-voice-captions-toggle:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Captions panel */
+.iv-voice-captions {
+  background: var(--iv-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--iv-hairline);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  max-height: 72px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.iv-voice-captions p {
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--iv-text);
+  margin: 0 0 4px 0;
+}
+
+.iv-voice-captions p:last-child {
+  margin-bottom: 0;
+}
+
+/* Session context plane */
+.iv-voice-context {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 8px;
+  flex-shrink: 0;
+}
+
+.iv-voice-context-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.iv-voice-context-underline {
+  width: 20px;
+  height: 2px;
+  background: var(--iv-accent);
+  flex-shrink: 0;
+}
+
+.iv-voice-context-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--iv-text-secondary);
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--iv-hairline);
+}
+
+.iv-voice-context-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.iv-voice-context-row .iv-status-dot {
+  margin-top: 5px;
+}
+
+/* Screen-reader-only status */
+.iv-voice-sr-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Responsive: 1024–1279px ── */
+@media (max-width: 1279px) {
+  .iv-voice-page {
+    padding: 0 32px 20px;
+  }
+  .iv-voice-layout {
+    gap: 28px;
+  }
+}
+
+/* ── Responsive: 768–1023px (single column) ── */
+@media (max-width: 1023px) {
+  .iv-voice-page {
+    height: auto;
+    min-height: calc(100vh - var(--iv-topbar-height) - 2px);
+    overflow: visible;
+    padding: 0 24px 20px;
+  }
+  .iv-voice-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .iv-voice-agent {
+    min-height: 280px;
+  }
+}
+
+/* ── Responsive: <768px (mobile) ── */
+@media (max-width: 767px) {
+  .iv-voice-page {
+    padding: 0 20px 0;
+  }
+  .iv-voice-layout {
+    gap: 16px;
+  }
+  .iv-voice-agent {
+    min-height: 200px;
+  }
+  .iv-voice-self-view {
+    aspect-ratio: 16 / 9;
+  }
+  .iv-voice-controls {
+    position: sticky;
+    bottom: 0;
+    background: var(--iv-canvas);
+    padding: 12px 0;
+    border-top: 1px solid var(--iv-hairline);
+    z-index: 10;
+  }
+  .iv-voice-context-row:nth-child(n+3) {
+    display: none;
+  }
+  .iv-voice-context {
+    gap: 0;
+  }
+}
