@@ -7,6 +7,7 @@ import type {
   ThemeMode,
 } from '@/config/interview.mock';
 import type { VoiceTurnState, VoiceFailure } from './voice-types';
+import type { AvatarFailure, AvatarQualityTier } from './avatar-types';
 
 interface DevPanelProps {
   config: InterviewConfig;
@@ -14,6 +15,10 @@ interface DevPanelProps {
   voiceState?: VoiceTurnState;
   onVoiceStateChange?: (state: VoiceTurnState) => void;
   onVoiceFailure?: (failure: VoiceFailure) => void;
+  avatarQuality?: AvatarQualityTier;
+  onAvatarQualityChange?: (tier: AvatarQualityTier) => void;
+  avatarFailure?: AvatarFailure;
+  onAvatarFailure?: (failure: AvatarFailure) => void;
   reducedMotion?: boolean;
   onReducedMotionChange?: (value: boolean) => void;
 }
@@ -91,7 +96,7 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
   },
 ];
 
-export function DevPanel({ config, onChange, voiceState, onVoiceStateChange, onVoiceFailure, reducedMotion, onReducedMotionChange }: DevPanelProps) {
+export function DevPanel({ config, onChange, voiceState, onVoiceStateChange, onVoiceFailure, avatarQuality, onAvatarQualityChange, avatarFailure, onAvatarFailure, reducedMotion, onReducedMotionChange }: DevPanelProps) {
   const [open, setOpen] = React.useState(true);
   const [scenario, setScenario] = React.useState(0);
 
@@ -301,6 +306,40 @@ export function DevPanel({ config, onChange, voiceState, onVoiceStateChange, onV
                 >
                   Trigger barge-in
                 </button>
+              </div>
+            </>
+          )}
+
+          {onAvatarQualityChange && avatarQuality && (
+            <>
+              <div style={sectionLabel}>Avatar quality tier</div>
+              <div style={buttonRow}>
+                {(['full', 'reduced', 'audio_only'] as AvatarQualityTier[]).map((t) => (
+                  <button
+                    key={t}
+                    style={avatarQuality === t ? btnActive : btnStyle}
+                    onClick={() => onAvatarQualityChange(t)}
+                  >
+                    {t.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {onAvatarFailure && (
+            <>
+              <div style={sectionLabel}>Simulate avatar failure</div>
+              <div style={buttonRow}>
+                {(['none', 'stream_stall', 'audio_drop', 'provider_unavailable', 'mic_revoked', 'unsupported_browser', 'recording_upload_failure'] as AvatarFailure[]).map((f) => (
+                  <button
+                    key={f}
+                    style={avatarFailure === f ? btnActive : btnStyle}
+                    onClick={() => onAvatarFailure(f)}
+                  >
+                    {f.replace(/_/g, ' ')}
+                  </button>
+                ))}
               </div>
             </>
           )}

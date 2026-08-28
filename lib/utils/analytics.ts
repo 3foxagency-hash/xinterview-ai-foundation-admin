@@ -34,7 +34,12 @@ export type AnalyticsEvent =
   | 'recording_upload_failed'
   | 'connection_degraded'
   | 'interview_ended_early'
-  | 'voice_interview_completed';
+  | 'voice_interview_completed'
+  | 'avatar_interview_started'
+  | 'avatar_stream_connected'
+  | 'avatar_stream_stalled'
+  | 'avatar_quality_tier_changed'
+  | 'avatar_interview_completed';
 
 export function track(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   if (typeof console !== 'undefined') {
