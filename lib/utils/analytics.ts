@@ -22,7 +22,19 @@ export type AnalyticsEvent =
   | 'integrity_settings_updated'
   | 'evaluation_factors_generated'
   | 'evaluation_factors_updated'
-  | 'scoring_labels_updated';
+  | 'scoring_labels_updated'
+  | 'voice_interview_started'
+  | 'agent_connected'
+  | 'agent_reconnecting'
+  | 'turn_changed'
+  | 'bargein_triggered'
+  | 'silence_prompt_shown'
+  | 'captions_enabled'
+  | 'recording_chunk_uploaded'
+  | 'recording_upload_failed'
+  | 'connection_degraded'
+  | 'interview_ended_early'
+  | 'voice_interview_completed';
 
 export function track(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   if (typeof console !== 'undefined') {

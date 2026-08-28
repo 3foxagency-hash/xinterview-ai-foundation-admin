@@ -6,10 +6,16 @@ import type {
   InterviewState,
   ThemeMode,
 } from '@/config/interview.mock';
+import type { VoiceTurnState, VoiceFailure } from './voice-types';
 
 interface DevPanelProps {
   config: InterviewConfig;
   onChange: (config: InterviewConfig) => void;
+  voiceState?: VoiceTurnState;
+  onVoiceStateChange?: (state: VoiceTurnState) => void;
+  onVoiceFailure?: (failure: VoiceFailure) => void;
+  reducedMotion?: boolean;
+  onReducedMotionChange?: (value: boolean) => void;
 }
 
 const BRAND_PRESETS: Array<{ label: string; color: string }> = [
@@ -85,7 +91,7 @@ const SCENARIO_PRESETS: Partial<InterviewConfig>[] = [
   },
 ];
 
-export function DevPanel({ config, onChange }: DevPanelProps) {
+export function DevPanel({ config, onChange, voiceState, onVoiceStateChange, onVoiceFailure, reducedMotion, onReducedMotionChange }: DevPanelProps) {
   const [open, setOpen] = React.useState(true);
   const [scenario, setScenario] = React.useState(0);
 
@@ -255,6 +261,69 @@ export function DevPanel({ config, onChange }: DevPanelProps) {
               </button>
             ))}
           </div>
+
+          {onVoiceStateChange && voiceState && (
+            <>
+              <div style={sectionLabel}>Voice turn state</div>
+              <div style={buttonRow}>
+                {(['agent_speaking', 'candidate_speaking', 'agent_thinking', 'connecting'] as VoiceTurnState[]).map((s) => (
+                  <button
+                    key={s}
+                    style={voiceState === s ? btnActive : btnStyle}
+                    onClick={() => onVoiceStateChange(s)}
+                  >
+                    {s.replace('_', ' ')}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {onVoiceFailure && (
+            <>
+              <div style={sectionLabel}>Simulate failure</div>
+              <div style={buttonRow}>
+                {(['none', 'agent_disconnect', 'unstable_connection', 'mic_revoked', 'unsupported_browser', 'recording_upload_failure'] as VoiceFailure[]).map((f) => (
+                  <button
+                    key={f}
+                    style={btnStyle}
+                    onClick={() => onVoiceFailure(f)}
+                  >
+                    {f.replace(/_/g, ' ')}
+                  </button>
+                ))}
+              </div>
+              <div style={sectionLabel}>Barge-in</div>
+              <div style={buttonRow}>
+                <button
+                  style={btnStyle}
+                  onClick={() => onVoiceStateChange?.('candidate_speaking')}
+                >
+                  Trigger barge-in
+                </button>
+              </div>
+            </>
+          )}
+
+          {onReducedMotionChange && (
+            <>
+              <div style={sectionLabel}>Reduced motion</div>
+              <div style={buttonRow}>
+                <button
+                  style={reducedMotion ? btnActive : btnStyle}
+                  onClick={() => onReducedMotionChange(true)}
+                >
+                  On
+                </button>
+                <button
+                  style={!reducedMotion ? btnActive : btnStyle}
+                  onClick={() => onReducedMotionChange(false)}
+                >
+                  Off
+                </button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
