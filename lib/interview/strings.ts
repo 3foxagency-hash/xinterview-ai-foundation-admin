@@ -450,6 +450,29 @@ export const strings = {
   voiceCaptionsShow: 'Show captions',
   voiceCaptionsHide: 'Hide captions',
 
+  // ── Avatar interview ──
+  avatarInterviewInProgress: 'Interview in progress',
+  avatarAiInterviewer: 'AI interviewer',
+  avatarYou: 'You',
+  avatarSpeaking: 'Speaking',
+  avatarListening: 'Listening',
+  avatarThinking: 'Thinking',
+  avatarConnecting: 'Connecting',
+  avatarPaused: 'Paused',
+  avatarEndInterview: 'End interview',
+  avatarBargeIn: 'Go ahead — the interviewer stopped to listen.',
+  avatarReconnecting: 'Reconnecting to the interviewer…',
+  avatarVideoPaused: 'Video paused to keep the audio clear — the interview is continuing.',
+  avatarUnstable: 'Your connection is unstable — the interviewer may pause.',
+  avatarSilencePrompt: 'Still there? The interviewer is waiting.',
+  avatarDisclosure: 'You’re speaking with an AI interviewer. This conversation is recorded and transcribed for the hiring team.',
+  avatarEndConfirmTitle: 'End interview?',
+  avatarEndConfirmBody: 'This conversation cannot be resumed.',
+  avatarEndConfirmStay: 'Stay in the interview',
+  avatarCaptionsShow: 'Show captions',
+  avatarCaptionsHide: 'Hide captions',
+  avatarAiBadge: 'AI',
+
   // ── Completion ──
 
   completeEyebrow: (company: string) => `${company.toUpperCase()} · INTERVIEW COMPLETE`,
