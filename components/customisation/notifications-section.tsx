@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getNotifications, saveNotifications, getPlanInfo } from '@/lib/api/jobs';
 import type { NotificationsInput, ChannelSettings } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -39,6 +40,7 @@ export function NotificationsSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('notifications', save);
+  usePreviewSync('notifications', data);
   const [plan, setPlan] = React.useState<{ emailNotifications: boolean; smsEnabled: boolean } | null>(null);
   const [smsCreditExhausted, setSmsCreditExhausted] = React.useState(false);
 
@@ -153,6 +155,9 @@ export function NotificationsSection({
           {channelData.rejectionMessageEnabled && (
             <div className="border-t border-border p-4">
               <Label className="mb-2 block text-body-sm font-semibold text-heading">Rejection message</Label>
+              <p className="mb-3 text-body-sm text-muted">
+                Review this wording carefully. It sends automatically when a candidate moves to Rejected.
+              </p>
               <RichTextEditor
                 value={channelData.rejectionMessage ?? ''}
                 onChange={(val) => updateChannel(channel, { rejectionMessage: val })}

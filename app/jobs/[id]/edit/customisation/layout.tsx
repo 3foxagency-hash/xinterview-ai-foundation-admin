@@ -2,23 +2,21 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { Eye } from 'lucide-react';
 import { CustomisationSubNav } from '@/components/wizard/customisation-subnav';
 import { StepFooter } from '@/components/wizard/step-footer';
 import {
   CustomisationSaveProvider,
   useCustomisationRegistry,
 } from '@/components/wizard/customisation-save-registry';
+import {
+  CustomisationPreviewProvider,
+  useCustomisationPreview,
+} from '@/components/wizard/customisation-preview-context';
+import { CustomisationPreviewPanel } from '@/components/wizard/customisation-preview-panel';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
 
-/**
- * Customisation renders INSIDE app/jobs/[id]/edit/layout.tsx, which already
- * provides the WizardProvider, step rail, mobile header, top bar and the
- * content column. This layout contributes the section sub-nav and the single
- * step footer.
- *
- * The footer belongs here rather than in each section: customisation is one
- * wizard step made of many panels, so it gets one commit action like Questions
- * and Team do, not a Save button per panel.
- */
 export default function CustomisationLayout({
   children,
 }: {
@@ -29,30 +27,78 @@ export default function CustomisationLayout({
 
   return (
     <CustomisationSaveProvider>
-      {/* Column stack: the two panes on top, then one footer spanning both.
-          Keeping the footer outside the scrolling content column means it sits
-          on the page's own baseline rather than tracking the right pane. */}
-      {/* min-h-0 on the stack and the row is what makes the columns scroll
-          themselves instead of stretching the page: without it a tall right
-          pane grows past the viewport and <main> takes over the scrolling. */}
-      <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-        <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-6 lg:overflow-hidden">
-          {jobId && <CustomisationSubNav jobId={jobId} />}
-          {/* Gives the content its own surface so it doesn't float between the
-              rail and the footer. The sections inside carry their own cards, so
-              this pane stays on background-200 rather than adding a third
-              stacked border. */}
-          <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:overflow-y-auto">
-            {children}
-          </div>
-        </div>
-        {jobId && <CustomisationFooter jobId={jobId} />}
-      </div>
+      <CustomisationPreviewProvider jobTitle="Senior Product Designer">
+        <CustomisationShell jobId={jobId}>{children}</CustomisationShell>
+      </CustomisationPreviewProvider>
     </CustomisationSaveProvider>
   );
 }
 
-function CustomisationFooter({ jobId }: { jobId: string }) {
+function CustomisationShell({ jobId, children }: { jobId: string | null; children: React.ReactNode }) {
+  const [previewOpen, setPreviewOpen] = React.useState(false);
+  const { blockingSections } = useCustomisationPreview();
+
+  return (
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
+      {/* Three columns: nav | settings | preview.
+          Below xl (1280px) the preview becomes a sheet toggle.
+          Below lg (900px) the nav becomes a compact strip. */}
+      <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-4 lg:overflow-hidden">
+        {jobId && <CustomisationSubNav jobId={jobId} />}
+
+        {/* Settings column */}
+        <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:overflow-y-auto xl:max-w-[calc(100%-260px-420px-2rem)]">
+          {children}
+        </div>
+
+        {/* Preview column — visible only on xl+ */}
+        <CustomisationPreviewPanel />
+
+        {/* Preview toggle for below xl */}
+        <button
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          className="fixed bottom-6 right-6 z-sticky inline-flex h-12 items-center gap-2 rounded-full bg-primary px-5 text-button font-medium text-primary-foreground shadow-lg transition-colors hover:bg-primary-hover xl:hidden"
+          aria-label="Open preview"
+        >
+          <Eye size={16} />
+          Preview
+        </button>
+      </div>
+
+      {/* Footer */}
+      {jobId && <CustomisationFooter jobId={jobId} blockingSections={blockingSections} />}
+
+      {/* Preview sheet for below xl */}
+      <Sheet open={previewOpen} onOpenChange={setPreviewOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-2xl">
+          <SheetHeader>
+            <SheetTitle>Preview</SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 overflow-hidden p-4">
+            <PreviewSheetContent />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
+
+function PreviewSheetContent() {
+  return (
+    <div className="h-full overflow-y-auto">
+      <CustomisationPreviewPanel />
+    </div>
+  );
+}
+
+function CustomisationFooter({
+  jobId,
+  blockingSections,
+}: {
+  jobId: string;
+  blockingSections: string[];
+}) {
   const router = useRouter();
   const registry = useCustomisationRegistry();
   const [saving, setSaving] = React.useState(false);
@@ -60,8 +106,6 @@ function CustomisationFooter({ jobId }: { jobId: string }) {
   const handleNext = async () => {
     setSaving(true);
     try {
-      // Commits whatever is pending across the customisation step. When the
-      // real API lands this becomes the single batched request.
       await registry?.saveAll();
       router.push(`/jobs/${jobId}/edit/invite`);
     } finally {
@@ -69,13 +113,36 @@ function CustomisationFooter({ jobId }: { jobId: string }) {
     }
   };
 
+  const isBlocked = blockingSections.length > 0;
+
   return (
-    <div className="mt-8 shrink-0 border-t border-border pt-5">
+    <div className="mt-4 shrink-0 border-t border-border pt-4">
+      {isBlocked && (
+        <p className="mb-3 text-body-sm text-error">
+          Fix{' '}
+          {blockingSections.map((s, i) => (
+            <React.Fragment key={s}>
+              <a
+                href={`/jobs/${jobId}/edit/customisation/${s}`}
+                className="font-medium underline"
+              >
+                {s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+              </a>
+              {i < blockingSections.length - 2 ? ', ' : i === blockingSections.length - 2 ? ' and ' : ''}
+            </React.Fragment>
+          ))}
+          {' '}
+          to continue.
+        </p>
+      )}
       <StepFooter
-        onCancel={() => router.push(`/jobs/${jobId}/edit/teams`)}
+        onBack={() => router.push(`/jobs/${jobId}/edit/teams`)}
+        backLabel="Back to Team"
         onNext={handleNext}
-        nextLabel="Next: Invite candidates"
+        nextLabel="Continue to invite candidates"
         nextLoading={saving}
+        nextDisabled={isBlocked}
+        nextTooltip={isBlocked ? 'Resolve blocking errors to continue' : undefined}
       />
     </div>
   );
