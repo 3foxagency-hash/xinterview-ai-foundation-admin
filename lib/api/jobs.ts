@@ -66,6 +66,8 @@ export type QuestionTemplate = {
   id: string;
   name: string;
   questionCount: number;
+  typeBreakdown?: Record<string, number>;
+  lastUsedAt?: string;
 };
 
 export type CompanyMember = {
@@ -125,9 +127,9 @@ const COMPANY_MEMBERS: CompanyMember[] = [
 ];
 
 const QUESTION_TEMPLATES: QuestionTemplate[] = [
-  { id: 'tpl_frontend', name: 'Frontend Engineer', questionCount: 5 },
-  { id: 'tpl_backend', name: 'Backend Engineer', questionCount: 5 },
-  { id: 'tpl_product', name: 'Product Manager', questionCount: 4 },
+  { id: 'tpl_frontend', name: 'Frontend Engineer', questionCount: 5, typeBreakdown: { video: 3, text: 1, single_choice: 1 }, lastUsedAt: '2026-08-20T10:00:00Z' },
+  { id: 'tpl_backend', name: 'Backend Engineer', questionCount: 5, typeBreakdown: { video: 2, audio: 1, text: 1, single_choice: 1 }, lastUsedAt: '2026-08-15T14:30:00Z' },
+  { id: 'tpl_product', name: 'Product Manager', questionCount: 4, typeBreakdown: { video: 2, text: 2 }, lastUsedAt: '2026-08-10T09:15:00Z' },
 ];
 
 function sampleQuestions(count = 5): Question[] {
@@ -382,12 +384,32 @@ export async function generateJobDescription(
 
 export async function generateAiQuestions(
   counts: { video: number; audio: number; text: number; singleChoice: number },
-  _jobTitle: string,
-  _jobId?: string
+  jobTitle: string,
+  _jobId?: string,
+  focus?: string
 ): Promise<Question[]> {
   await delay(1200);
   const total = counts.video + counts.audio + counts.text + counts.singleChoice;
-  return sampleQuestions(Math.max(1, Math.min(total, 5)));
+  const bank: Question[] = [
+    { id: `aiq_${Date.now()}_1`, type: 'video', title: `Tell us about your experience as a ${jobTitle}`, description: focus ? `Focus: ${focus}` : 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { id: `aiq_${Date.now()}_2`, type: 'video', title: 'Describe a challenging project you led', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '3min' },
+    { id: `aiq_${Date.now()}_3`, type: 'text', title: 'Why are you interested in this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
+    { id: `aiq_${Date.now()}_4`, type: 'audio', title: 'Describe your ideal team environment', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
+    { id: `aiq_${Date.now()}_5`, type: 'single_choice', title: 'How do you prefer to work?', description: 'Which best describes your preferred working style?', options: [
+      { id: `aio_${Date.now()}_a`, text: 'Independently with clear goals', isCorrect: false },
+      { id: `aio_${Date.now()}_b`, text: 'Collaboratively in constant sync', isCorrect: false },
+      { id: `aio_${Date.now()}_c`, text: 'A mix of both', isCorrect: true },
+    ] },
+    { id: `aiq_${Date.now()}_6`, type: 'video', title: 'Walk us through a recent problem you solved', description: 'Share the context, your approach, and the outcome.', retakesAllowed: 1, thinkingTime: '45s', answerTime: '3min' },
+    { id: `aiq_${Date.now()}_7`, type: 'text', title: 'What are your salary expectations?', description: 'Please provide a range and any relevant context.', charLimit: 300 },
+    { id: `aiq_${Date.now()}_8`, type: 'single_choice', title: 'Are you willing to relocate?', description: 'Let us know your relocation preferences.', options: [
+      { id: `aio_${Date.now()}_d`, text: 'Yes, I am willing to relocate', isCorrect: true },
+      { id: `aio_${Date.now()}_e`, text: 'No, I prefer remote only', isCorrect: false },
+    ] },
+    { id: `aiq_${Date.now()}_9`, type: 'audio', title: 'Describe a time you handled conflict at work', description: 'How did you approach the situation and what was the result?', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { id: `aiq_${Date.now()}_10`, type: 'video', title: 'Where do you see yourself in three years?', description: 'Share your career goals and how this role fits into them.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+  ];
+  return bank.slice(0, Math.max(1, Math.min(total, 10)));
 }
 
 export async function publishJob(jobId: string): Promise<{
@@ -408,6 +430,32 @@ export async function getTemplateQuestions(templateId: string): Promise<Question
   const template = QUESTION_TEMPLATES.find((t) => t.id === templateId);
   if (!template) throw err('not_found', 'Template not found');
   return sampleQuestions(template.questionCount);
+}
+
+export async function saveQuestionTemplate(name: string, questions: Question[]): Promise<QuestionTemplate> {
+  await delay(500);
+  const id = `tpl_${ulid().toLowerCase()}`;
+  const typeBreakdown: Record<string, number> = {};
+  for (const q of questions) {
+    typeBreakdown[q.type] = (typeBreakdown[q.type] ?? 0) + 1;
+  }
+  const template: QuestionTemplate = {
+    id,
+    name,
+    questionCount: questions.length,
+    typeBreakdown,
+    lastUsedAt: new Date().toISOString(),
+  };
+  QUESTION_TEMPLATES.push(template);
+  return template;
+}
+
+export async function getTemplateDetails(templateId: string): Promise<{ template: QuestionTemplate; questions: Question[] }> {
+  await delay(300);
+  const template = QUESTION_TEMPLATES.find((t) => t.id === templateId);
+  if (!template) throw err('not_found', 'Template not found');
+  const questions = await getTemplateQuestions(templateId);
+  return { template, questions };
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
