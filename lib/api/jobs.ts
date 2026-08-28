@@ -31,6 +31,15 @@ export type Job = {
   status: JobStatus;
   candidateUrl: string;
   createdAt: string;
+  department?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  locationType?: string;
+  location?: string;
+  interviewDuration?: string;
+  availabilityWindowStart?: string;
+  availabilityWindowEnd?: string;
+  breakBetweenInterviews?: string;
 };
 
 export type QuestionType = 'video' | 'audio' | 'text' | 'single_choice';
@@ -175,6 +184,15 @@ export async function createJob(input: {
   applicationDeadline: string;
   interviewLanguage: string;
   description: string;
+  department?: string;
+  employmentType?: string;
+  experienceLevel?: string;
+  locationType?: string;
+  location?: string;
+  interviewDuration?: string;
+  availabilityWindowStart?: string;
+  availabilityWindowEnd?: string;
+  breakBetweenInterviews?: string;
 }): Promise<Job> {
   await delay(500);
   if (!input.title.trim()) throw err('validation_failed', 'Title is required');
@@ -191,6 +209,15 @@ export async function createJob(input: {
     status: 'draft',
     candidateUrl: `https://apply.xinterview.ai/j/${id}`,
     createdAt: new Date().toISOString(),
+    department: input.department,
+    employmentType: input.employmentType,
+    experienceLevel: input.experienceLevel,
+    locationType: input.locationType,
+    location: input.location,
+    interviewDuration: input.interviewDuration,
+    availabilityWindowStart: input.availabilityWindowStart,
+    availabilityWindowEnd: input.availabilityWindowEnd,
+    breakBetweenInterviews: input.breakBetweenInterviews,
   };
   jobStore.set(id, job);
   teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true })]);
@@ -211,8 +238,22 @@ export async function updateJob(id: string, patch: Partial<Job>): Promise<Job> {
 
   // `format`, `status` and identity fields are server-owned after creation;
   // patching them here would be rejected or silently ignored by a real API.
-  const { title, timezone, applicationDeadline, interviewLanguage, description } =
-    patch;
+  const {
+    title,
+    timezone,
+    applicationDeadline,
+    interviewLanguage,
+    description,
+    department,
+    employmentType,
+    experienceLevel,
+    locationType,
+    location,
+    interviewDuration,
+    availabilityWindowStart,
+    availabilityWindowEnd,
+    breakBetweenInterviews,
+  } = patch;
   const next: Job = {
     ...existing,
     ...(title !== undefined ? { title } : {}),
@@ -220,6 +261,15 @@ export async function updateJob(id: string, patch: Partial<Job>): Promise<Job> {
     ...(applicationDeadline !== undefined ? { applicationDeadline } : {}),
     ...(interviewLanguage !== undefined ? { interviewLanguage } : {}),
     ...(description !== undefined ? { description } : {}),
+    ...(department !== undefined ? { department } : {}),
+    ...(employmentType !== undefined ? { employmentType } : {}),
+    ...(experienceLevel !== undefined ? { experienceLevel } : {}),
+    ...(locationType !== undefined ? { locationType } : {}),
+    ...(location !== undefined ? { location } : {}),
+    ...(interviewDuration !== undefined ? { interviewDuration } : {}),
+    ...(availabilityWindowStart !== undefined ? { availabilityWindowStart } : {}),
+    ...(availabilityWindowEnd !== undefined ? { availabilityWindowEnd } : {}),
+    ...(breakBetweenInterviews !== undefined ? { breakBetweenInterviews } : {}),
   };
   jobStore.set(id, next);
   return next;

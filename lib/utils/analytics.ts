@@ -39,7 +39,11 @@ export type AnalyticsEvent =
   | 'avatar_stream_connected'
   | 'avatar_stream_stalled'
   | 'avatar_quality_tier_changed'
-  | 'avatar_interview_completed';
+  | 'avatar_interview_completed'
+  | 'create_job_started'
+  | 'job_description_ai_draft_kept'
+  | 'job_description_ai_draft_discarded'
+  | 'wizard_step_viewed';
 
 export function track(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   if (typeof console !== 'undefined') {

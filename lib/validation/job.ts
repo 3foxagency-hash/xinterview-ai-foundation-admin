@@ -2,23 +2,70 @@ import { z } from 'zod';
 import { emailSchema } from '@/lib/validation/auth';
 
 // ─── Interview formats ───
-export const INTERVIEW_FORMATS = ['ai_video', 'ai_avatar', 'ai_voice', 'ai_phone'] as const;
+export const INTERVIEW_FORMATS = ['ai_video', 'ai_avatar', 'ai_voice', 'ai_phone', 'text'] as const;
 export type InterviewFormat = (typeof INTERVIEW_FORMATS)[number];
 
 export const interviewFormatSchema = z.enum(INTERVIEW_FORMATS);
 
+export const EMPLOYMENT_TYPES = ['full_time', 'part_time', 'contract', 'internship', 'temporary'] as const;
+export type EmploymentType = (typeof EMPLOYMENT_TYPES)[number];
+
+export const EXPERIENCE_LEVELS = ['entry', 'mid', 'senior', 'lead', 'executive'] as const;
+export type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
+
+export const LOCATION_TYPES = ['on_site', 'hybrid', 'remote'] as const;
+export type LocationType = (typeof LOCATION_TYPES)[number];
+
+export const employmentTypeSchema = z.enum(EMPLOYMENT_TYPES);
+export const experienceLevelSchema = z.enum(EXPERIENCE_LEVELS);
+export const locationTypeSchema = z.enum(LOCATION_TYPES);
+
 // ─── Step 1: Job setup ───
-export const jobSetupSchema = z.object({
-  format: interviewFormatSchema,
-  title: z
-    .string()
-    .min(2, 'Job position must be at least 2 characters')
-    .max(120, 'Job position must be 120 characters or fewer'),
-  timezone: z.string().min(1, 'Please select a timezone'),
-  applicationDeadline: z.string().min(1, 'Please choose an application deadline'),
-  interviewLanguage: z.string().min(1, 'Please select an interview language'),
-  description: z.string().optional().default(''),
-});
+export const jobSetupSchema = z
+  .object({
+    format: interviewFormatSchema,
+    title: z
+      .string()
+      .min(2, 'Enter a job title.')
+      .max(120, 'Job title must be 120 characters or fewer'),
+    department: z.string().max(80).optional().default(''),
+    employmentType: employmentTypeSchema.optional(),
+    experienceLevel: experienceLevelSchema.optional(),
+    locationType: locationTypeSchema.default('remote'),
+    location: z.string().max(120).optional().default(''),
+    interviewDuration: z.string().optional().default('30'),
+    timezone: z.string().min(1, 'Select a timezone.'),
+    applicationDeadline: z.string().min(1, 'Choose an application deadline.'),
+    interviewLanguage: z.string().min(1, 'Select an interview language.'),
+    availabilityWindowStart: z.string().optional().default(''),
+    availabilityWindowEnd: z.string().optional().default(''),
+    breakBetweenInterviews: z.string().optional().default(''),
+    description: z.string().optional().default(''),
+  })
+  .superRefine((data, ctx) => {
+    if (
+      (data.locationType === 'on_site' || data.locationType === 'hybrid') &&
+      !data.location?.trim()
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['location'],
+        message: 'Add a location, or set this role to Remote.',
+      });
+    }
+    if (data.applicationDeadline) {
+      const date = new Date(data.applicationDeadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (date < today) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['applicationDeadline'],
+          message: 'Pick a date in the future.',
+        });
+      }
+    }
+  });
 export type JobSetupInput = z.infer<typeof jobSetupSchema>;
 
 // ─── Step 2: Questions ───

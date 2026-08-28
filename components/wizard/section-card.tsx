@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
 import {
   Tooltip,
   TooltipTrigger,
@@ -12,7 +13,7 @@ import {
 interface SectionCardProps {
   title: string;
   description?: string;
-  /** 'indigo' when required fields still empty, 'success' when complete, undefined to hide */
+  icon?: LucideIcon;
   statusDot?: 'indigo' | 'success';
   statusTooltip?: string;
   /** Right-aligned action in the header (e.g. AI assist button) */
@@ -26,6 +27,7 @@ interface SectionCardProps {
 export function SectionCard({
   title,
   description,
+  icon: Icon,
   statusDot,
   statusTooltip,
   headerAction,
@@ -44,6 +46,11 @@ export function SectionCard({
       <div className="flex items-start justify-between gap-4 p-6">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
+            {Icon && (
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
+                <Icon size={16} strokeWidth={1.5} className="text-primary" />
+              </div>
+            )}
             <h2 className="text-h2 text-heading">{title}</h2>
             {statusDot && (
               <TooltipProvider delayDuration={300}>
