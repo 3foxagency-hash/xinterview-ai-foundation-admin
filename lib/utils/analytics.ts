@@ -52,23 +52,7 @@ export type AnalyticsEvent =
   | 'job_description_ai_draft_kept'
   | 'job_description_ai_draft_discarded'
   | 'wizard_step_viewed'
-  | 'wizard_exited'
-  | 'customization_section_viewed'
-  | 'branding_color_changed'
-  | 'branding_logo_uploaded'
-  | 'theme_changed'
-  | 'candidate_field_toggled'
-  | 'integrity_setting_toggled'
-  | 'ai_evaluation_generated'
-  | 'ai_evaluation_draft_kept'
-  | 'ai_evaluation_draft_discarded'
-  | 'evaluation_weights_balanced'
-  | 'score_labels_saved'
-  | 'notification_toggled'
-  | 'notification_plan_blocked'
-  | 'preview_device_changed'
-  | 'preview_opened_new_tab'
-  | 'customization_saved';
+  | 'wizard_exited';
 
 export function track(event: AnalyticsEvent, properties?: Record<string, unknown>): void {
   if (typeof console !== 'undefined') {

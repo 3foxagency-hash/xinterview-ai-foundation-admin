@@ -10,7 +10,6 @@ import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
-import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getThankYouPage, saveThankYouPage } from '@/lib/api/jobs';
 import type { ThankYouPageInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -45,7 +44,6 @@ export function ThankYouSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('thank-you', save);
-  usePreviewSync('thankYou', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 
@@ -108,13 +106,6 @@ export function ThankYouSection({
                 />
               }
             />
-            {data.redirectEnabled && !data.redirectUrl && (
-              <div className="border-t border-border px-4 py-3">
-                <p role="alert" className="text-body-sm text-error">
-                  Add a redirect URL, or turn redirect off.
-                </p>
-              </div>
-            )}
             <SettingsRow
               label="Delay"
               helper="Seconds before redirecting."

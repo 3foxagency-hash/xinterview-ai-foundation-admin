@@ -1,7 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { Upload, Trash2, Check, TriangleAlert as AlertTriangle, Sun, Moon, Monitor } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  Check,
+  AlertTriangle,
+  Sun,
+  Moon,
+  Monitor,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
@@ -19,7 +27,6 @@ import {
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
-import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getBranding, saveBranding } from '@/lib/api/jobs';
 import type { BrandingInput } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
@@ -89,11 +96,8 @@ export function BrandingSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('branding', save);
-  usePreviewSync('branding', data);
   const [uploadProgress, setUploadProgress] = React.useState<number | null>(null);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
-  const [hexError, setHexError] = React.useState<string | null>(null);
-  const [showResetConfirm, setShowResetConfirm] = React.useState(false);
 
   if (loading || !data) {
     return <div className="py-8 text-center text-muted">Loading…</div>;
@@ -134,42 +138,15 @@ export function BrandingSection({
     track('branding_updated', { field: 'logo_removed' });
   };
 
+  const handleSecondaryChange = (colour: string) => {
+    update({ secondaryColour: colour } as Partial<BrandingInput>);
+    track('branding_updated', { field: 'secondary_colour' });
+  };
+
   const handleColourChange = (colour: string) => {
-    const hexRe = /^#[0-9A-Fa-f]{6}$/;
-    if (!hexRe.test(colour)) {
-      setHexError('Enter a valid hex colour, e.g. #5B4FE9.');
-      return;
-    }
-    setHexError(null);
     update({ primaryColour: colour } as Partial<BrandingInput>);
     track('branding_updated', { field: 'primary_colour' });
   };
-
-  const contrastPasses = React.useMemo(() => {
-    const hex = data.primaryColour.replace('#', '');
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.35 || luminance < 0.15 ? false : true;
-  }, [data.primaryColour]);
-
-  const autoCorrectedColour = React.useMemo(() => {
-    const hex = data.primaryColour.replace('#', '');
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    if (luminance < 0.15) {
-      const adjust = (c: number) => Math.min(255, Math.round(c + (255 - c) * 0.7));
-      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
-    }
-    if (luminance > 0.85) {
-      const adjust = (c: number) => Math.max(0, Math.round(c * 0.5));
-      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
-    }
-    return data.primaryColour;
-  }, [data.primaryColour]);
 
   return (
     <div className="space-y-6">
@@ -275,6 +252,27 @@ export function BrandingSection({
                 onChange={(e) => handleColourChange(e.target.value)}
                 className="h-10 w-28 font-mono"
                 aria-label="Hex colour value"
+              />
+            </div>
+          }
+        />
+        <SettingsRow
+          label="Secondary colour"
+          helper="Used for headings and accents beside the primary button colour."
+          control={
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={data.secondaryColour ?? '#1F242E'}
+                onChange={(e) => handleSecondaryChange(e.target.value)}
+                aria-label="Secondary colour picker"
+                className="h-10 w-10 cursor-pointer rounded-md border border-border bg-surface"
+              />
+              <Input
+                value={data.secondaryColour ?? '#1F242E'}
+                onChange={(e) => handleSecondaryChange(e.target.value)}
+                className="h-10 w-28 font-mono"
+                aria-label="Secondary hex colour value"
               />
             </div>
           }
@@ -399,75 +397,6 @@ export function BrandingSection({
           }
         />
       </SettingsSection>
-      {/* Contrast warning */}
-      {!contrastPasses && (
-        <div className="rounded-lg border border-warning-border bg-warning-wash px-4 py-3">
-          <div className="flex items-start gap-2">
-            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-warning" />
-            <div className="flex-1">
-              <p className="text-body-sm font-medium text-heading">
-                Text on this colour may be hard to read.
-              </p>
-              <p className="mt-1 text-body-sm text-muted">
-                The button text on your candidate landing page could fail accessibility contrast.{' '}
-                <button
-                  type="button"
-                  onClick={() => handleColourChange(autoCorrectedColour)}
-                  className="font-medium text-primary hover:underline"
-                >
-                  Use {autoCorrectedColour} instead
-                </button>
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reset to default */}
-      <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
-        <div>
-          <p className="text-body-sm font-medium text-heading">Reset branding</p>
-          <p className="text-body-sm text-muted">Restore the default logo, colour and theme.</p>
-        </div>
-        {showResetConfirm ? (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                update({
-                  logoUrl: '',
-                  primaryColour: '#5B4FE9',
-                  theme: 'auto',
-                  font: 'inter',
-                } as Partial<BrandingInput>);
-                setShowResetConfirm(false);
-              }}
-              className="rounded-md bg-error px-3 py-1.5 text-body-sm text-error-foreground transition-colors hover:bg-error-active"
-            >
-              Confirm reset
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowResetConfirm(false)}
-              className="rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setShowResetConfirm(true)}
-            className="rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
-          >
-            Reset to default
-          </button>
-        )}
-      </div>
-
-      {hexError && (
-        <p role="alert" className="text-body-sm text-error">{hexError}</p>
-      )}
       {showSaveBar && <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />}
     </div>
   );
