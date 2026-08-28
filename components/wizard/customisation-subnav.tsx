@@ -4,31 +4,9 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import {
-  Palette,
-  FileText,
-  ListChecks,
-  CheckCircle,
-  Share2,
-  Shield,
-  Mail,
-  ClipboardCheck,
-  Tags,
-  GitBranch,
-} from 'lucide-react';
+import { Palette, FileText, ListChecks, Shield, ClipboardCheck, Mail, CircleCheck as CheckCircle, Share2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Circle, Lightbulb } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from '@/components/ui/tooltip';
-
-type SubNavSection = {
-  id: string;
-  label: string;
-  items: SubNavItem[];
-};
+import { useCustomisationPreview, type SectionState } from '@/components/wizard/customisation-preview-context';
 
 type SubNavItem = {
   id: string;
@@ -36,177 +14,151 @@ type SubNavItem = {
   description: string;
   icon: LucideIcon;
   href: (jobId: string) => string;
-  hasError?: boolean;
 };
 
-const SECTIONS: SubNavSection[] = [
-  {
-    id: 'candidate-experience',
-    label: 'Candidate experience',
-    items: [
-      { id: 'branding', label: 'Branding', description: 'Logo, colours & theme', icon: Palette, href: (id) => `/jobs/${id}/edit/customisation/branding` },
-      { id: 'welcome', label: 'Welcome page', description: 'Headline, intro video & content', icon: FileText, href: (id) => `/jobs/${id}/edit/customisation/welcome` },
-      { id: 'form', label: 'Form settings', description: 'Fields & information', icon: ListChecks, href: (id) => `/jobs/${id}/edit/customisation/form` },
-      { id: 'thank-you', label: 'Thank you page', description: 'Completion message', icon: CheckCircle, href: (id) => `/jobs/${id}/edit/customisation/thank-you` },
-      { id: 'social', label: 'Social preview', description: 'Link preview settings', icon: Share2, href: (id) => `/jobs/${id}/edit/customisation/social` },
-    ],
-  },
-  {
-    id: 'interview',
-    label: 'Interview',
-    items: [
-      { id: 'experience', label: 'Interview experience', description: 'Instructions & integrity settings', icon: Shield, href: (id) => `/jobs/${id}/edit/customisation/experience` },
-      { id: 'notifications', label: 'Emails & notifications', description: 'Candidate communication', icon: Mail, href: (id) => `/jobs/${id}/edit/customisation/notifications` },
-    ],
-  },
-  {
-    id: 'evaluation',
-    label: 'Evaluation',
-    items: [
-      { id: 'evaluation', label: 'AI evaluation', description: 'Scoring criteria & weighting', icon: ClipboardCheck, href: (id) => `/jobs/${id}/edit/customisation/evaluation` },
-      { id: 'scoring', label: 'Scoring labels', description: 'Score bands & naming', icon: Tags, href: (id) => `/jobs/${id}/edit/customisation/scoring` },
-      { id: 'stages', label: 'Stages', description: 'Pipeline stages', icon: GitBranch, href: (id) => `/jobs/${id}/edit/customisation/stages` },
-    ],
-  },
+const NAV_ITEMS: SubNavItem[] = [
+  { id: 'branding', label: 'Branding', description: 'Logo, colour and theme', icon: Palette, href: (id) => `/jobs/${id}/edit/customisation/branding` },
+  { id: 'welcome', label: 'Welcome page', description: 'Headline, intro video and content', icon: FileText, href: (id) => `/jobs/${id}/edit/customisation/welcome` },
+  { id: 'form', label: 'Form settings', description: 'What you collect from candidates', icon: ListChecks, href: (id) => `/jobs/${id}/edit/customisation/form` },
+  { id: 'experience', label: 'Interview experience', description: 'Instructions and integrity settings', icon: Shield, href: (id) => `/jobs/${id}/edit/customisation/experience` },
+  { id: 'evaluation', label: 'AI evaluation', description: 'How answers are scored', icon: ClipboardCheck, href: (id) => `/jobs/${id}/edit/customisation/evaluation` },
+  { id: 'notifications', label: 'Emails and notifications', description: 'Candidate communication', icon: Mail, href: (id) => `/jobs/${id}/edit/customisation/notifications` },
+  { id: 'thank-you', label: 'Thank you page', description: 'Completion message', icon: CheckCircle, href: (id) => `/jobs/${id}/edit/customisation/thank-you` },
+  { id: 'social', label: 'Social preview', description: 'How the shared link looks', icon: Share2, href: (id) => `/jobs/${id}/edit/customisation/social` },
 ];
 
 function getCurrentSection(pathname: string): string {
-  for (const section of SECTIONS) {
-    for (const item of section.items) {
-      if (pathname.includes(`/customisation/${item.id}`)) return item.id;
-    }
+  for (const item of NAV_ITEMS) {
+    if (pathname.includes(`/customisation/${item.id}`)) return item.id;
   }
   return 'branding';
+}
+
+function StateIcon({ state }: { state: SectionState }) {
+  if (state === 'complete') return <CheckCircle2 size={14} className="shrink-0 text-success" />;
+  if (state === 'error') return <AlertCircle size={14} className="shrink-0 text-error" />;
+  return <Circle size={14} className="shrink-0 text-muted/40" />;
 }
 
 function SubNavItemRow({
   item,
   isActive,
   jobId,
-  sectionIndex,
-  itemIndex,
+  state,
+  onSelect,
 }: {
   item: SubNavItem;
   isActive: boolean;
   jobId: string;
-  sectionIndex: number;
-  itemIndex: number;
+  state: SectionState;
+  onSelect: () => void;
 }) {
   const Icon = item.icon;
-  const content = (
-    <div
-      className={cn(
-        'relative flex items-center gap-3 rounded-lg p-3 transition-colors',
-        isActive && 'bg-active-menu-bg',
-        !isActive && 'hover:bg-card-hover'
-      )}
-    >
-      {/* Left bar for active */}
-      {isActive && (
-        <span className="absolute left-0 top-1/2 h-[calc(100%-8px)] w-[3px] -translate-y-1/2 rounded-full bg-primary" />
-      )}
-      <div
-        className={cn(
-          'flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors',
-          isActive ? 'bg-primary' : 'bg-card-hover'
-        )}
-      >
-        <Icon
-          size={18}
-          strokeWidth={1.5}
-          className={isActive ? 'text-primary-foreground' : 'text-muted'}
-        />
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span
-          className={cn(
-            'text-body font-semibold',
-            isActive ? 'text-primary' : 'text-heading'
-          )}
-        >
-          {item.label}
-        </span>
-        <span className="text-body-sm text-muted">{item.description}</span>
-      </div>
-      {item.hasError && (
-        <span className="h-2 w-2 shrink-0 rounded-full bg-primary" aria-label="Has unresolved required fields" />
-      )}
-    </div>
-  );
-
   return (
     <Link
       href={item.href(jobId)}
+      onClick={onSelect}
       className="block focus-visible:rounded-lg"
       aria-current={isActive ? 'page' : undefined}
     >
-      {content}
+      <div
+        className={cn(
+          'relative flex items-center gap-3 rounded-lg p-3 transition-colors',
+          isActive && 'bg-active-menu-bg',
+          !isActive && 'hover:bg-card-hover'
+        )}
+      >
+        {isActive && (
+          <span className="absolute left-0 top-1/2 h-[calc(100%-8px)] w-[3px] -translate-y-1/2 rounded-full bg-primary" />
+        )}
+        <div
+          className={cn(
+            'flex h-10 w-10 shrink-0 items-center justify-center rounded-md transition-colors',
+            isActive ? 'bg-primary' : 'bg-card-hover'
+          )}
+        >
+          <Icon
+            size={18}
+            strokeWidth={1.5}
+            className={isActive ? 'text-primary-foreground' : 'text-muted'}
+          />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span
+            className={cn(
+              'text-body font-semibold',
+              isActive ? 'text-primary' : 'text-heading'
+            )}
+          >
+            {item.label}
+          </span>
+          <span className="text-body-sm text-muted">{item.description}</span>
+        </div>
+        <StateIcon state={state} />
+      </div>
     </Link>
   );
 }
 
 interface CustomisationSubNavProps {
   jobId: string;
-  sectionErrors?: Record<string, boolean>;
 }
 
-export function CustomisationSubNav({ jobId, sectionErrors }: CustomisationSubNavProps) {
+export function CustomisationSubNav({ jobId }: CustomisationSubNavProps) {
   const pathname = usePathname();
   const currentSection = getCurrentSection(pathname);
+  const { sectionStates, setActiveSection } = useCustomisationPreview();
 
   return (
     <>
-      {/* Desktop sub-nav. Stretches to the full height of the row (no
-          self-start) so it never ends up shorter than the section content
-          beside it, and scrolls internally when the list outgrows the row. */}
+      {/* Desktop nav */}
       <aside
         className="hidden w-[260px] shrink-0 flex-col overflow-y-auto rounded-lg border border-border bg-surface px-3 py-5 lg:flex"
         aria-label="Customisation sections"
       >
         <div className="px-3">
           <h2 className="text-h3 text-heading">Customisation</h2>
-          <p className="mt-1 text-body-sm text-muted">Personalise the candidate experience</p>
+          <p className="mt-1 text-body-sm text-muted">Personalise the candidate experience.</p>
         </div>
 
-        <div className="mt-5 space-y-5">
-          {SECTIONS.map((section) => (
-            <div key={section.id}>
-              <p className="mb-3 px-3 text-caption font-medium uppercase tracking-wider text-muted">
-                {section.label}
-              </p>
-              <div className="space-y-2">
-                {section.items.map((item) => (
-                  <SubNavItemRow
-                    key={item.id}
-                    item={{
-                      ...item,
-                      hasError: sectionErrors?.[item.id],
-                    }}
-                    isActive={currentSection === item.id}
-                    jobId={jobId}
-                    sectionIndex={0}
-                    itemIndex={0}
-                  />
-                ))}
-              </div>
-            </div>
+        <nav className="mt-5 space-y-1">
+          {NAV_ITEMS.map((item) => (
+            <SubNavItemRow
+              key={item.id}
+              item={item}
+              isActive={currentSection === item.id}
+              jobId={jobId}
+              state={sectionStates[item.id] ?? 'untouched'}
+              onSelect={() => setActiveSection(item.id)}
+            />
           ))}
+        </nav>
+
+        <div className="mt-auto px-3 pt-5">
+          <div className="rounded-lg border border-border bg-muted-bg p-3">
+            <div className="flex items-start gap-2">
+              <Lightbulb size={16} className="mt-0.5 shrink-0 text-warning" />
+              <p className="text-body-sm text-muted">
+                A consistent brand experience helps candidates trust your company and finish the interview.
+              </p>
+            </div>
+          </div>
         </div>
       </aside>
 
-      {/* Mobile/tablet: horizontal scrolling tab strip. lg: matches the sidebar
-          breakpoint so exactly one of the two is always visible. */}
+      {/* Mobile/tablet: horizontal scrolling tab strip */}
       <div
-        className="mb-6 flex items-center gap-2 overflow-x-auto rounded-lg border border-border bg-surface px-3 py-2 lg:hidden"
+        className="flex items-center gap-2 overflow-x-auto rounded-lg border border-border bg-surface px-3 py-2 lg:hidden"
         aria-label="Customisation sections"
       >
-        {SECTIONS.flatMap((section) => section.items).map((item) => {
+        {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
           const isActive = currentSection === item.id;
           return (
             <Link
               key={item.id}
               href={item.href(jobId)}
+              onClick={() => setActiveSection(item.id)}
               className={cn(
                 'flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-body-sm font-medium transition-colors',
                 isActive

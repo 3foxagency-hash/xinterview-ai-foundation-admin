@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getWelcomePage, saveWelcomePage } from '@/lib/api/jobs';
 import type { WelcomePageInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -36,6 +37,7 @@ export function WelcomeSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('welcome', save);
+  usePreviewSync('welcome', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 
@@ -128,13 +130,26 @@ export function WelcomeSection({
                 />
               }
             />
-            <div className="border-t border-border px-4 py-3">
-              <p className="text-body-sm text-muted">
-                Adding an intro video changes the candidate landing page to a two-column layout.
-              </p>
-            </div>
+            {data.introVideoEnabled && !data.introVideoUrl && (
+              <div className="border-t border-border px-4 py-3">
+                <p role="alert" className="text-body-sm text-error">
+                  Add a video link, or turn the intro video off.
+                </p>
+              </div>
+            )}
           </>
         )}
+        <SettingsRow
+          label="Show estimated time"
+          helper="Displays the estimated interview duration on the landing page."
+          control={
+            <Switch
+              checked={data.estimatedTime > 0}
+              onCheckedChange={(v) => update({ estimatedTime: v ? 15 : 0 } as Partial<WelcomePageInput>)}
+              aria-label="Show estimated time to candidates"
+            />
+          }
+        />
         <SettingsRow
           label="Introduction note"
           helper="Shown before the candidate starts. They must acknowledge it to continue."

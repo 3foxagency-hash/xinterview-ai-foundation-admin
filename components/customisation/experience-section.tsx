@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getInterviewExperience, saveInterviewExperience } from '@/lib/api/jobs';
 import type { InterviewExperienceInput } from '@/lib/validation/job';
 import { RichTextEditor } from '@/components/wizard/rich-text-editor';
@@ -38,6 +39,7 @@ export function ExperienceSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('experience', save);
+  usePreviewSync('experience', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 
@@ -100,13 +102,17 @@ export function ExperienceSection({
               <div className="flex-1">
                 <p className="text-body-sm font-medium text-heading">Candidate disclosure</p>
                 <p className="mt-1 text-body-sm text-muted">
-                  Candidates will see this message before starting. It cannot be turned off independently.
+                  Candidates are always told which of these are on. This notice can't be hidden.
                 </p>
                 <div
                   className="mt-3 rounded-md border border-border bg-surface px-4 py-3 text-body-sm italic text-bodyText"
                   aria-readonly
                 >
-                  {DISCLOSURE_TEXT}
+                  {[
+                    data.tabSwitchDetection && 'Tab switching is recorded',
+                    data.disableCopyPaste && 'Copy and paste are disabled',
+                    data.enforceFullScreen && 'Full screen is required',
+                  ].filter(Boolean).join('. ')}.
                 </div>
               </div>
             </div>

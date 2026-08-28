@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getFormSettings, saveFormSettings } from '@/lib/api/jobs';
 import type { FormSettingsInput, FieldRequirement } from '@/lib/validation/job';
 import { track } from '@/lib/utils/analytics';
@@ -97,6 +98,7 @@ export function FormSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('form', save);
+  usePreviewSync('form', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 
@@ -139,6 +141,14 @@ export function FormSection({
             }
           />
         ))}
+
+        <div className="border-t border-border" />
+
+        <div className="px-4 py-3">
+          <p className="text-body-sm text-muted">
+            Only collect what this role actually needs. Everything you turn on is stored against the candidate's record.
+          </p>
+        </div>
 
         <div className="border-t border-border" />
 
