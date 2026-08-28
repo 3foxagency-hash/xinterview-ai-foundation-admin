@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Lock, Check, CircleAlert as AlertCircle } from 'lucide-react';
+import { Lock, Check, CircleAlert as AlertCircle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { INTERVIEW_FORMAT_CONFIG, type FormatConfig } from '@/lib/constants/interview-formats';
 import type { InterviewFormat } from '@/lib/validation/job';
@@ -12,24 +12,18 @@ interface JobFormatSelectionProps {
   onContinue: () => void;
 }
 
-function FormatCardContent({
-  card,
-  selected,
-}: {
-  card: FormatConfig;
-  selected: boolean;
-}) {
+function FormatCardContent({ card, selected }: { card: FormatConfig; selected: boolean }) {
   const Icon = card.icon;
   return (
     <>
       <div className="flex items-start gap-4">
         <div
           className={cn(
-            'flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition-colors',
+            'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border transition-colors',
             selected ? 'border-primary bg-primary/10' : 'border-border bg-card-hover'
           )}
         >
-          <Icon size={20} strokeWidth={1.5} className={selected ? 'text-primary' : 'text-bodyText'} />
+          <Icon size={22} strokeWidth={1.5} className={selected ? 'text-primary' : 'text-bodyText'} />
         </div>
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -53,7 +47,7 @@ function FormatCardContent({
         </div>
       </div>
       <div className="mt-4 border-t border-border pt-4">
-        <ul className="space-y-2">
+        <ul className="space-y-2.5">
           {card.benefits.map((benefit) => (
             <li key={benefit} className="flex items-center gap-2 text-body-sm text-bodyText">
               <Check size={14} className="shrink-0 text-success" strokeWidth={2} />
@@ -68,12 +62,7 @@ function FormatCardContent({
 
 export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormatSelectionProps) {
   const [lockedPopover, setLockedPopover] = React.useState<string | null>(null);
-  const radioGroupRef = React.useRef<HTMLDivElement>(null);
-  const selectableFormats = INTERVIEW_FORMAT_CONFIG.filter((f) => !f.locked && !f.setupRequired);
-
-  const selectableCards = INTERVIEW_FORMAT_CONFIG.filter(
-    (f) => !f.locked && !f.setupRequired
-  );
+  const selectableCards = INTERVIEW_FORMAT_CONFIG.filter((f) => !f.locked && !f.setupRequired);
   const cardRefs = React.useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
@@ -90,8 +79,10 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
     }
   };
 
+  const canContinue = selectableCards.some((f) => f.id === selected);
+
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[800px] space-y-6 pb-24 md:pb-20">
       <div className="text-center">
         <h1 className="text-h1 text-heading">How do you want to interview candidates?</h1>
         <p className="mt-2 text-body-lg text-muted">
@@ -100,7 +91,6 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
       </div>
 
       <div
-        ref={radioGroupRef}
         role="radiogroup"
         aria-label="Interview format"
         className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
@@ -116,15 +106,13 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
               <div key={card.id} className="relative">
                 <button
                   type="button"
-                  onClick={() =>
-                    setLockedPopover(lockedPopover === card.id ? null : card.id)
-                  }
+                  onClick={() => setLockedPopover(lockedPopover === card.id ? null : card.id)}
                   aria-label={`${card.name} — locked`}
-                  className="flex w-full flex-col rounded-lg border border-border bg-surface p-5 text-left opacity-60 transition-opacity hover:opacity-70"
+                  className="flex w-full flex-col rounded-lg border border-border bg-surface p-5 text-left opacity-60 transition-opacity hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
                 >
                   <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
-                      <card.icon size={20} strokeWidth={1.5} className="text-muted" />
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-card-hover">
+                      <card.icon size={22} strokeWidth={1.5} className="text-muted" />
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -143,7 +131,7 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
                 {lockedPopover === card.id && (
                   <div
                     role="tooltip"
-                    className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 rounded-lg border border-border bg-surface p-4 shadow-lg"
+                    className="absolute left-1/2 top-full z-dropdown mt-2 w-72 -translate-x-1/2 rounded-lg border border-border bg-surface p-4 shadow-lg"
                   >
                     <p className="text-body-sm text-heading">{card.lockReason}</p>
                     <a
@@ -172,8 +160,8 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
                 className="flex w-full flex-col rounded-lg border border-border bg-surface p-5 text-left opacity-70"
               >
                 <div className="flex items-start gap-4">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
-                    <card.icon size={20} strokeWidth={1.5} className="text-muted" />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-card-hover">
+                    <card.icon size={22} strokeWidth={1.5} className="text-muted" />
                   </div>
                   <div className="flex-1">
                     <h3 className="text-h3 text-heading">{card.name}</h3>
@@ -212,6 +200,7 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
               onKeyDown={(e) => handleKeyDown(e, selectableIndex)}
               className={cn(
                 'flex w-full flex-col rounded-lg border p-5 text-left transition-all',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface',
                 isSelected
                   ? 'border-primary bg-active-menu-bg shadow-sm'
                   : 'border-border bg-surface hover:border-primary/30 hover:shadow-sm'
@@ -223,7 +212,8 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
         })}
       </div>
 
-      <div className="rounded-lg border border-info-border bg-info-wash px-4 py-3">
+      <div className="flex items-start gap-2.5 rounded-lg border border-info-border bg-info-wash px-4 py-3">
+        <Info size={16} className="mt-0.5 shrink-0 text-info-ink" />
         <p className="text-body-sm text-info-ink">
           <span className="font-semibold">Important.</span> The interview format you select
           determines the type of questions you can ask in the next step.
@@ -234,8 +224,8 @@ export function JobFormatSelection({ selected, onSelect, onContinue }: JobFormat
         <button
           type="button"
           onClick={onContinue}
-          disabled={!selectableFormats.some((f) => f.id === selected)}
-          className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-md transition-all hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
+          disabled={!canContinue}
+          className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-button text-primary-foreground shadow-sm transition-all hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
         >
           Continue
         </button>
