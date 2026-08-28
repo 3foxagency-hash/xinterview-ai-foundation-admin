@@ -56,14 +56,6 @@ export const WIZARD_STEPS: WizardStep[] = [
   },
 ];
 
-export function getStepByNumber(num: number): WizardStep | undefined {
-  return WIZARD_STEPS.find((s) => s.number === num);
-}
-
-export function getStepById(id: WizardStepId): WizardStep | undefined {
-  return WIZARD_STEPS.find((s) => s.id === id);
-}
-
 export function getStepNumberFromPath(pathname: string): number {
   if (pathname.includes('/setup')) return 1;
   if (pathname.includes('/questions')) return 2;
