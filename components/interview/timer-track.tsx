@@ -32,22 +32,16 @@ export function TimerTrack({
 }: TimerTrackProps) {
   const remainingSeconds = Math.ceil(remainingMs / 1000);
 
-  // 2.4b — the bar fills with elapsed progress: 0% when the answer
-  // starts, 100% when the limit is reached. It previously used the
-  // *remaining* fraction, so it started full and drained — which read
-  // as "already three-quarters done" the moment a question began, and
-  // as barely moving on a long question.
+  // The bar always represents time *left*: it starts full and drains as
+  // the clock runs down, so the brand colour shrinks while the empty
+  // track grows. Both phases behave identically — the "Recording starts
+  // in…" countdown and the answer timer — so the direction never
+  // reverses between them (#4).
   //
-  // percent = elapsed / totalSeconds * 100, so a 100s limit advances
+  // percent = remaining / totalSeconds * 100, so a 100s limit loses
   // 1% per second, a 90s limit ~1.11% per second, and so on.
-  //
-  // The pre-answer "Recording starts in…" countdown keeps draining —
-  // there the bar represents time left before recording begins, so it
-  // should empty as it approaches zero.
-  const elapsedMs = Math.max(0, totalSeconds * 1000 - remainingMs);
-  const progressMs = variant === 'thinking' ? remainingMs : elapsedMs;
   const percent = totalSeconds > 0
-    ? Math.max(0, Math.min(100, (progressMs / 1000 / totalSeconds) * 100))
+    ? Math.max(0, Math.min(100, (remainingMs / 1000 / totalSeconds) * 100))
     : 0;
 
 

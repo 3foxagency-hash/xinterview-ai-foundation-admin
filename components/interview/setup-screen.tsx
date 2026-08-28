@@ -287,9 +287,10 @@ export function SetupScreen({
         ? strings.setupConnectionWeak
         : connectionStatus === 'adequate'
           ? strings.setupConnectionAdequate
-          : connectionStatus === 'strong'
-            ? strings.setupConnectionStable
-            : undefined;
+          // No message on a strong connection (#3) — "Your answers will
+          // upload smoothly" only added height without telling the
+          // candidate anything the badge doesn't already say.
+          : undefined;
 
   const ctaClick = blocked ? handleTryAgain : onBeginInterview;
 
@@ -311,9 +312,6 @@ export function SetupScreen({
           {/* Left column — camera preview */}
           <div className="iv-setup-left">
             <div className="iv-setup-eyebrow">
-              <span className="iv-brand-mark iv-brand-mark-sm" aria-hidden="true">
-                {config.company.name.charAt(0).toUpperCase()}
-              </span>
               <span className="iv-micro-label">
                 {strings.setupEyebrow(config.company.name)}
               </span>

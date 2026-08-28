@@ -396,7 +396,7 @@ export function ApplicationForm({
           {/* Four interchangeable designs while the team compares
               them; see components/interview/cv-upload.tsx. */}
           <CvUpload
-            design={config.cvDesign ?? 1}
+            design={config.cvDesign ?? 3}
             file={values.resume}
             isUploading={isUploading}
             uploadProgress={uploadProgress}
