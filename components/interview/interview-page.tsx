@@ -114,13 +114,7 @@ export function InterviewPage({ token }: { token: string }) {
           // not apply.
           <div className="iv-layout-centre">
             <div className="iv-centre-content">
-              {/* Eyebrow — the brand mark reads as a small dot above the
-                  label in this centred layout. */}
               <div className="iv-centre-eyebrow">
-                <span
-                  className="iv-brand-mark iv-brand-mark-dot"
-                  aria-hidden="true"
-                />
                 <span className="iv-micro-label">
                   {strings.eyebrow(config.company.name)}
                 </span>

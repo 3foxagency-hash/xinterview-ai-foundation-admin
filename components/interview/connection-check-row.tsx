@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Check, TriangleAlert as AlertTriangle, ArrowUp, ArrowDown, Activity } from 'lucide-react';
+import { Check, TriangleAlert as AlertTriangle, ArrowUp, ArrowDown } from 'lucide-react';
 import { strings } from '@/lib/interview/strings';
 import type { CheckStatus } from '@/components/interview/device-check-row';
 import type { ConnectionStatus as ConnectionTier } from '@/lib/interview/use-connection-speed';
@@ -55,20 +55,8 @@ function SpeedFigures({
           {downloadMbps !== null ? strings.setupSpeedMbps(downloadMbps) : '—'}
         </span>
       </span>
-      {(latencyMs != null || jitterMs != null) && (
-        <span className="iv-connection-speed-row">
-          <Activity size={13} strokeWidth={2} className="iv-connection-speed-icon" />
-          <span className="iv-connection-speed-label">{strings.setupLatencyLabel}</span>
-          <span className="iv-connection-speed-value">
-            {latencyMs != null ? strings.setupMs(latencyMs) : '—'}
-            {jitterMs != null && (
-              <span className="iv-connection-jitter">
-                {' '}· {strings.setupJitterLabel} {strings.setupMs(jitterMs)}
-              </span>
-            )}
-          </span>
-        </span>
-      )}
+      {/* Latency/jitter row removed (#3) — upload and download are what
+          matter here, and dropping it shortens the panel. */}
     </div>
   );
 }

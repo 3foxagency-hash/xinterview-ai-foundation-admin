@@ -59,9 +59,8 @@ export function JobHeader({
           gap: '10px',
         }}
       >
-        <span className="iv-brand-mark iv-brand-mark-sm" aria-hidden="true">
-          {companyName.charAt(0).toUpperCase()}
-        </span>
+        {/* No initials mark here — the real company logo lives in the
+            top bar (#6). */}
         <span className="iv-micro-label">
           {strings.eyebrow(companyName)}
         </span>

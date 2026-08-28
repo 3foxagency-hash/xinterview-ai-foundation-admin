@@ -124,7 +124,7 @@ export const interviewConfig: InterviewConfig = {
   showIntroVideo: true,
   showJobDescription: true,
   showLogo: true,
-  cvDesign: 1,
+  cvDesign: 3,
   stickyForm: true,
 
   introVideo: {

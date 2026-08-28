@@ -152,6 +152,9 @@ export function deriveTokens(brand: string): ThemeTokens {
     'glow-opacity': '0.18',
     'grain-opacity': '0.03',
     warning: '#B8842E',
+    // Validation errors are always red, never the brand colour — an
+    // error must read as an error whatever the company's palette is.
+    error: '#C4322B',
   };
 
   const dark: Record<string, string> = {
@@ -167,6 +170,7 @@ export function deriveTokens(brand: string): ThemeTokens {
     'glow-opacity': '0.14',
     'grain-opacity': '0.03',
     warning: '#D4933E',
+    error: '#F4776B',
   };
 
   return { light, dark };
