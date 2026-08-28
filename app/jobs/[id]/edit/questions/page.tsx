@@ -342,7 +342,7 @@ export default function QuestionsPage() {
   const hasTemplates = templates.length > 0;
 
   return (
-    <div className="space-y-5 pb-20 md:pb-16">
+    <div className="space-y-6 pb-28">
       {/* Live region for screen reader announcements */}
       <div ref={announceRef} aria-live="polite" className="sr-only" />
 
@@ -361,10 +361,10 @@ export default function QuestionsPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
         {/* Left rail — sticky on desktop */}
         <div className="hidden lg:block">
-          <div className="sticky top-4">
+          <div className="sticky top-6">
             <QuestionsRail
               questions={questions}
               interviewDurationMinutes={interviewDurationMinutes}

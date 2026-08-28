@@ -253,7 +253,7 @@ export function JobDetailsForm({
   const timezoneLabel = TIMEZONE_OPTIONS.find((t) => t.value === formData.timezone)?.label ?? formData.timezone;
 
   return (
-    <div className="space-y-5 pb-20 md:pb-16">
+    <div className="space-y-6 pb-24 md:pb-20">
       {/* Format strip */}
       <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
         <div className="flex items-center gap-3">
@@ -281,10 +281,10 @@ export function JobDetailsForm({
         )}
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
         {/* Left rail — sticky on desktop */}
         <div className="hidden lg:block">
-          <div className="sticky top-4">
+          <div className="sticky top-6">
             <JobDetailsRail
               sections={sections}
               activeSection={activeSection}

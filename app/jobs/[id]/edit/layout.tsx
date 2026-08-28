@@ -21,7 +21,7 @@ function EditShell({ children }: { children: React.ReactNode }) {
   const currentStepData = WIZARD_STEPS[currentStep - 1];
 
   return (
-    <div className="flex min-h-0 flex-col bg-background">
+    <div className="flex h-screen flex-col overflow-hidden bg-background">
       <WizardHeader />
       <MobileStepBar
         currentStep={currentStep}
@@ -31,8 +31,8 @@ function EditShell({ children }: { children: React.ReactNode }) {
       {/* min-h-0 lets a step opt into filling the viewport (Customisation
           does, so its two columns can scroll independently) while normal
           steps still scroll the page as a whole. */}
-      <main className="flex min-h-0 flex-1 flex-col">
-        <div className="mx-auto flex w-full min-h-0 max-w-[1200px] flex-1 flex-col px-4 py-4 md:px-8 md:py-6">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-28 md:pb-12">
+        <div className="mx-auto flex w-full min-h-0 max-w-[1040px] flex-1 flex-col px-4 py-6 md:px-8 md:py-8">
           {children}
         </div>
       </main>
