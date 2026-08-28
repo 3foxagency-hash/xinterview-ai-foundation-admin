@@ -125,11 +125,3 @@ export const workspaceNavGroups: SettingsNavGroup[] = [
     ],
   },
 ];
-
-export const ALL_SETTINGS_SECTIONS = settingsNavGroups.flatMap((g) => g.items.map((i) => i.href));
-
-export const SETTINGS_SECTION_TITLES: Record<string, string> = Object.fromEntries(
-  [...settingsNavGroups, ...workspaceNavGroups]
-    .flatMap((g) => g.items)
-    .map((i) => [i.href, i.label])
-);
