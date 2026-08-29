@@ -2,12 +2,17 @@
 
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Search, Plus, Trash2, Check } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Search, Plus, Lock } from 'lucide-react';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
-import { HeroBanner } from '@/components/wizard/hero-banner';
-import { SectionCard } from '@/components/wizard/section-card';
+import { TeamRail } from '@/components/wizard/team-rail';
+import { TeamRoleBadge } from '@/components/wizard/team-role-badge';
+import { TeamMemberRow } from '@/components/wizard/team-member-row';
+import { TeamBulkBar } from '@/components/wizard/team-bulk-bar';
+import { AddTeamMembersSheet } from '@/components/wizard/add-team-members-sheet';
+import { RemoveTeamMemberDialog } from '@/components/wizard/remove-team-member-dialog';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   getJobTeam,
   addJobTeamMembers,
@@ -19,78 +24,170 @@ import {
   type CompanyMember,
   type PlanInfo,
 } from '@/lib/api/jobs';
+import { getProfile } from '@/lib/api/profile';
 import { track } from '@/lib/utils/analytics';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Switch } from '@/components/ui/switch';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from '@/components/ui/dialog';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
 
-function RolePill({ role }: { role: string }) {
-  return (
-    <span
-      className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-caption font-medium',
-        role === 'Admin' && 'border-primary/30 bg-active-menu-bg text-primary',
-        role === 'Manager' && 'border-border bg-muted-bg text-heading',
-        role === 'Executive' && 'border-border bg-muted-bg text-heading'
-      )}
-    >
-      {role}
-    </span>
-  );
-}
+const SEARCH_THRESHOLD = 10;
 
 export default function TeamsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
+  const { job, setSaveState, registerRetry } = useWizard();
+
   const [team, setTeam] = React.useState<JobTeamMember[]>([]);
-  const [loading, setLoading] = React.useState(true);
-  const [search, setSearch] = React.useState('');
-  const [addDialogOpen, setAddDialogOpen] = React.useState(false);
-  const [availableMembers, setAvailableMembers] = React.useState<CompanyMember[]>([]);
-  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
-  const [memberSearch, setMemberSearch] = React.useState('');
+  const [allMembers, setAllMembers] = React.useState<CompanyMember[]>([]);
   const [plan, setPlan] = React.useState<PlanInfo | null>(null);
-  const [adding, setAdding] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  const [search, setSearch] = React.useState('');
+  const [addSheetOpen, setAddSheetOpen] = React.useState(false);
+  const [removeTarget, setRemoveTarget] = React.useState<{
+    member: JobTeamMember;
+    variant: 'remove' | 'leave';
+  } | null>(null);
+  const [selectedIds, setSelectedIds] = React.useState<Set<string>>(new Set());
+  const [continuing, setContinuing] = React.useState(false);
+  const [continueError, setContinueError] = React.useState(false);
+
+  React.useEffect(() => {
+    track('wizard_step_viewed', { step: 3 });
+  }, []);
 
   React.useEffect(() => {
     if (!jobId) return;
     setLoading(true);
-    getJobTeam(jobId)
-      .then(setTeam)
+    Promise.all([getJobTeam(jobId), getCompanyMembers(), getPlanInfo(), getProfile()])
+      .then(([teamData, members, planData, profile]) => {
+        setTeam(teamData);
+        setAllMembers(members);
+        setPlan(planData);
+        setCurrentUserEmail(profile.email);
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
-    getPlanInfo().then(setPlan).catch(() => {});
   }, [jobId]);
 
-  const openAddDialog = async () => {
-    setAddDialogOpen(true);
-    try {
-      const members = await getCompanyMembers();
-      const onTeam = new Set(team.map((t) => t.id));
-      setAvailableMembers(members.filter((m) => !onTeam.has(m.id)));
-    } catch {
-      // silent
+  const owner = team.find((m) => m.isCreator) ?? null;
+  const members = team.filter((m) => !m.isCreator);
+  const currentTeamIds = React.useMemo(() => new Set(team.map((m) => m.id)), [team]);
+  const notificationsLocked = plan ? !plan.emailNotifications : false;
+  const hasCandidates = job?.status === 'active';
+
+  const filteredMembers =
+    members.length > SEARCH_THRESHOLD && search
+      ? members.filter((m) => {
+          const q = search.toLowerCase();
+          return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+        })
+      : members;
+
+  // ─── Save-state wrapper — mirrors the autosave indicator used on earlier steps ───
+  const runMutation = React.useCallback(
+    async (fn: () => Promise<void>) => {
+      setSaveState('saving');
+      try {
+        await fn();
+        setSaveState('saved');
+        setTimeout(() => setSaveState('idle'), 2000);
+      } catch {
+        setSaveState('error');
+        registerRetry(() => runMutation(fn));
+      }
+    },
+    [setSaveState, registerRetry]
+  );
+
+  // ─── Add people ───
+  const handleAddMembers = async (ids: string[]) => {
+    if (!jobId) return;
+    await runMutation(async () => {
+      const updated = await addJobTeamMembers(jobId, ids);
+      setTeam(updated);
+      track('team_member_added', { count: ids.length });
+      toast.success(`Added ${ids.length} ${ids.length === 1 ? 'person' : 'people'}`);
+    });
+  };
+
+  // ─── Notifications ───
+  const handleNotifyChange = (memberId: string, notify: boolean) => {
+    if (!jobId) return;
+    setTeam((prev) =>
+      prev.map((m) => (m.id === memberId ? { ...m, notifyOnComplete: notify } : m))
+    );
+    runMutation(async () => {
+      try {
+        await updateTeamMemberNotification(jobId, memberId, notify);
+        track('team_notification_toggled', { on: notify });
+      } catch (e) {
+        setTeam((prev) =>
+          prev.map((m) => (m.id === memberId ? { ...m, notifyOnComplete: !notify } : m))
+        );
+        throw e;
+      }
+    });
+  };
+
+  const handleOwnerNotifyChange = (notify: boolean) => {
+    if (owner) handleNotifyChange(owner.id, notify);
+  };
+
+  // ─── Remove / leave ───
+  const performRemove = async (member: JobTeamMember) => {
+    if (!jobId) return;
+    await runMutation(async () => {
+      const updated = await removeJobTeamMember(jobId, member.id);
+      setTeam(updated);
+      toast.success(`Removed ${member.name}`, {
+        action: {
+          label: 'Undo',
+          onClick: () => handleUndoRemove(member),
+        },
+      });
+    });
+  };
+
+  const handleUndoRemove = async (member: JobTeamMember) => {
+    if (!jobId) return;
+    await runMutation(async () => {
+      let updated = await addJobTeamMembers(jobId, [member.id]);
+      if (!member.notifyOnComplete) {
+        updated = await updateTeamMemberNotification(jobId, member.id, false);
+      }
+      setTeam(updated);
+    });
+  };
+
+  const handleRemoveRequest = (member: JobTeamMember) => {
+    if (hasCandidates) {
+      setRemoveTarget({ member, variant: 'remove' });
+    } else {
+      performRemove(member);
+      track('team_member_removed', { memberId: member.id });
     }
   };
 
-  const filteredMembers = availableMembers.filter((m) => {
-    if (!memberSearch) return true;
-    const q = memberSearch.toLowerCase();
-    return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
-  });
+  const handleLeaveRequest = (member: JobTeamMember) => {
+    setRemoveTarget({ member, variant: 'leave' });
+  };
 
-  const handleToggleSelect = (id: string) => {
+  const handleConfirmRemoveTarget = async () => {
+    if (!removeTarget) return;
+    const { member, variant } = removeTarget;
+    await performRemove(member);
+    if (variant === 'leave') {
+      track('team_member_left', { memberId: member.id });
+      toast.message("You've left this job.");
+      router.push('/jobs');
+    } else {
+      track('team_member_removed', { memberId: member.id });
+    }
+  };
+
+  // ─── Bulk actions ───
+  const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -99,371 +196,300 @@ export default function TeamsPage() {
     });
   };
 
-  const handleAddMembers = async () => {
-    if (!jobId || selectedIds.size === 0) return;
-    setAdding(true);
-    try {
-      const updated = await addJobTeamMembers(jobId, Array.from(selectedIds));
-      setTeam(updated);
-      track('team_member_added', { count: selectedIds.size });
-      toast.success(`Added ${selectedIds.size} member${selectedIds.size > 1 ? 's' : ''}`);
-      setSelectedIds(new Set());
-      setAddDialogOpen(false);
-    } catch {
-      toast.error('Could not add team members');
-    } finally {
-      setAdding(false);
-    }
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleBulkNotify = (notify: boolean) => {
+    const ids = Array.from(selectedIds);
+    ids.forEach((id) => handleNotifyChange(id, notify));
+    track('team_bulk_action', { action: notify ? 'notify_on' : 'notify_off', count: ids.length });
+    clearSelection();
   };
 
-  const handleRemove = async (memberId: string, name: string) => {
+  const handleBulkRemove = async () => {
     if (!jobId) return;
-    try {
-      const updated = await removeJobTeamMember(jobId, memberId);
-      setTeam(updated);
-      track('team_member_removed', { memberId });
-      toast.success(`Removed ${name}`);
-    } catch {
-      toast.error('Could not remove this member');
-    }
-  };
+    const targets = members.filter((m) => selectedIds.has(m.id));
+    const removable = targets.filter((m) => m.role !== 'Admin' && m.email !== currentUserEmail);
+    const skipped = targets.filter((m) => m.role === 'Admin' || m.email === currentUserEmail);
 
-  const handleNotifyChange = async (memberId: string, notify: boolean) => {
-    if (!jobId) return;
-    setTeam((prev) =>
-      prev.map((m) => (m.id === memberId ? { ...m, notifyOnComplete: notify } : m))
+    if (removable.length > 0) {
+      await runMutation(async () => {
+        let updated = team;
+        for (const m of removable) {
+          updated = await removeJobTeamMember(jobId, m.id);
+        }
+        setTeam(updated);
+      });
+    }
+
+    track('team_bulk_action', { action: 'remove', count: removable.length });
+
+    const skipNote = skipped[0]
+      ? ` ${skipped[0].name} ${skipped[0].role === 'Admin' ? 'is a company admin' : "can't remove themselves"} and stays on the job.`
+      : '';
+    toast.success(
+      `${removable.length} removed.${skipNote}`
     );
-    try {
-      await updateTeamMemberNotification(jobId, memberId, notify);
-    } catch {
-      setTeam((prev) =>
-        prev.map((m) => (m.id === memberId ? { ...m, notifyOnComplete: !notify } : m))
-      );
-    }
+    clearSelection();
   };
 
-  const filteredTeam = team.filter((m) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
-  });
-
+  // ─── Continue ───
   const handleContinue = () => {
     if (!jobId) return;
-    setSaving(true);
+    if (members.length === 0) {
+      track('team_step_continued_empty', {});
+    }
+    setContinuing(true);
+    setContinueError(false);
     setTimeout(() => {
-      setSaving(false);
+      setContinuing(false);
       router.push(`/jobs/${jobId}/edit/customisation`);
-    }, 600);
+    }, 500);
   };
 
-  return (
-    <div className="space-y-6">
-      <HeroBanner
-        headline="Bring your team in"
-        subtext="Choose who can see this job and who gets notified."
-        step={3}
-      />
+  const totalPeople = team.length;
 
-      <SectionCard
-        title="Team members"
-        description="Team members can see this job and its candidates."
-        statusDot={team.length > 1 ? 'success' : 'indigo'}
-        statusTooltip={team.length > 1 ? 'Complete' : 'Only you are on this job so far'}
-        footer={
-          <StepFooter
-            onCancel={() => jobId && router.push(`/jobs/${jobId}/edit/questions`)}
-            onNext={handleContinue}
-            nextLabel="Next: Customisation"
-            nextLoading={saving}
-          />
-        }
-      >
-        {/* Header: search + add button */}
-        <div className="mb-6 flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative w-full sm:w-64">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-            />
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search team…"
-              className="h-9 pl-9"
-            />
+  return (
+    <div className="space-y-5 pb-24 md:pb-20">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
+        {/* Left rail — sticky on desktop */}
+        <div className="hidden lg:block">
+          <div className="sticky top-4">
+            <TeamRail people={team} />
           </div>
-          <button
-            type="button"
-            onClick={openAddDialog}
-            className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-          >
-            <Plus size={14} />
-            Add team member
-          </button>
         </div>
 
-        {/* Team table / cards */}
-        {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="h-16 animate-pulse rounded-lg border border-border bg-card-hover"
-              />
-            ))}
-          </div>
-        ) : filteredTeam.length === 0 ? (
-          <div className="rounded-lg border border-border bg-surface p-8 text-center">
-            <p className="text-body text-bodyText">
-              {team.length === 0
-                ? "No one else is on this job yet. You'll still get all notifications."
-                : 'No team members match your search.'}
-            </p>
-            {team.length === 0 && (
+        {/* Mobile summary */}
+        <div className="lg:hidden">
+          <TeamRail people={team} />
+        </div>
+
+        {/* Main column */}
+        <div className="space-y-4">
+          {/* Job owner */}
+          {loading ? (
+            <div className="h-24 animate-pulse rounded-lg border border-border bg-card-hover" />
+          ) : (
+            owner && (
+              <div className="rounded-lg border border-border bg-surface p-4">
+                <h2 className="mb-3 text-body-sm font-semibold uppercase tracking-wide text-muted">
+                  Job owner
+                </h2>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-active-menu-bg text-body-sm font-medium text-primary">
+                      {owner.initials}
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-body-sm font-medium text-heading">
+                          {owner.name}
+                        </span>
+                        <TeamRoleBadge role={owner.role} />
+                        <span className="inline-flex items-center rounded-full border border-warning-border bg-warning-wash px-2.5 py-0.5 text-caption font-medium text-warning-ink">
+                          Owner
+                        </span>
+                      </div>
+                      <p className="mt-0.5 text-caption text-muted">{owner.email}</p>
+                      <p className="mt-1.5 text-caption text-muted">
+                        Created this job. Always has access and can&apos;t be removed.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <div className="text-right">
+                      <p className="text-caption font-medium text-heading">
+                        Email notifications
+                      </p>
+                      <p className="text-caption text-muted">
+                        Email when a candidate finishes.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Switch
+                        checked={owner.notifyOnComplete}
+                        onCheckedChange={handleOwnerNotifyChange}
+                        disabled={notificationsLocked}
+                        aria-label={
+                          owner.notifyOnComplete
+                            ? `Turn off email notifications for ${owner.name}`
+                            : `Turn on email notifications for ${owner.name}`
+                        }
+                      />
+                      {notificationsLocked && <Lock size={13} className="text-muted" />}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+
+          {/* Team members */}
+          <div className="rounded-lg border border-border bg-surface">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <h2 className="text-h3 text-heading">
+                Team members{' '}
+                <span className="text-body font-normal text-muted">({members.length})</span>
+              </h2>
               <button
                 type="button"
-                onClick={openAddDialog}
-                className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
+                onClick={() => setAddSheetOpen(true)}
+                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
               >
-                <Plus size={14} />
-                Add team member
+                <Plus size={15} />
+                Add people
               </button>
+            </div>
+
+            {notificationsLocked && !loading && members.length > 0 && (
+              <div className="mx-4 mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-wash px-3 py-2.5">
+                <Lock size={14} className="mt-0.5 shrink-0 text-warning-ink" />
+                <p className="text-caption text-warning-ink">
+                  Email notifications aren&apos;t on your current plan.{' '}
+                  <a href="/settings/billing" target="_blank" rel="noopener noreferrer" className="font-medium underline">
+                    See plans
+                  </a>
+                </p>
+              </div>
             )}
-          </div>
-        ) : (
-          <>
-            {/* Desktop: table */}
-            <div className="hidden overflow-hidden rounded-lg border border-border md:block">
-              <table className="w-full text-body">
-                <thead>
-                  <tr className="border-b border-border bg-card-hover text-caption text-muted">
-                    <th className="px-4 py-3 text-left font-medium">Member</th>
-                    <th className="px-4 py-3 text-left font-medium">Company role</th>
-                    <th className="px-4 py-3 text-left font-medium">Email notifications</th>
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredTeam.map((m) => {
-                    const canRemove = !m.isCreator && m.role !== 'Admin';
-                    return (
-                      <tr key={m.id} className="border-b border-border last:border-0">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarFallback className="bg-active-menu-bg text-caption font-medium text-primary">
-                                {m.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-body-sm font-medium text-heading">{m.name}</p>
-                              <p className="text-caption text-muted">{m.email}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3">
-                          <RolePill role={m.role} />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            <Switch
-                              checked={m.notifyOnComplete}
-                              onCheckedChange={(v) => handleNotifyChange(m.id, v)}
-                              disabled={!plan?.emailNotifications}
-                              aria-label={`Notify ${m.name} when a candidate completes this interview`}
-                            />
-                            {!plan?.emailNotifications && (
-                              <span className="text-caption text-muted">
-                                <a
-                                  href="/settings/billing"
-                                  className="text-primary hover:underline"
-                                >
-                                  Upgrade to enable
-                                </a>
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          {canRemove && (
-                            <button
-                              type="button"
-                              onClick={() => handleRemove(m.id, m.name)}
-                              aria-label={`Remove ${m.name}`}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          )}
-                          {m.isCreator && (
-                            <span className="text-caption text-muted">Creator</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
 
-            {/* Mobile: cards */}
-            <div className="space-y-3 md:hidden">
-              {filteredTeam.map((m) => {
-                const canRemove = !m.isCreator && m.role !== 'Admin';
-                return (
-                  <div
-                    key={m.id}
-                    className="rounded-lg border border-border bg-surface p-4"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-9 w-9">
-                          <AvatarFallback className="bg-active-menu-bg text-caption font-medium text-primary">
-                            {m.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <p className="text-body-sm font-medium text-heading">{m.name}</p>
-                          <p className="text-caption text-muted">{m.email}</p>
-                        </div>
-                      </div>
-                      <RolePill role={m.role} />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                      <span className="text-body-sm text-muted">
-                        Notify on completion
-                      </span>
-                      <Switch
-                        checked={m.notifyOnComplete}
-                        onCheckedChange={(v) => handleNotifyChange(m.id, v)}
-                        disabled={!plan?.emailNotifications}
-                        aria-label={`Notify ${m.name} when a candidate completes this interview`}
-                      />
-                    </div>
-                    {!plan?.emailNotifications && (
-                      <p className="mt-1.5 text-caption text-muted">
-                        <a
-                          href="/settings/billing"
-                          className="text-primary hover:underline"
-                        >
-                          Upgrade to enable
-                        </a>
-                      </p>
-                    )}
-                    {canRemove && (
-                      <button
-                        type="button"
-                        onClick={() => handleRemove(m.id, m.name)}
-                        className="mt-3 inline-flex items-center gap-1.5 text-body-sm text-error hover:underline"
-                      >
-                        <Trash2 size={14} />
-                        Remove
-                      </button>
-                    )}
-                    {m.isCreator && (
-                      <p className="mt-3 text-caption text-muted">Creator</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </>
-        )}
-      </SectionCard>
-
-      {/* Add member dialog */}
-      <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add team members</DialogTitle>
-            <DialogDescription>
-              Select company members to add to this job.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="relative mb-3">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-            />
-            <Input
-              value={memberSearch}
-              onChange={(e) => setMemberSearch(e.target.value)}
-              placeholder="Search members…"
-              className="h-9 pl-9"
-            />
-          </div>
-
-          {filteredMembers.length === 0 ? (
-            <div className="rounded-md border border-border bg-card-hover p-6 text-center">
-              <p className="text-body-sm text-muted">
-                No members found. Add people in{' '}
-                <a
-                  href="/settings/team"
-                  className="text-primary hover:underline"
-                >
-                  Settings → Team members
-                </a>
-                .
-              </p>
-            </div>
-          ) : (
-            <div className="max-h-[280px] space-y-1 overflow-y-auto">
-              {filteredMembers.map((m) => (
-                <label
-                  key={m.id}
-                  className={cn(
-                    'flex items-center gap-3 rounded-md border p-3 transition-colors',
-                    selectedIds.has(m.id)
-                      ? 'border-primary/30 bg-active-menu-bg'
-                      : 'border-transparent hover:bg-card-hover'
-                  )}
-                >
-                  <Checkbox
-                    checked={selectedIds.has(m.id)}
-                    onCheckedChange={() => handleToggleSelect(m.id)}
+            {members.length > SEARCH_THRESHOLD && (
+              <div className="px-4 pt-4">
+                <div className="relative">
+                  <Search
+                    size={16}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
                   />
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-active-menu-bg text-caption font-medium text-primary">
-                      {m.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="text-body-sm font-medium text-heading">{m.name}</p>
-                    <p className="text-caption text-muted">{m.email}</p>
-                  </div>
-                  <RolePill role={m.role} />
-                </label>
-              ))}
+                  <Input
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Search members…"
+                    className="h-9 pl-9"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="p-4">
+              {selectedIds.size >= 2 && (
+                <TeamBulkBar
+                  selectedCount={selectedIds.size}
+                  notificationsLocked={notificationsLocked}
+                  onTurnOn={() => handleBulkNotify(true)}
+                  onTurnOff={() => handleBulkNotify(false)}
+                  onRemove={handleBulkRemove}
+                  onClear={clearSelection}
+                />
+              )}
+
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-14 animate-pulse rounded-lg border border-border bg-card-hover"
+                    />
+                  ))}
+                </div>
+              ) : members.length === 0 ? (
+                <div className="flex flex-col items-center py-10 text-center">
+                  <p className="max-w-sm text-body text-muted">
+                    No one else is on this job yet. Only you will see candidate answers and get
+                    notified.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setAddSheetOpen(true)}
+                    className="mt-4 inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
+                  >
+                    <Plus size={14} />
+                    Add people
+                  </button>
+                </div>
+              ) : filteredMembers.length === 0 ? (
+                <p className="py-10 text-center text-body-sm text-muted">
+                  No team members match your search.
+                </p>
+              ) : (
+                <div className="overflow-hidden rounded-lg border border-border">
+                  {filteredMembers.map((m) => (
+                    <TeamMemberRow
+                      key={m.id}
+                      member={m}
+                      isCurrentUser={m.email === currentUserEmail}
+                      notificationsLocked={notificationsLocked}
+                      selected={selectedIds.has(m.id)}
+                      onToggleSelect={toggleSelect}
+                      onNotifyChange={handleNotifyChange}
+                      onRemoveRequest={handleRemoveRequest}
+                      onLeaveRequest={handleLeaveRequest}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Soft warning — never blocks */}
+          {!loading && members.length === 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning-border bg-warning-wash px-4 py-3">
+              <span className="text-body-sm text-warning-ink">
+                Only you will be notified when candidates finish this interview.
+              </span>
+              <button
+                type="button"
+                onClick={() => setAddSheetOpen(true)}
+                className="text-body-sm font-medium text-primary hover:underline"
+              >
+                Add people
+              </button>
             </div>
           )}
 
-          <div className="flex justify-end gap-3 border-t border-border pt-4">
-            <button
-              type="button"
-              onClick={() => setAddDialogOpen(false)}
-              className="inline-flex h-9 items-center rounded-md border border-border-strong px-4 text-button text-heading transition-colors hover:bg-card-hover"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleAddMembers}
-              disabled={selectedIds.size === 0 || adding}
-              className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground transition-colors hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-50"
-            >
-              {adding ? (
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
-              ) : (
-                <Check size={14} />
-              )}
-              Add {selectedIds.size > 0 && `${selectedIds.size} `}
-              {selectedIds.size === 1 ? 'member' : 'members'}
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          {continueError && (
+            <div className="flex items-center justify-between rounded-md border border-error-border bg-error-wash px-4 py-3">
+              <span className="text-body-sm text-error-ink">
+                Couldn&apos;t save and continue. Try again.
+              </span>
+              <button
+                type="button"
+                onClick={handleContinue}
+                className="text-body-sm font-medium text-primary hover:underline"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <StepFooter
+        onBack={() => router.push(jobId ? `/jobs/${jobId}/edit/questions` : '/jobs/new/setup')}
+        backLabel="Back to questions"
+        onNext={handleContinue}
+        nextLabel="Continue to customisation"
+        nextLoading={continuing}
+      />
+
+      <AddTeamMembersSheet
+        open={addSheetOpen}
+        onOpenChange={setAddSheetOpen}
+        allMembers={allMembers}
+        currentTeamIds={currentTeamIds}
+        onAdd={handleAddMembers}
+      />
+
+      <RemoveTeamMemberDialog
+        open={!!removeTarget}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+        memberName={removeTarget?.member.name ?? ''}
+        variant={removeTarget?.variant ?? 'remove'}
+        onConfirm={handleConfirmRemoveTarget}
+      />
+
+      <span className="sr-only" aria-live="polite">
+        {totalPeople} people on this job
+      </span>
     </div>
   );
 }
