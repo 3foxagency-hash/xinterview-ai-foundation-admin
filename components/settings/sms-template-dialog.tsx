@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Loader2, Eye, Pencil, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { PlaceholderEditor, type PlaceholderEditorHandle } from './placeholder-editor';
 import {
   SMS_PLACEHOLDERS,
   SMS_MAX_LENGTH,
@@ -45,7 +46,7 @@ export function SmsTemplateDialog({
   const [loading, setLoading] = React.useState(false);
   const [resetting, setResetting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
-  const bodyRef = React.useRef<HTMLTextAreaElement>(null);
+  const bodyEditorRef = React.useRef<PlaceholderEditorHandle>(null);
 
   const templateRef = React.useRef(template);
   templateRef.current = template;
@@ -59,15 +60,7 @@ export function SmsTemplateDialog({
   }, [open]);
 
   const insertPlaceholder = (token: string) => {
-    const el = bodyRef.current;
-    const start = el?.selectionStart ?? body.length;
-    const end = el?.selectionEnd ?? body.length;
-    const next = body.slice(0, start) + token + body.slice(end);
-    setBody(next);
-    requestAnimationFrame(() => {
-      el?.focus();
-      el?.setSelectionRange(start + token.length, start + token.length);
-    });
+    bodyEditorRef.current?.insertPlaceholder(token);
   };
 
   const handleSave = async () => {
@@ -146,24 +139,19 @@ export function SmsTemplateDialog({
               <label htmlFor="sms-body" className="mb-1.5 block text-body-sm font-medium text-heading">
                 Message
               </label>
-              <textarea
+              <PlaceholderEditor
+                ref={bodyEditorRef}
                 id="sms-body"
-                ref={bodyRef}
-                rows={5}
+                mode="plain"
                 value={body}
-                onChange={(e) => {
-                  setBody(e.target.value);
+                onChange={(next) => {
+                  setBody(next);
                   setError(null);
                 }}
                 placeholder="Write your text message…"
-                aria-invalid={overLimit}
-                aria-describedby="sms-count"
-                className={cn(
-                  'w-full rounded-md border bg-background px-3 py-2 text-body text-heading placeholder:text-muted transition-all',
-                  overLimit
-                    ? 'border-error'
-                    :'border-border hover:border-border-strong'
-                )}
+                ariaInvalid={overLimit}
+                ariaDescribedBy="sms-count"
+                className={cn(overLimit ? 'border-error' : undefined)}
               />
               <div className="mt-1.5 flex items-baseline justify-between gap-3">
                 <p className="text-body-sm text-muted">
