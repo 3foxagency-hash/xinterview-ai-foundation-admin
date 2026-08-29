@@ -25,14 +25,16 @@ export default function AuthLayout({
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex min-h-screen bg-background">
-        {/* Left panel — video (hidden on mobile) */}
+      <div className="flex h-screen bg-background">
+        {/* Left panel — video (hidden on mobile). Fixed to the viewport so it
+            never scrolls with the form on the right. */}
         <div className="hidden lg:block flex-1 relative">
           <VideoPanel />
         </div>
 
-        {/* Right panel — form */}
-        <div className="flex w-full flex-col bg-background lg:w-[480px] xl:w-[520px] shrink-0">
+        {/* Right panel — form. This column owns its own scroll so a tall
+            form never drags the video panel along with it. */}
+        <div className="flex h-screen w-full flex-col overflow-y-auto bg-background lg:w-[480px] xl:w-[520px] shrink-0">
           {/* Top bar */}
           <div className="flex items-center justify-between px-6 py-5 lg:px-10 lg:py-6">
             <BrandWordmark height={26} />
