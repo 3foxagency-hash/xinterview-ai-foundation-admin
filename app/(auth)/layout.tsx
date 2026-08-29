@@ -25,7 +25,7 @@ export default function AuthLayout({
 
   return (
     <MotionConfig reducedMotion="user">
-      <div className="flex h-screen bg-background">
+      <div className="fixed inset-0 flex bg-background">
         {/* Left panel — video (hidden on mobile). Fixed to the viewport so it
             never scrolls with the form on the right. */}
         <div className="hidden lg:block flex-1 relative">

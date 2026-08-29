@@ -37,7 +37,7 @@ export default function DashboardLayout({
   const expanded = showRail ? sidebar.expanded : true;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="fixed inset-0 flex overflow-hidden bg-background">
       {/* Desktop sidebar — fixed, does not scroll with page */}
       {showRail && (
         <div className="fixed inset-y-0 left-0 z-30 h-screen">
