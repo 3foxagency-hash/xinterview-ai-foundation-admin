@@ -7,14 +7,12 @@ import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
 import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getNotifications, saveNotifications, getPlanInfo } from '@/lib/api/jobs';
 import type { NotificationsInput, ChannelSettings } from '@/lib/validation/job';
-import { RichTextEditor } from '@/components/wizard/rich-text-editor';
 import { track } from '@/lib/utils/analytics';
 
 type ChannelKey = 'email' | 'sms';
@@ -152,19 +150,6 @@ export function NotificationsSection({
               />
             }
           />
-          {channelData.rejectionMessageEnabled && (
-            <div className="border-t border-border p-4">
-              <Label className="mb-2 block text-body-sm font-semibold text-heading">Rejection message</Label>
-              <p className="mb-3 text-body-sm text-muted">
-                Review this wording carefully. It sends automatically when a candidate moves to Rejected.
-              </p>
-              <RichTextEditor
-                value={channelData.rejectionMessage ?? ''}
-                onChange={(val) => updateChannel(channel, { rejectionMessage: val })}
-                placeholder="Write the rejection message…"
-              />
-            </div>
-          )}
         </div>
       </SettingsSection>
     );

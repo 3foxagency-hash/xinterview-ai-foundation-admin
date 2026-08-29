@@ -20,6 +20,7 @@ import {
   Server,
   Tags,
   GitBranch,
+  MessageSquareText,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -88,6 +89,7 @@ export const workspaceNavGroups: SettingsNavGroup[] = [
     items: [
       { label: 'Branding', href: `${WS}/branding`, icon: Palette, scope: 'company' },
       { label: 'Welcome page', href: `${WS}/welcome`, icon: FileText, scope: 'company' },
+      { label: 'Intro note', href: `${WS}/intro-note`, icon: MessageSquareText, scope: 'company' },
       { label: 'Form settings', href: `${WS}/form`, icon: ListChecks, scope: 'company' },
       { label: 'Thank you page', href: `${WS}/thank-you`, icon: CheckCircle, scope: 'company' },
       { label: 'Social preview', href: `${WS}/social`, icon: Share2, scope: 'company' },

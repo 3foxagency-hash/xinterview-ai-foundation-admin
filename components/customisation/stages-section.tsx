@@ -44,7 +44,14 @@ export function StagesSection({
 
   const remove = (id: string) => setStages(stages.filter((s) => s.id !== id));
 
-  const add = () => setStages([...stages, { id: genId(), name: '', locked: false }]);
+  // New stages land just above the final stage (Rejected) rather than after
+  // it — Rejected is always the end of the pipeline, so anything added lands
+  // as the new penultimate stage. A user can still drag it further up.
+  const add = () => {
+    const next = [...stages];
+    next.splice(Math.max(0, next.length - 1), 0, { id: genId(), name: '', locked: false });
+    setStages(next);
+  };
 
   /**
    * Reorder by drag. A locked stage is neither draggable nor a valid drop

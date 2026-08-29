@@ -1,22 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
 import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getInterviewExperience, saveInterviewExperience } from '@/lib/api/jobs';
 import type { InterviewExperienceInput } from '@/lib/validation/job';
-import { RichTextEditor } from '@/components/wizard/rich-text-editor';
 import { track } from '@/lib/utils/analytics';
-
-const DISCLOSURE_TEXT = 'Your session is monitored for interview integrity.';
 
 export function ExperienceSection({
   scopeId,
@@ -42,9 +36,6 @@ export function ExperienceSection({
   usePreviewSync('experience', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
-
-  const anyIntegrityOn =
-    data.tabSwitchDetection || data.disableCopyPaste || data.enforceFullScreen;
 
   return (
     <div className="space-y-6">
@@ -95,40 +86,6 @@ export function ExperienceSection({
           }
         />
 
-        {anyIntegrityOn && (
-          <div className="border-t border-border bg-active-menu-bg/30 px-4 py-4">
-            <div className="flex items-start gap-2">
-              <Info size={16} className="mt-0.5 shrink-0 text-primary" />
-              <div className="flex-1">
-                <p className="text-body-sm font-medium text-heading">Candidate disclosure</p>
-                <p className="mt-1 text-body-sm text-muted">
-                  Candidates are always told which of these are on. This notice can't be hidden.
-                </p>
-                <div
-                  className="mt-3 rounded-md border border-border bg-surface px-4 py-3 text-body-sm italic text-bodyText"
-                  aria-readonly
-                >
-                  {[
-                    data.tabSwitchDetection && 'Tab switching is recorded',
-                    data.disableCopyPaste && 'Copy and paste are disabled',
-                    data.enforceFullScreen && 'Full screen is required',
-                  ].filter(Boolean).join('. ')}.
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <div className="border-t border-border p-4">
-          <Label className="mb-2 block text-body-sm font-semibold text-heading">
-            Instructions for candidates
-          </Label>
-          <RichTextEditor
-            value={data.candidateInstructions ?? ''}
-            onChange={(val) => update({ candidateInstructions: val } as Partial<InterviewExperienceInput>)}
-            placeholder="Optional instructions shown to candidates before they begin…"
-          />
-        </div>
       </SettingsSection>
       {showSaveBar && <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />}
     </div>
