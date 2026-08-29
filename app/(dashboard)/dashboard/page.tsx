@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Activity, Archive, ArrowDown, ArrowUp, Bot, BriefcaseBusiness, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Copy, EllipsisVertical, Eye, Grid2x2 as Grid2X2, Layers, List, Mic, Pause, Phone, Plus, RotateCcw, Search, Users, Video } from 'lucide-react';
+import { Activity, Archive, ArrowDown, ArrowUp, Bot, BriefcaseBusiness, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Copy, EllipsisVertical, Eye, Grid2x2 as Grid2X2, Layers, List, Mic, Pause, Phone, Plus, RotateCcw, Search, Type, Users, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,6 +61,7 @@ const formatMeta: Record<InterviewFormat, { icon: React.ComponentType<{ classNam
   ai_avatar: { icon: Bot, label: 'AI Avatar Interview', tone: 'ai' },
   ai_voice: { icon: Mic, label: 'AI Voice Interview', tone: 'reports' },
   ai_phone: { icon: Phone, label: 'AI Phone Screening', tone: 'interviews' },
+  text: { icon: Type, label: 'Text Interview', tone: 'settings' },
 };
 
 const statusStyles: Record<JobStatus, string> = {

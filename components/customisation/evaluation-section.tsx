@@ -1,16 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Sparkles,
-  ChevronDown,
-  ChevronUp,
-  Plus,
-  X,
-  AlertCircle,
-  AlertTriangle,
-  Info,
-} from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp, Plus, X, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AIMarker } from '@/components/ui/ai-marker';
 import { SettingsSection } from '@/components/settings/settings-section';
@@ -28,6 +19,7 @@ import {
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import {
   getAiEvaluation,
   saveAiEvaluation,
@@ -244,6 +236,7 @@ export function EvaluationSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('evaluation', save);
+  usePreviewSync('evaluation', data);
   const [questions, setQuestions] = React.useState<Question[]>([]);
   const [generating, setGenerating] = React.useState(false);
   const [aiPreview, setAiPreview] = React.useState<{
@@ -437,6 +430,11 @@ export function EvaluationSection({
             />
           }
         />
+        <div className="border-t border-border px-4 py-3">
+          <p className="text-body-sm text-muted">
+            AI scores are a recommendation. A person on your team reviews every score before a candidate is rejected.
+          </p>
+        </div>
       </SettingsSection>
 
       {/* Evaluation factors */}
@@ -520,7 +518,7 @@ export function EvaluationSection({
                 onClick={distributeEvenly}
                 className="rounded-md border border-primary/30 px-3 py-1 text-body-sm text-primary transition-colors hover:bg-active-menu-bg"
               >
-                Distribute evenly
+                Balance weights
               </button>
               {weightError && remaining > 0 && data.factors.length > 0 && (
                 <button

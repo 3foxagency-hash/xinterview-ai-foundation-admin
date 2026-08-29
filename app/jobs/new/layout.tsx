@@ -3,10 +3,9 @@
 import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { WizardProvider, useWizard } from '@/components/wizard/wizard-context';
-import { WizardRail } from '@/components/wizard/wizard-rail';
-import { TopBar } from '@/components/wizard/top-bar';
-import { MobileProgressHeader } from '@/components/wizard/mobile-progress-header';
-import { getStepNumberFromPath } from '@/lib/wizard-config';
+import { WizardHeader } from '@/components/wizard/wizard-header';
+import { MobileStepBar } from '@/components/wizard/mobile-step-bar';
+import { getStepNumberFromPath, WIZARD_STEPS } from '@/lib/wizard-config';
 
 function WizardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -20,22 +19,21 @@ function WizardShell({ children }: { children: React.ReactNode }) {
     return completed;
   }, [currentStep, jobId]);
 
+  const currentStepData = WIZARD_STEPS[currentStep - 1];
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      <WizardRail currentStep={currentStep} completedSteps={completedSteps} />
-      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-        <MobileProgressHeader
-          currentStep={currentStep}
-          completedSteps={completedSteps}
-          jobId={jobId}
-        />
-        <TopBar />
-        <main className="flex-1 overflow-y-auto pb-28 md:pb-12">
-          <div className="mx-auto w-full max-w-[1040px] px-4 py-6 md:px-8 md:py-8">
-            {children}
-          </div>
-        </main>
-      </div>
+    <div className="flex min-h-0 flex-col bg-background">
+      <WizardHeader />
+      <MobileStepBar
+        currentStep={currentStep}
+        totalSteps={WIZARD_STEPS.length}
+        stepLabel={currentStepData?.label ?? ''}
+      />
+      <main className="flex min-h-0 flex-1 flex-col">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col px-4 py-4 md:px-8 md:py-6">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

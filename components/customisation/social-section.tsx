@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
+import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getSocialPreview, saveSocialPreview } from '@/lib/api/jobs';
 import {
   META_TITLE_MAX,
@@ -37,6 +38,7 @@ export function SocialSection({
 
   // Lets the wizard's single Next button commit this section.
   useRegisterSave('social', save);
+  usePreviewSync('social', data);
 
   if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
 

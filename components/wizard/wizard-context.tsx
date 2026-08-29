@@ -11,6 +11,7 @@ interface WizardContextValue {
   job: Job | null;
   loading: boolean;
   saveState: SaveState;
+  setSaveState: (state: SaveState) => void;
   setJobId: (id: string | null) => void;
   setJob: (job: Job) => void;
   patchJob: (patch: Partial<Job>) => void;
@@ -18,6 +19,8 @@ interface WizardContextValue {
   clearDirty: () => void;
   isDirty: boolean;
   retrySave: () => void;
+  /** Register a retry function for the current step's save (e.g. questions autosave). */
+  registerRetry: (fn: (() => void) | null) => void;
   hasJob: boolean;
   /**
    * How many questions the job has. Steps 3–5 unlock only once step 2 is
@@ -128,7 +131,13 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
       doSave(jobId, pendingPatch.current);
       pendingPatch.current = null;
     }
+    stepRetryRef.current?.();
   }, [jobId, doSave]);
+
+  const stepRetryRef = React.useRef<(() => void) | null>(null);
+  const registerRetry = React.useCallback((fn: (() => void) | null) => {
+    stepRetryRef.current = fn;
+  }, []);
 
   React.useEffect(() => {
     if (!jobId) return;
@@ -152,6 +161,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
     job,
     loading,
     saveState,
+    setSaveState,
     setJobId,
     setJob,
     patchJob,
@@ -159,6 +169,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
     clearDirty,
     isDirty,
     retrySave,
+    registerRetry,
     hasJob: !!jobId,
     questionCount,
     refreshQuestionCount,
