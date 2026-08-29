@@ -112,6 +112,10 @@ export default function CandidatesPage() {
   };
 
   const handleExport = () => {
+    if (!job) {
+      toast.error('Select a job to export. You can only export candidates from one job at a time.');
+      return;
+    }
     const csv = toCsv(filtered);
     const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
     const a = document.createElement('a');
@@ -174,31 +178,12 @@ export default function CandidatesPage() {
           </button>
         </div>
 
-        {/* Stage strip — a count per stage that doubles as the stage filter.
-            Reading the funnel and filtering it are the same gesture. */}
-        <div className="mt-6 -mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
-          <div className="flex min-w-max gap-2 sm:min-w-0 sm:flex-wrap">
-            <StageChip
-              label="All"
-              count={stageBase.length}
-              active={stage === ''}
-              onClick={() => setStage('')}
-            />
-            {CANDIDATE_STAGES.map((s) => (
-              <StageChip
-                key={s}
-                label={s}
-                count={stageCounts.get(s) ?? 0}
-                active={stage === s}
-                onClick={() => setStage(stage === s ? '' : s)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Search + job filter on one row */}
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-          <div className="relative min-w-0 flex-1">
+        {/* Search + job filter + stage filter on one row. Stages live in a
+            dropdown next to the job filter rather than a button strip — the
+            stage list is workspace-configurable and can grow past what a
+            row of chips can hold. */}
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div className="relative min-w-0 sm:flex-1">
             <label htmlFor="candidate-search" className="sr-only">
               Search candidates
             </label>
@@ -215,7 +200,7 @@ export default function CandidatesPage() {
               className="h-10 w-full rounded-md border border-border bg-surface pl-9 pr-3 text-body text-heading placeholder:text-muted transition-colors hover:border-border-strong"
             />
           </div>
-          <div className="sm:w-56">
+          <div className="sm:w-48">
             <label htmlFor="job-filter" className="sr-only">
               Filter by job
             </label>
@@ -225,6 +210,21 @@ export default function CandidatesPage() {
               onChange={setJob}
               placeholder="All jobs"
               options={[{ value: '', label: 'All jobs' }, ...jobs.map((j) => ({ value: j, label: j }))]}
+            />
+          </div>
+          <div className="sm:w-48">
+            <label htmlFor="stage-filter" className="sr-only">
+              Filter by stage
+            </label>
+            <SettingsSelect
+              id="stage-filter"
+              value={stage}
+              onChange={setStage}
+              placeholder="All stages"
+              options={[
+                { value: '', label: `All stages (${stageBase.length})` },
+                ...CANDIDATE_STAGES.map((s) => ({ value: s, label: `${s} (${stageCounts.get(s) ?? 0})` })),
+              ]}
             />
           </div>
         </div>
@@ -447,43 +447,6 @@ function StageBadge({ stage }: { stage: CandidateStage }) {
     >
       {stage}
     </span>
-  );
-}
-
-/** A stage count that is also the stage filter. */
-function StageChip({
-  label,
-  count,
-  active,
-  onClick,
-}: {
-  label: string;
-  count: number;
-  active: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      className={cn(
-        'inline-flex shrink-0 items-center gap-2 rounded-md border px-3 py-1.5 text-body-sm font-medium transition-colors',
-        active
-          ? 'border-heading bg-primary text-primary-foreground'
-          : 'border-border bg-surface text-bodyText hover:bg-card-hover hover:text-heading'
-      )}
-    >
-      {label}
-      <span
-        className={cn(
-          'font-mono text-caption tabular-nums',
-          active ? 'text-primary-foreground/70' : 'text-muted'
-        )}
-      >
-        {count}
-      </span>
-    </button>
   );
 }
 
