@@ -74,7 +74,7 @@ export type CompanyMember = {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Manager' | 'Executive' | 'Member';
+  role: 'Admin' | 'Manager' | 'Executive';
   initials: string;
 };
 
@@ -122,8 +122,18 @@ const teamStore = new Map<string, JobTeamMember[]>();
 const COMPANY_MEMBERS: CompanyMember[] = [
   { id: 'mem_1', name: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', role: 'Admin', initials: 'SC' },
   { id: 'mem_2', name: 'James Patel', email: 'james.patel@xinterview.ai', role: 'Manager', initials: 'JP' },
-  { id: 'mem_3', name: 'Ava Thompson', email: 'ava.thompson@xinterview.ai', role: 'Member', initials: 'AT' },
+  { id: 'mem_3', name: 'Ava Thompson', email: 'ava.thompson@xinterview.ai', role: 'Manager', initials: 'AT' },
   { id: 'mem_4', name: 'Diego Morales', email: 'diego.morales@xinterview.ai', role: 'Executive', initials: 'DM' },
+  { id: 'mem_5', name: 'Priya Nair', email: 'priya.nair@xinterview.ai', role: 'Admin', initials: 'PN' },
+  { id: 'mem_6', name: 'Marcus Webb', email: 'marcus.webb@xinterview.ai', role: 'Manager', initials: 'MW' },
+  { id: 'mem_7', name: 'Lena Kowalski', email: 'lena.kowalski@xinterview.ai', role: 'Executive', initials: 'LK' },
+  { id: 'mem_8', name: 'Tomás Rivera', email: 'tomas.rivera@xinterview.ai', role: 'Manager', initials: 'TR' },
+  { id: 'mem_9', name: 'Yuki Tanaka', email: 'yuki.tanaka@xinterview.ai', role: 'Manager', initials: 'YT' },
+  { id: 'mem_10', name: 'Grace Okafor', email: 'grace.okafor@xinterview.ai', role: 'Executive', initials: 'GO' },
+  { id: 'mem_11', name: 'Noah Bergström', email: 'noah.bergstrom@xinterview.ai', role: 'Manager', initials: 'NB' },
+  { id: 'mem_12', name: 'Isabelle Dubois', email: 'isabelle.dubois@xinterview.ai', role: 'Manager', initials: 'ID' },
+  { id: 'mem_13', name: 'Ravi Subramaniam', email: 'ravi.subramaniam@xinterview.ai', role: 'Manager', initials: 'RS' },
+  { id: 'mem_14', name: 'Hannah Kim', email: 'hannah.kim@xinterview.ai', role: 'Manager', initials: 'HK' },
 ];
 
 const QUESTION_TEMPLATES: QuestionTemplate[] = [
@@ -320,7 +330,8 @@ export async function removeJobTeamMember(
   await delay(300);
   const current = teamStore.get(jobId) ?? [];
   const target = current.find((m) => m.id === memberId);
-  if (target?.isCreator) throw err('validation_failed', 'The job creator cannot be removed');
+  if (target?.isCreator) throw err('validation_failed', 'The job owner cannot be removed');
+  if (target?.role === 'Admin') throw err('validation_failed', 'Company admins always have access to every job');
   const next = current.filter((m) => m.id !== memberId);
   teamStore.set(jobId, next);
   return next;

@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { X, Check, ExternalLink, Loader as Loader2, CircleAlert as AlertCircle, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWizard, type SaveState } from './wizard-context';
-import { WIZARD_STEPS, type WizardStep } from '@/lib/wizard-config';
+import { WIZARD_STEPS, getStepNumberFromPath, type WizardStep } from '@/lib/wizard-config';
 import { track } from '@/lib/utils/analytics';
 import {
   Tooltip,
@@ -125,8 +125,10 @@ function StepPill({
 
 export function WizardHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const { job, jobId, saveState, retrySave, isDirty, questionCount } = useWizard();
   const [confirmExit, setConfirmExit] = React.useState(false);
+  const currentStepNumber = getStepNumberFromPath(pathname ?? '');
 
   const isDraft = job?.status === 'draft';
 
@@ -236,14 +238,12 @@ export function WizardHeader() {
         <div className="hidden items-center justify-center gap-1 border-t border-border px-6 py-2 md:flex">
           <nav aria-label="Wizard steps" className="flex items-center gap-1">
             {WIZARD_STEPS.map((step, index) => {
-              const isComplete =
-                (jobId && step.number < 2) ||
-                (questionCount > 0 && step.number < getStepNumberFromJob(jobId, questionCount));
-              const state: 'complete' | 'current' | 'upcoming' = isComplete
-                ? 'complete'
-                : isCurrentStep(step.number, jobId, questionCount)
-                  ? 'current'
-                  : 'upcoming';
+              const state: 'complete' | 'current' | 'upcoming' =
+                step.number < currentStepNumber
+                  ? 'complete'
+                  : step.number === currentStepNumber
+                    ? 'current'
+                    : 'upcoming';
               const unlocked = jobId !== null && (step.number <= 2 || questionCount > 0);
               const clickable = unlocked && state !== 'current';
 
@@ -253,7 +253,7 @@ export function WizardHeader() {
                     <div
                       className={cn(
                         'mx-1 h-px w-6 transition-colors',
-                        isComplete ? 'bg-success' : 'bg-border'
+                        state !== 'upcoming' ? 'bg-success' : 'bg-border'
                       )}
                       aria-hidden
                     />
@@ -306,17 +306,4 @@ export function WizardHeader() {
       )}
     </>
   );
-}
-
-function getStepNumberFromJob(jobId: string | null, questionCount: number): number {
-  if (!jobId) return 1;
-  if (questionCount === 0) return 2;
-  return 2;
-}
-
-function isCurrentStep(stepNumber: number, jobId: string | null, _questionCount: number): boolean {
-  if (stepNumber === 1 && !jobId) return true;
-  if (stepNumber === 1 && jobId) return false;
-  if (stepNumber === 2 && jobId) return true;
-  return false;
 }
