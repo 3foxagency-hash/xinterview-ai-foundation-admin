@@ -22,15 +22,15 @@ function WizardShell({ children }: { children: React.ReactNode }) {
   const currentStepData = WIZARD_STEPS[currentStep - 1];
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="flex min-h-0 flex-col bg-background">
       <WizardHeader />
       <MobileStepBar
         currentStep={currentStep}
         totalSteps={WIZARD_STEPS.length}
         stepLabel={currentStepData?.label ?? ''}
       />
-      <main className="flex-1 overflow-y-auto">
-        <div className="mx-auto w-full max-w-[1040px] px-4 py-6 md:px-8 md:py-8">
+      <main className="flex min-h-0 flex-1 flex-col">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col px-4 py-4 md:px-8 md:py-6">
           {children}
         </div>
       </main>
