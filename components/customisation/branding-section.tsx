@@ -95,6 +95,39 @@ export function BrandingSection({
   const [hexError, setHexError] = React.useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = React.useState(false);
 
+  // These must run on every render regardless of loading state — hooks
+  // below an early return change the hook count between renders and throw
+  // "Rendered more hooks than during the previous render." `data` is only
+  // possibly null while loading, so each falls back to the same default
+  // primary colour used by "Reset to default" below.
+  const primaryColour = data?.primaryColour ?? '#5B4FE9';
+
+  const contrastPasses = React.useMemo(() => {
+    const hex = primaryColour.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.35 || luminance < 0.15 ? false : true;
+  }, [primaryColour]);
+
+  const autoCorrectedColour = React.useMemo(() => {
+    const hex = primaryColour.replace('#', '');
+    const r = parseInt(hex.slice(0, 2), 16);
+    const g = parseInt(hex.slice(2, 4), 16);
+    const b = parseInt(hex.slice(4, 6), 16);
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    if (luminance < 0.15) {
+      const adjust = (c: number) => Math.min(255, Math.round(c + (255 - c) * 0.7));
+      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
+    }
+    if (luminance > 0.85) {
+      const adjust = (c: number) => Math.max(0, Math.round(c * 0.5));
+      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
+    }
+    return primaryColour;
+  }, [primaryColour]);
+
   if (loading || !data) {
     return <div className="py-8 text-center text-muted">Loading…</div>;
   }
@@ -144,32 +177,6 @@ export function BrandingSection({
     update({ primaryColour: colour } as Partial<BrandingInput>);
     track('branding_updated', { field: 'primary_colour' });
   };
-
-  const contrastPasses = React.useMemo(() => {
-    const hex = data.primaryColour.replace('#', '');
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    return luminance > 0.35 || luminance < 0.15 ? false : true;
-  }, [data.primaryColour]);
-
-  const autoCorrectedColour = React.useMemo(() => {
-    const hex = data.primaryColour.replace('#', '');
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-    if (luminance < 0.15) {
-      const adjust = (c: number) => Math.min(255, Math.round(c + (255 - c) * 0.7));
-      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
-    }
-    if (luminance > 0.85) {
-      const adjust = (c: number) => Math.max(0, Math.round(c * 0.5));
-      return `#${adjust(r).toString(16).padStart(2, '0')}${adjust(g).toString(16).padStart(2, '0')}${adjust(b).toString(16).padStart(2, '0')}`.toUpperCase();
-    }
-    return data.primaryColour;
-  }, [data.primaryColour]);
 
   return (
     <div className="space-y-6">
