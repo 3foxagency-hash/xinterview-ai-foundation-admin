@@ -111,7 +111,14 @@ export function CustomisationPreviewProvider({
       key: K,
       data: NonNullable<CustomisationPreviewState[K]>
     ) => {
-      setState((prev) => ({ ...prev, [key]: data }));
+      // Bail out when this section's data hasn't actually changed. Without
+      // this, every render of the memoized context value (itself keyed on
+      // `state`) hands consumers' usePreviewSync effects a new `ctx`
+      // reference, their effect deps see that as a change, they call
+      // setSectionData again with the same data, state gets a new object
+      // identity regardless, and the cycle never settles — an infinite
+      // "Maximum update depth exceeded" loop.
+      setState((prev) => (prev[key] === data ? prev : { ...prev, [key]: data }));
     },
     []
   );
