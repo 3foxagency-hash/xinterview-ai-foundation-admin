@@ -1,4 +1,5 @@
 import type { InterviewFormat } from '@/lib/validation/job';
+import { SCORING_BAND_COLOURS } from '@/lib/constants/scoring-band-colours';
 
 /**
  * Jobs API — the create-job wizard flow.
@@ -711,9 +712,9 @@ export async function getScoringLabels(jobId: string): Promise<ScoringLabelsInpu
   const data = getCustom(jobId);
   return (data.scoringLabels as ScoringLabelsInput) ?? {
     bands: [
-      { id: 'b1', name: 'Poor', min: 0, max: 40, colour: '#EF4444' },
-      { id: 'b2', name: 'Fair', min: 40, max: 70, colour: '#F59E0B' },
-      { id: 'b3', name: 'Good', min: 70, max: 100, colour: '#10B981' },
+      { id: 'b1', name: 'Poor', min: 0, max: 40, colour: SCORING_BAND_COLOURS[3] },
+      { id: 'b2', name: 'Fair', min: 40, max: 70, colour: SCORING_BAND_COLOURS[2] },
+      { id: 'b3', name: 'Good', min: 70, max: 100, colour: SCORING_BAND_COLOURS[0] },
     ],
   };
 }
