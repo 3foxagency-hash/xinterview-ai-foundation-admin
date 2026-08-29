@@ -86,6 +86,7 @@ export type JobTeamMember = CompanyMember & {
 export type PlanInfo = {
   emailNotifications: boolean;
   smsEnabled: boolean;
+  atsImport: boolean;
   candidateLimit: number;
   candidatesUsed: number;
 };
@@ -184,6 +185,7 @@ export async function getPlanInfo(): Promise<PlanInfo> {
   return {
     emailNotifications: true,
     smsEnabled: true,
+    atsImport: true,
     candidateLimit: 100,
     candidatesUsed: jobStore.size * 3,
   };
