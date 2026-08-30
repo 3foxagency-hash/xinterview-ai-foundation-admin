@@ -541,6 +541,7 @@
     text-size-adjust: 100%;
   }
   body {
+    position: relative;
     background-color: var(--background);
     color: var(--body);
     /* Geist ships no cv11/ss01 alternates; ligatures only (§4). */

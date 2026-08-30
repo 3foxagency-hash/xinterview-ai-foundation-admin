@@ -76,7 +76,7 @@ export function EmailInviteCard({
   const validateEmail = (email: string): string | undefined => {
     if (!email.trim()) return undefined;
     const result = emailSchema.safeParse(email);
-    if (!result.success) return result.error.errors[0]?.message ?? 'Enter a valid email';
+    if (!result.success) return result.error.issues[0]?.message ?? 'Enter a valid email';
     if (existingEmails.has(email.toLowerCase())) return 'This email is already invited.';
     return undefined;
   };

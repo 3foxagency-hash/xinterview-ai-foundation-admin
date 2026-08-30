@@ -1,21 +1,26 @@
 'use client';
 
 import * as React from 'react';
-import { GripVertical, Plus, X, AlertCircle } from 'lucide-react';
+import { GripVertical, Plus, X, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
 import { getScoringLabels, saveScoringLabels } from '@/lib/api/jobs';
 import type { ScoringLabelsInput, ScoringBand } from '@/lib/validation/job';
+import { SCORING_BAND_COLOURS } from '@/lib/constants/scoring-band-colours';
 import { track } from '@/lib/utils/analytics';
 
-const BAND_COLOURS = [
-  '#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6',
-];
+const NAME_MAX_LENGTH = 12;
+const BAND_COLOURS: readonly string[] = SCORING_BAND_COLOURS;
 
 function genId() {
   return `band_${Math.random().toString(36).slice(2, 10)}`;
@@ -66,15 +71,25 @@ export function ScoringSection({
 
   const addBand = () => {
     if (data.bands.length >= 5) return;
-    const lastMax = Math.max(...data.bands.map((b) => b.max), 0);
-    const newBand: ScoringBand = {
-      id: genId(),
-      name: '',
-      min: lastMax,
-      max: Math.min(lastMax + 20, 100),
-      colour: BAND_COLOURS[data.bands.length % BAND_COLOURS.length],
-    };
-    update({ bands: [...data.bands, newBand] });
+
+    const usedColours = new Set(data.bands.map((b) => b.colour.toUpperCase()));
+    const colour = BAND_COLOURS.find((c) => !usedColours.has(c.toUpperCase())) ?? BAND_COLOURS[data.bands.length % BAND_COLOURS.length];
+
+    const newBand: ScoringBand = { id: genId(), name: '', min: 0, max: 0, colour };
+
+    // Existing bands keep their order (by current range) with the new band
+    // appended at the end, then every band's range is spread evenly across
+    // 0-100 — so a 3-band 0/40/70/100 split becomes a clean 0/25/50/75/100
+    // 4-band split instead of leaving the new one squeezed at 100-100.
+    const ordered = [...[...data.bands].sort((a, b) => a.min - b.min), newBand];
+    const step = 100 / ordered.length;
+    const bands = ordered.map((band, index) => ({
+      ...band,
+      min: Math.round(step * index),
+      max: index === ordered.length - 1 ? 100 : Math.round(step * (index + 1)),
+    }));
+
+    update({ bands });
   };
 
   const updateBand = (id: string, patch: Partial<ScoringBand>) => {
@@ -190,24 +205,55 @@ export function ScoringSection({
                   {/* Colour */}
                   <div>
                     <Label className="mb-1.5 block text-body-sm font-semibold text-heading">Colour</Label>
-                    <input
-                      type="color"
-                      value={band.colour}
-                      onChange={(e) => updateBand(band.id, { colour: e.target.value })}
-                      aria-label={`Band ${index + 1} colour`}
-                      className="h-10 w-12 cursor-pointer rounded-md border border-border bg-surface"
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={`Band ${index + 1} colour`}
+                          className="h-10 w-12 cursor-pointer rounded-md border border-border"
+                          style={{ backgroundColor: band.colour }}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-2">
+                        <div className="grid grid-cols-4 gap-1.5">
+                          {BAND_COLOURS.map((colour) => (
+                            <button
+                              key={colour}
+                              type="button"
+                              onClick={() => updateBand(band.id, { colour })}
+                              aria-label={`Use ${colour}`}
+                              className="flex h-8 w-8 items-center justify-center rounded-md border border-border transition-transform hover:scale-105"
+                              style={{ backgroundColor: colour }}
+                            >
+                              {band.colour.toUpperCase() === colour.toUpperCase() && (
+                                <Check size={14} className="text-white" strokeWidth={3} />
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   {/* Name */}
                   <div className="flex-1">
                     <Label className="mb-1.5 block text-body-sm font-semibold text-heading">Name</Label>
-                    <Input
-                      value={band.name}
-                      onChange={(e) => updateBand(band.id, { name: e.target.value })}
-                      maxLength={30}
-                      placeholder="e.g. Good"
-                      className="h-10"
-                    />
+                    <div className="relative">
+                      <Input
+                        value={band.name}
+                        onChange={(e) => updateBand(band.id, { name: e.target.value })}
+                        maxLength={NAME_MAX_LENGTH}
+                        placeholder="e.g. Good"
+                        className="h-10 pr-14"
+                      />
+                      <span
+                        className={cn(
+                          'pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-caption tabular-nums',
+                          band.name.length >= NAME_MAX_LENGTH ? 'font-medium text-error' : 'text-muted'
+                        )}
+                      >
+                        {band.name.length}/{NAME_MAX_LENGTH}
+                      </span>
+                    </div>
                   </div>
                   {/* Min */}
                   <div>

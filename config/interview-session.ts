@@ -56,6 +56,18 @@ export interface InterviewSession {
   candidate: {
     firstName: string | null;
   };
+  /** Live conversational interview (avatar + voice routes). LiveKit
+   *  will supply the real tracks; these are the presentation values. */
+  live: {
+    /** Video shown in the AI interviewer's avatar tile. Stands in for
+     *  the LiveKit avatar track until that is wired up; it loops
+     *  silently, so it reads as a talking head without pretending to
+     *  be a live participant. */
+    avatarVideoUrl: string | null;
+    interviewerName: string;
+    /** Total expected duration, for the top progress line. */
+    estimatedMinutes: number;
+  };
   company: {
     name: string;
     brandColor: string;
@@ -184,6 +196,12 @@ export const interviewSession: InterviewSession = {
 
   candidate: {
     firstName: 'Jane',
+  },
+
+  live: {
+    avatarVideoUrl: '/videos/intro-sample.mp4',
+    interviewerName: 'AI Interviewer',
+    estimatedMinutes: 18,
   },
 
   company: {

@@ -23,7 +23,7 @@ export const organizationSchema = z.object({
       'Enter a valid phone number'
     ),
   companyType: z.enum(['Corporate', 'Agency'], {
-    errorMap: () => ({ message: 'Please select a company type' }),
+    message: 'Please select a company type',
   }),
   businessCategory: z.string().min(1, 'Please select a business category'),
 });

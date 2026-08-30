@@ -11,6 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AnswerModal, AnswerPlayer, QuestionNav, QuestionRail } from '@/components/interview/interview-parts';
 import { aiOverview, interviewQuestions, workflowCandidates, RESUME_META, RESUME_URL, type Candidate } from '@/lib/workflow-mock';
 import { cn } from '@/lib/utils';
+import { BrandWordmark } from '@/components/ui/brand-mark';
 
 /* ── Public share view ──
    Reached from a generated share link. It shows the same interview content as
@@ -39,12 +40,7 @@ function useShareParams() {
 }
 
 function Wordmark() {
-  return (
-    <span className="flex items-center gap-2">
-      <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-body-sm font-semibold text-primary-foreground">X</span>
-      <span className="text-h3 tracking-tight text-heading">XInterview</span>
-    </span>
-  );
+  return <BrandWordmark height={22} />;
 }
 
 function ShareView() {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { PanelLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { primaryNavGroups, bottomNavItems } from '@/lib/nav-config';
+import { BrandMark, BrandWordmark } from '@/components/ui/brand-mark';
 import { NavItem } from './nav-item';
 import { WorkspaceSwitcher } from './workspace-switcher';
 import { ProfileMenu, type ProfileMenuUser } from './profile-menu';
@@ -34,11 +35,10 @@ export function Sidebar({ expanded, onToggle, user }: SidebarProps) {
           aria-label="XInterview home"
           className="flex shrink-0 items-center gap-2 rounded-md"
         >
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-button font-bold text-primary-foreground">
-            X
-          </span>
-          {expanded && (
-            <span className="whitespace-nowrap text-h3 font-semibold tracking-tight text-heading">XInterview</span>
+          {expanded ? (
+            <BrandWordmark height={24} />
+          ) : (
+            <BrandMark size={32} className="rounded-md" />
           )}
         </Link>
 

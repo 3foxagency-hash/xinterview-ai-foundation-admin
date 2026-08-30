@@ -28,19 +28,19 @@ export const jobSetupSchema = z
       .string()
       .min(2, 'Enter a job title.')
       .max(120, 'Job title must be 120 characters or fewer'),
-    department: z.string().max(80).optional().default(''),
+    department: z.string().max(80).default(''),
     employmentType: employmentTypeSchema.optional(),
     experienceLevel: experienceLevelSchema.optional(),
     locationType: locationTypeSchema.default('remote'),
-    location: z.string().max(120).optional().default(''),
-    interviewDuration: z.string().optional().default('30'),
+    location: z.string().max(120).default(''),
+    interviewDuration: z.string().default('30'),
     timezone: z.string().min(1, 'Select a timezone.'),
     applicationDeadline: z.string().min(1, 'Choose an application deadline.'),
     interviewLanguage: z.string().min(1, 'Select an interview language.'),
-    availabilityWindowStart: z.string().optional().default(''),
-    availabilityWindowEnd: z.string().optional().default(''),
-    breakBetweenInterviews: z.string().optional().default(''),
-    description: z.string().optional().default(''),
+    availabilityWindowStart: z.string().default(''),
+    availabilityWindowEnd: z.string().default(''),
+    breakBetweenInterviews: z.string().default(''),
+    description: z.string().default(''),
   })
   .superRefine((data, ctx) => {
     if (
@@ -139,8 +139,8 @@ export type AiQuestionGenInput = z.infer<typeof aiQuestionGenSchema>;
 // ─── Step 4: Customisation — Branding ───
 export const brandingSchema = z.object({
   /** Shown beside the logo on candidate-facing pages. */
-  companyTitle: z.string().max(60, 'Company title must be 60 characters or fewer').optional().default(''),
-  logoUrl: z.string().optional().default(''),
+  companyTitle: z.string().max(60, 'Company title must be 60 characters or fewer').default(''),
+  logoUrl: z.string().default(''),
   primaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#5B4FE9'),
   /** Used for headings and accents beside the primary button colour. */
   secondaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#1F242E'),
@@ -153,13 +153,13 @@ export type BrandingInput = z.infer<typeof brandingSchema>;
 // ─── Customisation — Welcome page ───
 export const welcomePageSchema = z.object({
   headline: z.string().min(1, 'Headline is required').max(50, 'Headline must be 50 characters or fewer'),
-  subtitle: z.string().max(150, 'Subtitle must be 150 characters or fewer').optional().default(''),
+  subtitle: z.string().max(150, 'Subtitle must be 150 characters or fewer').default(''),
   estimatedTime: z.number().min(1, 'Must be at least 1 minute').max(120, 'Must be 120 minutes or fewer'),
   introVideoEnabled: z.boolean().default(false),
   introVideoUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   introNoteEnabled: z.boolean().default(false),
-  introNoteTitle: z.string().max(100).optional().default(''),
-  introNoteBody: z.string().optional().default(''),
+  introNoteTitle: z.string().max(100).default(''),
+  introNoteBody: z.string().default(''),
 });
 export type WelcomePageInput = z.infer<typeof welcomePageSchema>;
 
@@ -198,10 +198,10 @@ export const META_TITLE_MAX = 60;
 export const META_DESCRIPTION_MAX = 160;
 
 export const socialPreviewSchema = z.object({
-  faviconUrl: z.string().optional().default(''),
-  shareImageUrl: z.string().optional().default(''),
-  previewTitle: z.string().max(META_TITLE_MAX).optional().default(''),
-  previewDescription: z.string().max(META_DESCRIPTION_MAX).optional().default(''),
+  faviconUrl: z.string().default(''),
+  shareImageUrl: z.string().default(''),
+  previewTitle: z.string().max(META_TITLE_MAX).default(''),
+  previewDescription: z.string().max(META_DESCRIPTION_MAX).default(''),
 });
 export type SocialPreviewInput = z.infer<typeof socialPreviewSchema>;
 
@@ -210,7 +210,7 @@ export const interviewExperienceSchema = z.object({
   tabSwitchDetection: z.boolean().default(true),
   disableCopyPaste: z.boolean().default(true),
   enforceFullScreen: z.boolean().default(false),
-  candidateInstructions: z.string().optional().default(''),
+  candidateInstructions: z.string().default(''),
 });
 export type InterviewExperienceInput = z.infer<typeof interviewExperienceSchema>;
 
@@ -220,7 +220,7 @@ export const channelSettingsSchema = z.object({
   remindAfterDays: z.boolean().default(false),
   remindDays: z.number().min(1).max(30).default(3),
   rejectionMessageEnabled: z.boolean().default(false),
-  rejectionMessage: z.string().optional().default(''),
+  rejectionMessage: z.string().default(''),
 });
 export type ChannelSettings = z.infer<typeof channelSettingsSchema>;
 
@@ -240,7 +240,7 @@ export type RubricLevel = z.infer<typeof rubricLevelSchema>;
 export const evaluationFactorSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Factor name is required').max(60),
-  description: z.string().max(200).optional().default(''),
+  description: z.string().max(200).default(''),
   keywords: z.array(z.string()).default([]),
   weight: z.number().min(0).max(100),
   rubric: z.array(rubricLevelSchema).length(5),

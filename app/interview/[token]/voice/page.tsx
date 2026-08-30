@@ -1,9 +1,19 @@
 'use client';
 
-import * as React from 'react';
-import { VoiceInterviewShell } from '@/components/interview/voice-interview-shell';
+import { useRouter } from 'next/navigation';
+import { LiveInterviewScreen } from '@/components/interview/live-interview-screen';
 import { interviewSession } from '@/config/interview-session';
+import { interviewConfig } from '@/config/interview.mock';
 
-export default function VoiceInterviewPage() {
-  return <VoiceInterviewShell token="demo" session={interviewSession} />;
+export default function VoicePage() {
+  const router = useRouter();
+
+  return (
+    <LiveInterviewScreen
+      session={interviewSession}
+      mode="voice"
+      jobTitle={interviewConfig.job.title}
+      onEnd={() => router.push('./complete')}
+    />
+  );
 }

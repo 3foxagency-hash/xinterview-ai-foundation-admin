@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { archivedJobs, activeJobs, type InterviewFormat, type Job, type JobStatus } from '@/lib/jobs-mock';
 
@@ -161,7 +162,6 @@ function PipelineStages({ job, archived, onSelect }: { job: Job; archived: boole
           <span className="flex w-full min-w-0 flex-col items-center gap-1 px-1 py-2 text-center sm:py-1">
             <span className="text-h3 tabular text-heading">{stage.count}</span>
             <span className="w-full truncate text-caption font-normal text-muted" title={stage.label}>{stage.label}</span>
-            <span className={cn('mt-0.5 h-1.5 w-1.5 rounded-full', stage.tone)} aria-hidden="true" />
           </span>
         );
         const frame = 'stage-cell flex min-w-0 items-center justify-center rounded-sm';
@@ -184,39 +184,57 @@ function PipelineStages({ job, archived, onSelect }: { job: Job; archived: boole
 }
 
 function JobActions({ job, archived, onAction }: { job: Job; archived: boolean; onAction: (action: string, job: Job) => void }) {
+  const pauseLabel = job.status === 'Paused' ? 'Reactivate' : 'Pause';
   return (
-    <div className="flex shrink-0 items-center gap-2 max-sm:w-full">
-      {archived ? (
-        <Button variant="secondary" size="sm" onClick={() => onAction('restore', job)}><RotateCcw className="h-4 w-4" aria-hidden="true" />Restore</Button>
-      ) : (
-        <Button variant="secondary" size="sm" className="text-primary-ink max-sm:flex-1" onClick={() => onAction('invite', job)}><Plus className="h-4 w-4" aria-hidden="true" />Invite candidate</Button>
-      )}
-      {!archived && (
-        <Button variant="secondary" size="icon-sm" className="text-primary-ink" aria-label={`Preview ${job.title}`} onClick={() => onAction('preview', job)}>
-          <Eye className="h-4 w-4" aria-hidden="true" />
-        </Button>
-      )}
-      {!archived && (
-        <Button
-          variant="secondary"
-          size="icon-sm"
-          className="text-warning-ink"
-          aria-label={`${job.status === 'Paused' ? 'Reactivate' : 'Pause'} ${job.title}`}
-          onClick={() => onAction(job.status === 'Paused' ? 'reactivate' : 'pause', job)}
-        >
-          {job.status === 'Paused' ? <RotateCcw className="h-4 w-4" aria-hidden="true" /> : <Pause className="h-4 w-4" aria-hidden="true" />}
-        </Button>
-      )}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon-sm" aria-label={`More actions for ${job.title}`}><EllipsisVertical className="h-4 w-4" aria-hidden="true" /></Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          {!archived && <><DropdownMenuItem onSelect={() => onAction('edit', job)}>Edit job</DropdownMenuItem><DropdownMenuItem onSelect={() => onAction('clone', job)}><Copy className="mr-2 h-4 w-4" />Clone job</DropdownMenuItem><DropdownMenuSeparator /></>}
-          <DropdownMenuItem onSelect={() => onAction(archived ? 'delete' : 'archive', job)} className={archived ? 'text-error-ink focus:text-error-ink' : ''}>{archived ? <><CircleX className="mr-2 h-4 w-4" />Delete permanently</> : <><Archive className="mr-2 h-4 w-4" />Archive job</>}</DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <TooltipProvider delayDuration={300}>
+      <div className="flex shrink-0 items-center gap-2 max-sm:w-full">
+        {archived ? (
+          <Button variant="secondary" size="sm" onClick={() => onAction('restore', job)}><RotateCcw className="h-4 w-4" aria-hidden="true" />Restore</Button>
+        ) : (
+          <Button variant="secondary" size="sm" className="text-primary-ink max-sm:flex-1" onClick={() => onAction('invite', job)}><Plus className="h-4 w-4" aria-hidden="true" />Invite candidate</Button>
+        )}
+        {!archived && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="secondary" size="icon-sm" className="text-primary-ink" aria-label={`Preview ${job.title}`} onClick={() => onAction('preview', job)}>
+                <Eye className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Preview</TooltipContent>
+          </Tooltip>
+        )}
+        {!archived && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon-sm"
+                className="text-warning-ink"
+                aria-label={`${pauseLabel} ${job.title}`}
+                onClick={() => onAction(job.status === 'Paused' ? 'reactivate' : 'pause', job)}
+              >
+                {job.status === 'Paused' ? <RotateCcw className="h-4 w-4" aria-hidden="true" /> : <Pause className="h-4 w-4" aria-hidden="true" />}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>{pauseLabel}</TooltipContent>
+          </Tooltip>
+        )}
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon-sm" aria-label={`More actions for ${job.title}`}><EllipsisVertical className="h-4 w-4" aria-hidden="true" /></Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>More actions</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end">
+            {!archived && <><DropdownMenuItem onSelect={() => onAction('edit', job)}>Edit job</DropdownMenuItem><DropdownMenuItem onSelect={() => onAction('clone', job)}><Copy className="mr-2 h-4 w-4" />Clone job</DropdownMenuItem><DropdownMenuSeparator /></>}
+            <DropdownMenuItem onSelect={() => onAction(archived ? 'delete' : 'archive', job)} className={archived ? 'text-error-ink focus:text-error-ink' : ''}>{archived ? <><CircleX className="mr-2 h-4 w-4" />Delete permanently</> : <><Archive className="mr-2 h-4 w-4" />Archive job</>}</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </TooltipProvider>
   );
 }
 
@@ -273,13 +291,25 @@ function Pagination({ page, pageCount, pageSize, from, to, total, onPage, onPage
           <SelectTrigger className="h-9 w-36" aria-label="Jobs per page"><SelectValue /></SelectTrigger>
           <SelectContent>{PAGE_SIZES.map((size) => <SelectItem key={size} value={size}>{size} per page</SelectItem>)}</SelectContent>
         </Select>
-        <div className="flex items-center gap-1">
-          <Button variant="secondary" size="icon-sm" aria-label="Previous page" disabled={page === 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /></Button>
-          {pages.map((item) => (
-            <Button key={item} variant={item === page ? 'default' : 'secondary'} size="icon-sm" aria-label={`Page ${item}`} aria-current={item === page ? 'page' : undefined} onClick={() => onPage(item)}>{item}</Button>
-          ))}
-          <Button variant="secondary" size="icon-sm" aria-label="Next page" disabled={page === pageCount} onClick={() => onPage(page + 1)}><ChevronRight className="h-4 w-4" aria-hidden="true" /></Button>
-        </div>
+        <TooltipProvider delayDuration={300}>
+          <div className="flex items-center gap-1">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="icon-sm" aria-label="Previous page" disabled={page === 1} onClick={() => onPage(page - 1)}><ChevronLeft className="h-4 w-4" aria-hidden="true" /></Button>
+              </TooltipTrigger>
+              <TooltipContent>Previous page</TooltipContent>
+            </Tooltip>
+            {pages.map((item) => (
+              <Button key={item} variant={item === page ? 'default' : 'secondary'} size="icon-sm" aria-label={`Page ${item}`} aria-current={item === page ? 'page' : undefined} onClick={() => onPage(item)}>{item}</Button>
+            ))}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="secondary" size="icon-sm" aria-label="Next page" disabled={page === pageCount} onClick={() => onPage(page + 1)}><ChevronRight className="h-4 w-4" aria-hidden="true" /></Button>
+              </TooltipTrigger>
+              <TooltipContent>Next page</TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
     </div>
   );
@@ -404,10 +434,22 @@ export default function OverviewPage() {
             </Select>
             {/* The two-up grid needs width a phone does not have, so the view
                 toggle is desktop-only and mobile always renders the list. */}
-            <div className="ml-auto hidden items-center gap-1 md:flex">
-              <Button variant={view === 'list' ? 'default' : 'secondary'} size="icon" aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List className="h-4 w-4" aria-hidden="true" /></Button>
-              <Button variant={view === 'grid' ? 'default' : 'secondary'} size="icon" aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><Grid2X2 className="h-4 w-4" aria-hidden="true" /></Button>
-            </div>
+            <TooltipProvider delayDuration={300}>
+              <div className="ml-auto hidden items-center gap-1 md:flex">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant={view === 'list' ? 'default' : 'secondary'} size="icon" aria-label="List view" aria-pressed={view === 'list'} onClick={() => setView('list')}><List className="h-4 w-4" aria-hidden="true" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent>List view</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant={view === 'grid' ? 'default' : 'secondary'} size="icon" aria-label="Grid view" aria-pressed={view === 'grid'} onClick={() => setView('grid')}><Grid2X2 className="h-4 w-4" aria-hidden="true" /></Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Grid view</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
           </div>
         </div>
 

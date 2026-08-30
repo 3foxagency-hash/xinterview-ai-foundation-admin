@@ -5745,3 +5745,376 @@
     transition: none;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Live conversational interview — /avatar and /voice.
+   Shares the interview flow's tokens, type scale and chrome;
+   only the interviewer presentation differs between modes.
+   ═══════════════════════════════════════════════════════════ */
+.iv-live-shell {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: var(--page-top-offset) 48px 32px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ── Header ── */
+.iv-live-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.iv-live-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iv-live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--iv-accent);
+  flex-shrink: 0;
+}
+
+.iv-live-dot.sm {
+  width: 6px;
+  height: 6px;
+}
+
+.iv-live-title {
+  font-family: var(--iv-font-display);
+  font-size: clamp(1.5rem, 2.4vw, 2rem);
+  font-weight: 400;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--iv-text);
+  margin: 0;
+}
+
+/* ── Stage ── */
+.iv-live-stage.two-up {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px;
+}
+
+.iv-live-tile {
+  min-width: 0;
+}
+
+.iv-live-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border-radius: 14px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--iv-text-secondary) 10%, transparent);
+  border: 1px solid var(--iv-hairline);
+}
+
+/* The active speaker is ringed in the brand colour. */
+.iv-live-frame.ai.speaking {
+  border-color: var(--iv-accent);
+  box-shadow: 0 0 0 1px var(--iv-accent);
+}
+
+.iv-live-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* The candidate's own tile is mirrored, matching every other self-view
+   in the flow (setup preview, answer recorder). An un-mirrored front
+   camera makes a raised left hand appear on the right, which reads as
+   broken. The interviewer tile is NOT mirrored — that is a remote
+   participant, seen as they actually are. */
+.iv-live-frame:not(.ai) .iv-live-video {
+  transform: scaleX(-1);
+}
+
+.iv-live-frame-empty,
+.iv-live-avatar-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text-secondary);
+}
+
+.iv-live-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--iv-canvas) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--iv-hairline);
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--iv-text-secondary);
+}
+
+/* ── Meta row under the tiles ── */
+.iv-live-meta.two-up {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 44px;
+}
+
+.iv-live-meta-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--iv-hairline);
+  min-width: 0;
+}
+
+.iv-live-meta-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.iv-live-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text-secondary);
+  white-space: nowrap;
+}
+
+/* ── Waveform ── */
+.iv-live-wave {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 22px;
+  min-width: 0;
+}
+
+.iv-live-wave-bar {
+  flex: 1 1 2px;
+  min-width: 2px;
+  max-width: 3px;
+  height: 100%;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--iv-text-secondary) 40%, transparent);
+  transform-origin: center;
+  transition: transform 0.08s linear, background 0.3s ease;
+}
+
+.iv-live-wave.active .iv-live-wave-bar {
+  background: var(--iv-accent);
+}
+
+/* ── Controls ── */
+.iv-live-controls {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  margin-top: 8px;
+}
+
+.iv-live-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 32px;
+  border: none;
+  background: transparent;
+  color: var(--iv-text);
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+.iv-live-control:hover {
+  color: var(--iv-accent);
+}
+
+.iv-live-control:focus-visible {
+  outline: 2px solid var(--iv-accent);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.iv-live-control-divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--iv-hairline);
+}
+
+/* ── Footnotes ── */
+.iv-live-hint {
+  margin: 4px 0 0;
+  text-align: center;
+  font-family: var(--iv-font-body);
+  font-size: 14px;
+  color: var(--iv-text);
+}
+
+.iv-live-notice {
+  margin: 12px 0 0;
+  text-align: center;
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+}
+
+/* ── Voice mode ── */
+.iv-live-stage.voice {
+  display: grid;
+  grid-template-columns: 1fr 460px;
+  gap: 40px;
+  align-items: start;
+}
+
+.iv-live-visualiser {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+  border-radius: 18px;
+  border: 1px solid var(--iv-hairline);
+  background: color-mix(in srgb, var(--iv-text-secondary) 4%, transparent);
+  overflow: hidden;
+}
+
+.iv-live-visualiser-inner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8%;
+}
+
+/* Hero visualiser: taller bars, softly faded at the edges so it reads
+   as a field of sound rather than a meter. */
+.iv-live-wave-hero {
+  height: 46%;
+  width: 100%;
+  gap: 3px;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 18%,
+    #000 82%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 18%,
+    #000 82%,
+    transparent
+  );
+}
+
+.iv-live-wave-hero .iv-live-wave-bar {
+  max-width: 4px;
+  border-radius: 2px;
+}
+
+.iv-live-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+
+.iv-live-side .iv-live-frame {
+  aspect-ratio: 4 / 3;
+}
+
+.iv-live-side-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.iv-live-side .iv-live-controls {
+  margin-top: 0;
+}
+
+.iv-live-side .iv-live-control {
+  padding: 8px 20px;
+}
+
+.iv-live-voice-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 1023px) {
+  .iv-live-shell {
+    padding: var(--page-top-offset) 24px 28px;
+    gap: 16px;
+  }
+
+  .iv-live-stage.two-up,
+  .iv-live-meta.two-up {
+    gap: 20px;
+  }
+
+  .iv-live-stage.voice {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .iv-live-shell {
+    padding: var(--page-top-offset) 20px 24px;
+  }
+
+  /* Tiles stack: the interviewer leads, the candidate follows. */
+  .iv-live-stage.two-up,
+  .iv-live-meta.two-up {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .iv-live-frame {
+    aspect-ratio: 4 / 3;
+  }
+
+  .iv-live-visualiser {
+    aspect-ratio: 4 / 3;
+  }
+
+  .iv-live-control {
+    padding: 10px 16px;
+    font-size: 12px;
+  }
+
+  .iv-live-hint,
+  .iv-live-notice {
+    font-size: 12px;
+  }
+}

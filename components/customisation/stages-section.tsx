@@ -14,6 +14,8 @@ function genId() {
   return `stage_${Math.random().toString(36).slice(2, 10)}`;
 }
 
+const NAME_MAX_LENGTH = 16;
+
 export function StagesSection({
   scopeId,
   showSaveBar = true,
@@ -44,7 +46,14 @@ export function StagesSection({
 
   const remove = (id: string) => setStages(stages.filter((s) => s.id !== id));
 
-  const add = () => setStages([...stages, { id: genId(), name: '', locked: false }]);
+  // New stages land just above the final stage (Rejected) rather than after
+  // it — Rejected is always the end of the pipeline, so anything added lands
+  // as the new penultimate stage. A user can still drag it further up.
+  const add = () => {
+    const next = [...stages];
+    next.splice(Math.max(0, next.length - 1), 0, { id: genId(), name: '', locked: false });
+    setStages(next);
+  };
 
   /**
    * Reorder by drag. A locked stage is neither draggable nor a valid drop
@@ -156,15 +165,25 @@ export function StagesSection({
                       </span>
                     ) : (
                       <>
-                        <Input
-                          value={s.name}
-                          onChange={(e) => rename(s.id, e.target.value)}
-                          placeholder="Enter stage name"
-                          maxLength={30}
-                          aria-label={`Stage name: ${s.name || 'new stage'}`}
-                          aria-invalid={invalid}
-                          className={cn('h-9', invalid && 'border-error')}
-                        />
+                        <div className="relative">
+                          <Input
+                            value={s.name}
+                            onChange={(e) => rename(s.id, e.target.value)}
+                            placeholder="Enter stage name"
+                            maxLength={NAME_MAX_LENGTH}
+                            aria-label={`Stage name: ${s.name || 'new stage'}`}
+                            aria-invalid={invalid}
+                            className={cn('h-9 pr-14', invalid && 'border-error')}
+                          />
+                          <span
+                            className={cn(
+                              'pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-caption tabular-nums',
+                              s.name.length >= NAME_MAX_LENGTH ? 'font-medium text-error' : 'text-muted'
+                            )}
+                          >
+                            {s.name.length}/{NAME_MAX_LENGTH}
+                          </span>
+                        </div>
                         {invalid && (
                           <p className="mt-1 text-caption text-error">
                             {!s.name.trim()

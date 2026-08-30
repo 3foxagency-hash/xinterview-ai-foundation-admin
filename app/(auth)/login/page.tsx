@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Mail, Lock } from 'lucide-react';
-import { toast } from 'sonner';
-import { motion, AnimatePresence } from 'framer-motion';
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Mail, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   AuthCard,
   AuthButton,
@@ -14,11 +14,11 @@ import {
   AuthPasswordField,
   ErrorBanner,
   AuthFooterLink,
-  AuthCheckbox,
-} from '@/components/auth';
-import { loginSchema, type LoginInput } from '@/lib/validation/auth';
-import { login, type ApiError } from '@/lib/api/auth';
-import { getAuthErrorMessage } from '@/lib/errors/auth-messages';
+  AuthCheckbox
+} from "@/components/auth";
+import { loginSchema, type LoginInput, type LoginOutput } from "@/lib/validation/auth";
+import { login, type ApiError } from "@/lib/api/auth";
+import { getAuthErrorMessage } from "@/lib/errors/auth-messages";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -30,14 +30,14 @@ export default function LoginPage() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginInput>({
+    formState: { errors, isSubmitting }
+  } = useForm<LoginInput, any, LoginOutput>({
     resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '', remember: true },
+    defaultValues: { email: "", password: "", remember: true }
   });
 
   // Drive the checkbox from form state so the submitted value is always in sync.
-  const rememberMe = watch('remember');
+  const rememberMe = watch("remember");
 
   React.useEffect(() => {
     if (rateLimitSeconds <= 0) return;
@@ -47,12 +47,12 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [rateLimitSeconds]);
 
-  const onSubmit = async (data: LoginInput) => {
+  const onSubmit = async (data: LoginOutput) => {
     setAuthError(null);
     try {
       await login(data.email, data.password, data.remember);
-      toast.success('Welcome back! Redirecting to your dashboard...');
-      router.push('/dashboard');
+      toast.success("Welcome back! Redirecting to your dashboard...");
+      router.push("/dashboard");
     } catch (err) {
       const error = err as ApiError & { retryAfter?: number };
       if (error.retryAfter) setRateLimitSeconds(error.retryAfter);
@@ -81,7 +81,7 @@ export default function LoginPage() {
             <img
               src="/G2-badge-signin.6cb66346.svg"
               alt="G2 recognition badges"
-              className="h-16 w-auto opacity-80"
+              className="h-32 w-auto"
             />
           </div>
         </div>
@@ -103,7 +103,7 @@ export default function LoginPage() {
             <span>Try again in</span>
             <span className="font-semibold text-heading tabular-nums">
               {Math.floor(rateLimitSeconds / 60)}:
-              {(rateLimitSeconds % 60).toString().padStart(2, '0')}
+              {(rateLimitSeconds % 60).toString().padStart(2, "0")}
             </span>
           </motion.div>
         )}
@@ -116,7 +116,7 @@ export default function LoginPage() {
           leadingIcon={<Mail size={18} strokeWidth={1.5} />}
           error={errors.email?.message}
           disabled={isRateLimited}
-          {...register('email')}
+          {...register("email")}
         />
 
         <AuthPasswordField
@@ -126,15 +126,15 @@ export default function LoginPage() {
           leadingIcon={<Lock size={18} strokeWidth={1.5} />}
           error={errors.password?.message}
           disabled={isRateLimited}
-          {...register('password')}
+          {...register("password")}
         />
 
         <div className="flex items-center justify-between">
           <AuthCheckbox
             id="remember"
             label="Remember me"
-            checked={rememberMe}
-            onCheckedChange={(v) => setValue('remember', v)}
+            checked={rememberMe ?? true}
+            onCheckedChange={(v) => setValue("remember", v)}
           />
           <a
             href="/forgot-password"
@@ -151,7 +151,7 @@ export default function LoginPage() {
           disabled={isRateLimited}
           className="w-full"
         >
-          {isSubmitting ? 'Signing in...' : 'Sign in'}
+          {isSubmitting ? "Signing in..." : "Sign in"}
         </AuthButton>
       </form>
     </AuthCard>

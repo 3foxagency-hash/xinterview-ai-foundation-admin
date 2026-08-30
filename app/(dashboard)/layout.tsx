@@ -7,6 +7,7 @@ import { useSidebar } from '@/components/sidebar/use-sidebar';
 import { Sidebar } from '@/components/sidebar/sidebar';
 import { MobileDrawer } from '@/components/sidebar/mobile-drawer';
 import type { ProfileMenuUser } from '@/components/sidebar/profile-menu';
+import { BrandWordmark } from '@/components/ui/brand-mark';
 
 const demoUser: ProfileMenuUser = {
   name: 'Sarah Chen',
@@ -36,7 +37,7 @@ export default function DashboardLayout({
   const expanded = showRail ? sidebar.expanded : true;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="fixed inset-0 flex overflow-hidden bg-background">
       {/* Desktop sidebar — fixed, does not scroll with page */}
       {showRail && (
         <div className="fixed inset-y-0 left-0 z-30 h-screen">
@@ -78,12 +79,7 @@ export default function DashboardLayout({
             >
               <Menu size={22} strokeWidth={1.5} />
             </button>
-            <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-caption font-bold text-primary-foreground">
-                X
-              </span>
-              <span className="text-body-lg font-semibold text-heading">XInterview</span>
-            </div>
+            <BrandWordmark height={20} />
           </div>
         )}
 

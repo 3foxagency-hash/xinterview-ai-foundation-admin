@@ -12,7 +12,7 @@ import {
 import { Loader2, Eye, Pencil, RotateCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SettingsInput } from './settings-input';
-import { RichTextEditor } from '@/components/wizard/rich-text-editor';
+import { PlaceholderEditor, type PlaceholderEditorHandle } from './placeholder-editor';
 import {
   EMAIL_PLACEHOLDERS,
   renderEmailPreview,
@@ -42,6 +42,7 @@ export function EmailTemplateDialog({
   const [resetting, setResetting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const subjectRef = React.useRef<HTMLInputElement>(null);
+  const bodyEditorRef = React.useRef<PlaceholderEditorHandle>(null);
 
   // Seed only when the dialog opens, so saving doesn't reset the draft.
   const templateRef = React.useRef(template);
@@ -84,7 +85,7 @@ export function EmailTemplateDialog({
       });
       return;
     }
-    setBody((b) => `${b}<p>${token}</p>`);
+    bodyEditorRef.current?.insertPlaceholder(token);
   };
 
   const handleSave = async () => {
@@ -177,7 +178,12 @@ export function EmailTemplateDialog({
                 Message
               </label>
               <div onFocusCapture={() => (lastFocus.current = 'body')}>
-                <RichTextEditor value={body} onChange={setBody} placeholder="Write your email…" />
+                <PlaceholderEditor
+                  ref={bodyEditorRef}
+                  value={body}
+                  onChange={setBody}
+                  placeholder="Write your email…"
+                />
               </div>
             </div>
 

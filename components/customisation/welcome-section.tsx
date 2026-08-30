@@ -6,14 +6,12 @@ import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
 import { usePreviewSync } from '@/components/wizard/use-preview-sync';
 import { getWelcomePage, saveWelcomePage } from '@/lib/api/jobs';
 import type { WelcomePageInput } from '@/lib/validation/job';
-import { RichTextEditor } from '@/components/wizard/rich-text-editor';
 import { track } from '@/lib/utils/analytics';
 
 export function WelcomeSection({
@@ -150,47 +148,6 @@ export function WelcomeSection({
             />
           }
         />
-        <SettingsRow
-          label="Introduction note"
-          helper="Shown before the candidate starts. They must acknowledge it to continue."
-          control={
-            <Switch
-              checked={data.introNoteEnabled}
-              onCheckedChange={(v) => {
-                update({ introNoteEnabled: v } as Partial<WelcomePageInput>);
-                track('welcome_page_updated', { field: 'intro_note', enabled: v });
-              }}
-              aria-label="Enable introduction note"
-            />
-          }
-        />
-        {data.introNoteEnabled && (
-          <>
-            <SettingsRow
-              label="Note title"
-              control={
-                <>
-                <Input
-                  value={data.introNoteTitle ?? ''}
-                  onChange={(e) => update({ introNoteTitle: e.target.value } as Partial<WelcomePageInput>)}
-                  maxLength={100}
-                  placeholder="Before you begin"
-                  aria-label="Note title"
-                />
-                  <CharCount value={data.introNoteTitle ?? ''} max={100} />
-                </>
-              }
-            />
-            <div className="border-t border-border px-4 py-4">
-              <Label className="mb-2 block text-body-sm font-semibold text-heading">Note body</Label>
-              <RichTextEditor
-                value={data.introNoteBody ?? ''}
-                onChange={(val) => update({ introNoteBody: val } as Partial<WelcomePageInput>)}
-                placeholder="Write the introduction candidates must acknowledge…"
-              />
-            </div>
-          </>
-        )}
       </SettingsSection>
       {showSaveBar && <CustomisationSaveBar onSave={save} saving={saving} saved={saved} />}
     </div>

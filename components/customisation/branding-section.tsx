@@ -1,12 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { Upload, Trash2, Check, TriangleAlert as AlertTriangle, Sun, Moon, Monitor } from 'lucide-react';
+import { Upload, Trash2, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CharCount } from '@/components/customisation/char-count';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
-import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -38,35 +37,6 @@ const FONTS = [
   { value: 'poppins', label: 'Poppins', family: 'Poppins, sans-serif' },
   { value: 'sourcesans', label: 'Source Sans Pro', family: 'Source Sans Pro, sans-serif' },
 ];
-
-function MiniThemePreview({ theme }: { theme: 'light' | 'dark' | 'auto' }) {
-  const isDark = theme === 'dark';
-  const isAuto = theme === 'auto';
-  // Literal hexes, not tokens: this thumbnail depicts the candidate-facing
-  // page in each theme, so it must show those surfaces regardless of the
-  // admin's own theme. Values mirror the Geist scales in globals.css.
-  const bg = isDark ? '#0a0a0a' : isAuto ? '#fafafa' : '#ffffff';
-  const cardBg = isDark ? '#1a1a1a' : '#ffffff';
-  const textCol = isDark ? '#ededed' : '#171717';
-  const mutedCol = isDark ? '#a1a1a1' : '#4d4d4d';
-  const indigo = isDark ? '#ededed' : '#171717';
-
-  return (
-    <svg width="120" height="80" viewBox="0 0 120 80" fill="none">
-      <rect width="120" height="80" rx="8" fill={bg} />
-      <rect x="8" y="8" width="104" height="64" rx="6" fill={cardBg} stroke={isDark ? '#2e2e2e' : '#eaeaea'} strokeOpacity="0.8" />
-      <rect x="16" y="16" width="60" height="8" rx="4" fill={textCol} fillOpacity="0.8" />
-      <rect x="16" y="30" width="80" height="6" rx="3" fill={mutedCol} fillOpacity="0.5" />
-      <rect x="16" y="42" width="40" height="20" rx="4" fill={indigo} />
-      {isAuto && (
-        <>
-          <circle cx="95" cy="20" r="8" fill="#F59E0B" fillOpacity="0.3" />
-          <path d="M95 14v12M89 20h12" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" />
-        </>
-      )}
-    </svg>
-  );
-}
 
 export function BrandingSection({
   scopeId,
@@ -190,7 +160,7 @@ export function BrandingSection({
           helper="Recommended: PNG, JPG or SVG. Max size 2MB."
           control={
             <div className="flex items-center gap-3">
-              <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card-hover">
+              <div className="relative flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card-hover">
                 {data.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={data.logoUrl} alt="Logo preview" className="h-full w-full object-contain" />
@@ -312,49 +282,6 @@ export function BrandingSection({
         </div>
       </SettingsSection>
 
-      {/* Theme */}
-      <SettingsSection
-        title="Theme"
-        description="Choose the appearance of the candidate experience."
-      >
-        <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-3">
-          {([
-            { value: 'light', label: 'Light', icon: Sun },
-            { value: 'dark', label: 'Dark', icon: Moon },
-            { value: 'auto', label: 'Auto', icon: Monitor },
-          ] as const).map(({ value, label, icon: Icon }) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => {
-                update({ theme: value } as Partial<BrandingInput>);
-                track('branding_updated', { field: 'theme', value });
-              }}
-              aria-pressed={data.theme === value}
-              className={cn(
-                'flex flex-col items-center gap-2 rounded-lg border p-4 transition-all',
-                data.theme === value
-                  ? 'border-primary bg-active-menu-bg shadow-sm'
-                  : 'border-border hover:border-primary/30'
-              )}
-            >
-              <MiniThemePreview theme={value} />
-              <div className="flex items-center gap-2">
-                <Icon size={16} className={data.theme === value ? 'text-primary' : 'text-muted'} />
-                <span className={cn('text-body font-medium', data.theme === value ? 'text-primary' : 'text-heading')}>
-                  {label}
-                </span>
-              </div>
-              {data.theme === value && (
-                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary">
-                  <Check size={12} className="text-primary-foreground" strokeWidth={3} />
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      </SettingsSection>
-
       {/* Font */}
       <SettingsSection
         title="Font"
@@ -386,26 +313,6 @@ export function BrandingSection({
         />
       </SettingsSection>
 
-      {/* Modern interface */}
-      <SettingsSection
-        title="Modern interface"
-        description="A frosted-glass candidate interface style with depth and translucency."
-      >
-        <SettingsRow
-          label="Frosted-glass style"
-          helper="Adds subtle blur and translucency to the candidate experience."
-          control={
-            <Switch
-              checked={data.modernInterface}
-              onCheckedChange={(v) => {
-                update({ modernInterface: v } as Partial<BrandingInput>);
-                track('branding_updated', { field: 'modern_interface', value: v });
-              }}
-              aria-label="Enable frosted-glass candidate style"
-            />
-          }
-        />
-      </SettingsSection>
       {/* Contrast warning */}
       {!contrastPasses && (
         <div className="rounded-lg border border-warning-border bg-warning-wash px-4 py-3">
@@ -434,7 +341,7 @@ export function BrandingSection({
       <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
         <div>
           <p className="text-body-sm font-medium text-heading">Reset branding</p>
-          <p className="text-body-sm text-muted">Restore the default logo, colour and theme.</p>
+          <p className="text-body-sm text-muted">Restore the default logo, colour and font.</p>
         </div>
         {showResetConfirm ? (
           <div className="flex items-center gap-2">
