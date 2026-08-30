@@ -6118,3 +6118,191 @@
     font-size: 12px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Phone verification (ai_phone screening) — single centred column,
+   reusing .iv-layout-centre / .iv-plane / .iv-form-panel / .iv-cta
+   for everything except the code cells and resend row below.
+   ═══════════════════════════════════════════════════════════ */
+
+.iv-verify-eyebrow-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.iv-verify-subtext {
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  color: var(--iv-text-secondary);
+  margin: 0;
+}
+
+.iv-verify-subtext strong {
+  color: var(--iv-text);
+  font-weight: 500;
+}
+
+.iv-verify-code-label {
+  display: block;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+/* ── OTP cells ──
+   Each cell is a single-character input sitting on a bottom rule —
+   never a boxed/filled input. States are driven by the digit's own
+   presence (filled → accent rule) and native :focus (active → thicker
+   accent rule + accent caret), not a separately tracked "cursor index",
+   so the visual always matches whichever cell the candidate actually
+   has focus in. */
+.iv-otp-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.iv-otp-cell {
+  width: 48px;
+}
+
+/* Wider gap between the third and fourth cell (brief's grouping cue). */
+.iv-otp-cell:nth-child(3) {
+  margin-right: 10px;
+}
+
+.iv-otp-digit {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--iv-hairline);
+  background: transparent;
+  padding: 0 0 10px 0;
+  text-align: center;
+  font-family: var(--iv-font-body);
+  font-size: 32px;
+  font-variant-numeric: tabular-nums;
+  color: var(--iv-text);
+  outline: none;
+  caret-color: var(--iv-accent);
+  transition: border-color 0.15s ease, border-width 0.15s ease;
+}
+
+.iv-otp-digit::selection {
+  background: color-mix(in srgb, var(--iv-accent) 25%, transparent);
+}
+
+.iv-otp-digit-filled {
+  border-bottom-color: var(--iv-accent);
+}
+
+.iv-otp-digit:focus {
+  border-bottom-width: 2px;
+  border-bottom-color: var(--iv-accent);
+  padding-bottom: 9px;
+}
+
+.iv-otp-digit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.iv-otp-row-error .iv-otp-digit {
+  border-bottom-color: var(--iv-error);
+}
+
+/* ── Resend row ── */
+.iv-verify-resend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+}
+
+.iv-verify-resend-left {
+  color: var(--iv-text-secondary);
+  display: flex;
+  gap: 6px;
+}
+
+.iv-verify-resend-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--iv-text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.iv-verify-resend-link:disabled {
+  color: var(--iv-text-secondary);
+  text-decoration: none;
+  cursor: not-allowed;
+}
+
+.iv-verify-resend-timer {
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── CTA, disabled because the code is incomplete ──
+   Distinct from .iv-cta:disabled (that variant is for a submit in
+   flight elsewhere and stays full-strength per 2.1c). An OTP Verify
+   button conventionally stays inert until all digits are entered, so
+   this is a separate, quieter modifier: reduced opacity plus a
+   hairline border, never the accent fill's own disabled look. */
+.iv-cta-incomplete {
+  opacity: 0.45;
+  border: 1px solid var(--iv-hairline);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.iv-cta-incomplete:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.iv-cta-incomplete + .iv-cta-bloom {
+  opacity: 0;
+}
+
+.iv-verify-sms-note {
+  font-family: var(--iv-font-body);
+  font-size: 11px;
+  color: var(--iv-text-secondary);
+  text-align: center;
+  margin: 12px 0 0;
+}
+
+.iv-verify-different-number {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--iv-font-body);
+  font-size: 14px;
+  color: var(--iv-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .iv-otp-row {
+    gap: 8px;
+  }
+  .iv-otp-cell {
+    width: 38px;
+  }
+  .iv-otp-cell:nth-child(3) {
+    margin-right: 6px;
+  }
+  .iv-otp-digit {
+    font-size: 26px;
+  }
+}

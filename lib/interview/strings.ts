@@ -551,4 +551,20 @@ export const strings = {
   helpReportPlaceholder: 'Describe what\'s happening…',
   helpReportSubmit: 'Send report',
   helpReportSent: 'Report sent. The team will look into it.',
+
+  // ── Phone verification (ai_phone screening) ──
+  verifyEyebrow: (company: string) => `${company.toUpperCase()} · PHONE SCREENING`,
+  verifyHeading: 'Verify your number',
+  verifySubtext: 'We sent a 6-digit code to',
+  verifyCodeLabel: 'Verification code',
+  verifyDidntGetIt: "Didn't get it?",
+  verifyResendCode: 'Resend code',
+  verifyResendIn: (seconds: number) =>
+    `Resend in ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`,
+  verifyCta: 'Verify and continue',
+  verifySmsRatesNote: 'Standard message rates may apply.',
+  verifyUseDifferentNumber: 'Use a different number',
+  verifyIncompleteError: 'Enter all 6 digits to continue.',
+  verifyInvalidCodeError: "That code didn't match. Try again.",
+  verifyResentToast: (maskedNumber: string) => `New code sent to ${maskedNumber}.`,
 } as const;
