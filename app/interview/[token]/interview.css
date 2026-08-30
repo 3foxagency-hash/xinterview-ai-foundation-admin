@@ -6306,3 +6306,350 @@
     font-size: 26px;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Call scheduling (ai_phone screening) — reuses .iv-layout-two-col /
+   .iv-left-col / .iv-right-col / .iv-plane / .iv-form-panel /
+   .iv-meta-row / .iv-cta for everything except the option rows, date
+   strip and time wheel picker below.
+   ═══════════════════════════════════════════════════════════ */
+
+/* Right column sits ~80px lower than the heading — a deliberate
+   asymmetry from the shared sticky offset both columns normally
+   share, so add it as extra margin on this screen's plane only. */
+.iv-schedule-right {
+  margin-top: 80px;
+}
+
+/* ── Option rows ── */
+.iv-option-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.iv-option-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  height: 72px;
+  padding: 0 28px;
+  margin: 0 -28px;
+  position: relative;
+  background: none;
+  border: none;
+  width: calc(100% + 56px);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--iv-font-body);
+}
+
+.iv-option-row + .iv-option-row {
+  border-top: 1px solid var(--iv-hairline);
+}
+
+.iv-option-row-selected {
+  background: color-mix(in srgb, var(--iv-accent) 5%, transparent);
+}
+
+.iv-option-row-selected::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--iv-accent);
+}
+
+.iv-option-radio {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1.5px solid var(--iv-hairline);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iv-option-row-selected .iv-option-radio {
+  border-color: var(--iv-accent);
+  background: var(--iv-accent);
+}
+
+.iv-option-radio-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--iv-on-accent);
+}
+
+.iv-option-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.iv-option-label {
+  font-size: 15px;
+  color: var(--iv-text);
+  font-weight: 400;
+}
+
+.iv-option-row-selected .iv-option-label {
+  font-weight: 600;
+}
+
+.iv-option-sub {
+  font-size: 13px;
+  color: var(--iv-text-secondary);
+}
+
+/* ── Date strip ── */
+.iv-date-strip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.iv-date-strip-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--iv-text-secondary);
+  cursor: pointer;
+}
+
+.iv-date-strip-nav:hover {
+  color: var(--iv-text);
+}
+
+.iv-date-cells {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+}
+
+.iv-date-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0 8px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  width: 40px;
+}
+
+.iv-date-cell-weekday {
+  font-family: var(--iv-font-body);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--iv-text-secondary);
+}
+
+.iv-date-cell-day {
+  font-family: var(--iv-font-body);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  color: var(--iv-text);
+}
+
+.iv-date-cell-selected {
+  background: color-mix(in srgb, var(--iv-accent) 5%, transparent);
+  border-bottom-color: var(--iv-accent);
+  border-radius: 4px 4px 0 0;
+}
+
+.iv-date-cell-selected .iv-date-cell-day {
+  color: var(--iv-accent);
+  font-weight: 600;
+}
+
+.iv-date-cell-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Time wheel picker ── */
+.iv-time-wheel-label {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.iv-time-wheel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  position: relative;
+}
+
+.iv-time-wheel-col {
+  width: 72px;
+  height: 180px;
+  overflow: hidden;
+  position: relative;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 24%,
+    black 76%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    black 24%,
+    black 76%,
+    transparent 100%
+  );
+}
+
+.iv-time-wheel-list {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.iv-time-wheel-item {
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--iv-font-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--iv-text);
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  transition: opacity 0.18s ease, font-size 0.18s ease;
+}
+
+/* Distance-from-selected tiers (§ depth falloff). */
+.iv-time-wheel-item[data-offset='0'] {
+  font-size: 32px;
+  opacity: 1;
+  cursor: default;
+}
+
+.iv-time-wheel-item[data-offset='1'] {
+  font-size: 20px;
+  opacity: 0.45;
+}
+
+.iv-time-wheel-item[data-offset='2'] {
+  font-size: 16px;
+  opacity: 0.2;
+}
+
+.iv-time-wheel-item[data-offset='3'],
+.iv-time-wheel-item[data-offset='4'] {
+  font-size: 14px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Out-of-window hours stay dim regardless of position, so the
+   constraint reads while scrolling past it rather than only at rest. */
+.iv-time-wheel-item-disabled {
+  opacity: 0.2 !important;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.iv-time-wheel-colon {
+  font-family: var(--iv-font-body);
+  font-size: 24px;
+  color: var(--iv-text-secondary);
+  padding: 0 2px;
+}
+
+/* The only marking of the selected row — two accent rules spanning
+   both columns and the colon, never a fill or tint on the picker
+   itself. */
+.iv-time-wheel-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--iv-accent);
+  pointer-events: none;
+}
+
+.iv-time-wheel-band-top {
+  top: calc(50% - 20px);
+}
+
+.iv-time-wheel-band-bottom {
+  top: calc(50% + 18px);
+}
+
+.iv-time-wheel-note {
+  margin: 12px 0 0;
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+  text-align: center;
+}
+
+/* ── Time zone field — underline row, not a boxed select ── */
+.iv-timezone-field {
+  width: 100%;
+}
+
+.iv-timezone-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--iv-hairline);
+  padding: 0 0 10px;
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  color: var(--iv-text);
+  cursor: pointer;
+}
+
+.iv-timezone-value-row:hover {
+  border-bottom-color: color-mix(in srgb, var(--iv-text-secondary) 80%, transparent);
+}
+
+.iv-timezone-chevron {
+  color: var(--iv-text-secondary);
+  flex-shrink: 0;
+}
+
+.iv-timezone-hint {
+  margin: 8px 0 0;
+  font-family: var(--iv-font-body);
+  font-size: 12px;
+  color: var(--iv-text-secondary);
+}
+
+.iv-schedule-confirm {
+  margin: 20px 0 0;
+  font-family: var(--iv-font-body);
+  font-size: 13px;
+  color: var(--iv-text);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .iv-time-wheel-col {
+    width: 60px;
+  }
+}

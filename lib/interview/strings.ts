@@ -567,4 +567,27 @@ export const strings = {
   verifyIncompleteError: 'Enter all 6 digits to continue.',
   verifyInvalidCodeError: "That code didn't match. Try again.",
   verifyResentToast: (maskedNumber: string) => `New code sent to ${maskedNumber}.`,
+
+  // ── Call scheduling (ai_phone screening) ──
+  scheduleEyebrow: (company: string) => `${company.toUpperCase()} · PHONE SCREENING`,
+  scheduleHeading: 'When should we call you?',
+  scheduleSubtext: 'A short conversation with our AI interviewer — about 12 minutes. We\'ll call',
+  scheduleMetaDuration: '≈12 minutes',
+  scheduleMetaVoiceOnly: 'Voice only',
+  scheduleMetaReschedule: 'Reschedule anytime',
+  scheduleChooseATime: 'Choose a time',
+  scheduleCallNowLabel: 'Call me now',
+  scheduleCallNowSub: "You'll receive the call within a minute",
+  scheduleLaterLabel: 'Schedule for later',
+  scheduleLaterSub: 'Pick a date and time that suits you',
+  scheduleTimeLabel: 'Time',
+  scheduleCallWindowNote: (start: string, end: string) => `Calls run between ${start} and ${end}.`,
+  scheduleTimezoneLabel: 'Time zone',
+  scheduleTimezoneHint: "Detected from your device — change it if this isn't right.",
+  scheduleConfirmLater: (dateLabel: string, time: string, tz: string) =>
+    `We'll call you on ${dateLabel} at ${time} (${tz}).`,
+  scheduleConfirmNow: "We'll call you within a minute of confirming.",
+  scheduleCta: 'Confirm this time',
+  scheduleCtaNow: 'Confirm and call me now',
+  scheduleReminderNote: "We'll text you a reminder 15 minutes before.",
 } as const;
