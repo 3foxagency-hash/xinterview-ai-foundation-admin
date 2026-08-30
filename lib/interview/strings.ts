@@ -19,6 +19,39 @@ export const strings = {
   metaEstimatedPlain: (n: number) => `${n} min`,
   metaRecord: 'Record anytime',
 
+  // ── Live conversational interview (avatar + voice) ──
+  liveInProgress: 'INTERVIEW IN PROGRESS',
+  liveAiBadge: 'AI',
+  liveInterviewerLabel: 'AI INTERVIEWER',
+  liveInterviewerLabelShort: 'INTERVIEWER',
+  liveYouLabel: 'YOU',
+  liveSpeaking: 'Speaking',
+  liveListening: 'Listening',
+  liveThinking: 'Thinking',
+  liveMuted: 'Muted',
+  liveMute: 'Mute',
+  liveUnmute: 'Unmute',
+  liveVolume: 'Volume',
+  liveEndInterview: 'End interview',
+  liveHint: 'Speak naturally — the interviewer will pause when you start.',
+  liveRecordedNotice:
+    'This conversation is recorded and transcribed for the hiring team.',
+  liveRecordedNoticeAvatar:
+    "You're speaking with an AI interviewer. This conversation is recorded and transcribed for the hiring team.",
+  liveConnecting: 'Connecting…',
+  liveCameraOff: 'Camera off',
+  liveEndConfirmTitle: 'End this interview?',
+  liveEndConfirmBody:
+    'Your conversation so far is saved. You will not be able to rejoin once the interview ends.',
+  liveEndConfirmCancel: 'Keep going',
+  liveEndConfirmEnd: 'End interview',
+  /** e.g. "07:12" elapsed. */
+  liveElapsed: (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  },
+
   // Job description
   jobDescriptionLabel: 'JOB DESCRIPTION',
   showMore: 'Show more ↓',
