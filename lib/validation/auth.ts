@@ -23,7 +23,7 @@ export const passwordSchema = passwordRules;
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
-  remember: z.boolean().optional().default(false),
+  remember: z.boolean().default(false),
 });
 
 export const registerSchema = z
@@ -79,7 +79,8 @@ export const companySetupSchema = z.object({
     ),
 });
 
-export type LoginInput = z.infer<typeof loginSchema>;
+export type LoginInput = z.input<typeof loginSchema>;
+export type LoginOutput = z.output<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type OtpInput = z.infer<typeof otpSchema>;

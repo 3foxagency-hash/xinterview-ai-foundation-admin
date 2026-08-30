@@ -16,7 +16,7 @@ import {
   AuthFooterLink,
   AuthCheckbox
 } from "@/components/auth";
-import { loginSchema, type LoginInput } from "@/lib/validation/auth";
+import { loginSchema, type LoginInput, type LoginOutput } from "@/lib/validation/auth";
 import { login, type ApiError } from "@/lib/api/auth";
 import { getAuthErrorMessage } from "@/lib/errors/auth-messages";
 
@@ -31,7 +31,7 @@ export default function LoginPage() {
     setValue,
     watch,
     formState: { errors, isSubmitting }
-  } = useForm<LoginInput>({
+  } = useForm<LoginInput, any, LoginOutput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "", remember: true }
   });
@@ -47,7 +47,7 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [rateLimitSeconds]);
 
-  const onSubmit = async (data: LoginInput) => {
+  const onSubmit = async (data: LoginOutput) => {
     setAuthError(null);
     try {
       await login(data.email, data.password, data.remember);
@@ -133,7 +133,7 @@ export default function LoginPage() {
           <AuthCheckbox
             id="remember"
             label="Remember me"
-            checked={rememberMe}
+            checked={rememberMe ?? true}
             onCheckedChange={(v) => setValue("remember", v)}
           />
           <a
