@@ -1,7 +1,7 @@
 import {
   Settings,
   Home,
-  Plus,
+  FilePlus2,
   Briefcase,
   Users,
   FileText,
@@ -30,7 +30,7 @@ export const primaryNavGroups: NavGroup[] = [
     label: 'Hiring',
     items: [
       { label: 'Overview', href: '/dashboard', icon: Home },
-      { label: 'Create New Job', href: '/create-job', icon: Plus },
+      { label: 'Create New Job', href: '/create-job', icon: FilePlus2 },
       { label: 'Jobs', href: '/jobs', icon: Briefcase },
       { label: 'Candidates', href: '/candidates', icon: Users, count: 12 },
     ],

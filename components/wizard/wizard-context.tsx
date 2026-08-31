@@ -30,6 +30,12 @@ interface WizardContextValue {
   questionCount: number;
   /** Call after saving questions so the rail unlocks without a reload. */
   refreshQuestionCount: () => void;
+  /**
+   * 'bare' hides the shell's step tracker and centered container — used by
+   * the format-selection sub-step, which precedes step numbering entirely.
+   */
+  chromeMode: 'default' | 'bare';
+  setChromeMode: (mode: 'default' | 'bare') => void;
 }
 
 const WizardContext = React.createContext<WizardContextValue | null>(null);
@@ -59,6 +65,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   const [saveState, setSaveState] = React.useState<SaveState>('idle');
   const [isDirty, setIsDirty] = React.useState(false);
   const [questionCount, setQuestionCount] = React.useState(0);
+  const [chromeMode, setChromeMode] = React.useState<'default' | 'bare'>('default');
   const pendingPatch = React.useRef<Partial<Job> | null>(null);
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -173,6 +180,8 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
     hasJob: !!jobId,
     questionCount,
     refreshQuestionCount,
+    chromeMode,
+    setChromeMode,
   };
 
   return <WizardContext.Provider value={value}>{children}</WizardContext.Provider>;

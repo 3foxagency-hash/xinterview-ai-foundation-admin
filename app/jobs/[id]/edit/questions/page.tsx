@@ -140,7 +140,7 @@ export default function QuestionsPage() {
 
   // ─── Add / edit ───
   const handleAdd = (type: QuestionType) => {
-    const availableTypes = getAvailableQuestionTypes(job?.format ?? 'text');
+    const availableTypes = getAvailableQuestionTypes(job?.format ?? 'ai_video');
     if (!availableTypes.includes(type)) return;
     setEditorMode('add');
     setEditingQuestion(undefined);

@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { emailSchema } from '@/lib/validation/auth';
 
 // ─── Interview formats ───
-export const INTERVIEW_FORMATS = ['ai_video', 'ai_avatar', 'ai_voice', 'ai_phone', 'text'] as const;
+export const INTERVIEW_FORMATS = ['ai_video', 'ai_avatar', 'ai_voice', 'ai_phone', 'ai_whatsapp', 'ai_sms'] as const;
 export type InterviewFormat = (typeof INTERVIEW_FORMATS)[number];
 
 export const interviewFormatSchema = z.enum(INTERVIEW_FORMATS);

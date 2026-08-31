@@ -12,7 +12,7 @@ import type { InterviewFormat, JobSetupInput } from '@/lib/validation/job';
 
 export default function SetupPage() {
   const router = useRouter();
-  const { setJob, jobId, job, markDirty, clearDirty, patchJob } = useWizard();
+  const { setJob, jobId, job, markDirty, clearDirty, patchJob, setChromeMode } = useWizard();
   const [subStep, setSubStep] = React.useState<'format' | 'details'>('format');
   const [format, setFormat] = React.useState<InterviewFormat>('ai_video');
   const [submitting, setSubmitting] = React.useState(false);
@@ -21,6 +21,13 @@ export default function SetupPage() {
     track('create_job_started');
     track('wizard_step_viewed', { step: 1 });
   }, []);
+
+  // useLayoutEffect, not useEffect: this must land before the browser paints,
+  // or the wide/tracked chrome flashes for a frame before flipping to bare.
+  React.useLayoutEffect(() => {
+    setChromeMode(subStep === 'format' ? 'bare' : 'default');
+    return () => setChromeMode('default');
+  }, [subStep, setChromeMode]);
 
   React.useEffect(() => {
     if (subStep === 'details') {

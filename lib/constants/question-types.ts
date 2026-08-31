@@ -53,8 +53,6 @@ export function getAvailableQuestionTypes(format: InterviewFormat): QuestionType
       return ['video', 'text', 'single_choice'];
     case 'ai_voice':
       return ['audio', 'text', 'single_choice'];
-    case 'text':
-      return ['text', 'single_choice'];
     default:
       return ['text', 'single_choice'];
   }

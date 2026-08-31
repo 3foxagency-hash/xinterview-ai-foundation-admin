@@ -1,12 +1,14 @@
-import { Video, Mic, Type, Bot, Phone, type LucideIcon } from 'lucide-react';
+import { Video, Mic, Bot, Phone, MessageCircle, MessageSquareText, type LucideIcon } from 'lucide-react';
 import type { InterviewFormat } from '@/lib/validation/job';
+
+export type FormatTone = 'settings' | 'jobs' | 'reports' | 'ai' | 'candidates' | 'interviews';
 
 export type FormatConfig = {
   id: InterviewFormat;
   name: string;
   description: string;
   icon: LucideIcon;
-  benefits: string[];
+  tone: FormatTone;
   recommended?: boolean;
   locked?: boolean;
   lockReason?: string;
@@ -18,64 +20,56 @@ export type FormatConfig = {
 export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
   {
     id: 'ai_video',
-    name: 'Video interview',
-    description: 'Candidates record their answers on video.',
+    name: 'AI Video Interview',
+    description: 'Candidates record video responses on their own time.',
     icon: Video,
-    benefits: [
-      'Face-to-face experience',
-      'See expressions and body language',
-      'Best for behavioural and cultural fit',
-    ],
+    tone: 'settings',
     recommended: true,
   },
   {
-    id: 'ai_voice',
-    name: 'Audio interview',
-    description: 'Candidates record their answers in audio.',
-    icon: Mic,
-    benefits: [
-      'Voice-focused responses',
-      'Easier and faster for candidates',
-      'Great for initial screening',
-    ],
-  },
-  {
-    id: 'text',
-    name: 'Text interview',
-    description: 'Candidates type their answers.',
-    icon: Type,
-    benefits: [
-      'No recording needed',
-      'Accessible and convenient',
-      'Structured written responses',
-    ],
-  },
-  {
     id: 'ai_avatar',
-    name: 'AI avatar interview',
-    description: 'A realistic AI avatar conducts a live interview.',
+    name: 'AI Avatar Interview',
+    description: 'A realistic AI avatar conducts a live interview in real time.',
     icon: Bot,
-    benefits: [
-      'Real-time conversation',
-      'Natural back-and-forth dialogue',
-      'Adaptive follow-up questions',
-    ],
+    tone: 'jobs',
+    isLive: true,
+  },
+  {
+    id: 'ai_voice',
+    name: 'AI Voice Interview',
+    description: 'AI interviews candidates through a natural voice conversation.',
+    icon: Mic,
+    tone: 'reports',
+  },
+  {
+    id: 'ai_phone',
+    name: 'AI Phone Screening',
+    description: 'AI calls and screens candidates automatically, at scale.',
+    icon: Phone,
+    tone: 'ai',
     locked: true,
-    lockReason: 'Available on the Growth plan.',
+    lockReason: 'AI calls and screens candidates automatically, at scale.',
     lockPlan: 'Growth',
     isLive: true,
   },
   {
-    id: 'ai_phone',
-    name: 'AI phone screening',
-    description: 'AI calls and screens candidates at scale.',
-    icon: Phone,
-    benefits: [
-      'Automated phone interviews',
-      'Reaches candidates anywhere',
-      'High-volume screening',
-    ],
-    setupRequired: { label: 'Connect a phone number', href: '/settings/integrations' },
-    isLive: true,
+    id: 'ai_whatsapp',
+    name: 'AI WhatsApp Interview',
+    description: 'AI interviews candidates through an interactive WhatsApp conversation.',
+    icon: MessageCircle,
+    tone: 'candidates',
+    locked: true,
+    lockReason: 'AI interviews candidates through an interactive WhatsApp conversation.',
+    lockPlan: 'Growth',
+  },
+  {
+    id: 'ai_sms',
+    name: 'AI SMS Interview',
+    description: 'AI screens candidates through automated text conversations.',
+    icon: MessageSquareText,
+    tone: 'interviews',
+    locked: true,
+    lockReason: 'AI screens candidates through automated text conversations.',
+    lockPlan: 'Growth',
   },
 ];

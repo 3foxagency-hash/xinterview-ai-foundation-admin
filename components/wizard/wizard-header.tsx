@@ -126,7 +126,7 @@ function StepPill({
 export function WizardHeader() {
   const router = useRouter();
   const pathname = usePathname();
-  const { job, jobId, saveState, retrySave, isDirty, questionCount } = useWizard();
+  const { job, jobId, saveState, retrySave, isDirty, questionCount, chromeMode } = useWizard();
   const [confirmExit, setConfirmExit] = React.useState(false);
   const currentStepNumber = getStepNumberFromPath(pathname ?? '');
 
@@ -216,7 +216,9 @@ export function WizardHeader() {
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    The landing page becomes available once the job is created
+                    {chromeMode === 'bare'
+                      ? 'Add job details first to preview the candidate page.'
+                      : 'The landing page becomes available once the job is created'}
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -235,35 +237,37 @@ export function WizardHeader() {
         </div>
 
         {/* Row 2 — horizontal step tracker (desktop) */}
-        <div className="hidden items-center justify-center gap-1 border-t border-border px-6 py-2 md:flex">
-          <nav aria-label="Wizard steps" className="flex items-center gap-1">
-            {WIZARD_STEPS.map((step, index) => {
-              const state: 'complete' | 'current' | 'upcoming' =
-                step.number < currentStepNumber
-                  ? 'complete'
-                  : step.number === currentStepNumber
-                    ? 'current'
-                    : 'upcoming';
-              const unlocked = jobId !== null && (step.number <= 2 || questionCount > 0);
-              const clickable = unlocked && state !== 'current';
+        {chromeMode !== 'bare' && (
+          <div className="hidden items-center justify-center gap-1 border-t border-border px-6 py-2 md:flex">
+            <nav aria-label="Wizard steps" className="flex items-center gap-1">
+              {WIZARD_STEPS.map((step, index) => {
+                const state: 'complete' | 'current' | 'upcoming' =
+                  step.number < currentStepNumber
+                    ? 'complete'
+                    : step.number === currentStepNumber
+                      ? 'current'
+                      : 'upcoming';
+                const unlocked = jobId !== null && (step.number <= 2 || questionCount > 0);
+                const clickable = unlocked && state !== 'current';
 
-              return (
-                <React.Fragment key={step.id}>
-                  {index > 0 && (
-                    <div
-                      className={cn(
-                        'mx-1 h-px w-6 transition-colors',
-                        state !== 'upcoming' ? 'bg-success' : 'bg-border'
-                      )}
-                      aria-hidden
-                    />
-                  )}
-                  <StepPill step={step} state={state} clickable={clickable} jobId={jobId} />
-                </React.Fragment>
-              );
-            })}
-          </nav>
-        </div>
+                return (
+                  <React.Fragment key={step.id}>
+                    {index > 0 && (
+                      <div
+                        className={cn(
+                          'mx-1 h-px w-6 transition-colors',
+                          state !== 'upcoming' ? 'bg-success' : 'bg-border'
+                        )}
+                        aria-hidden
+                      />
+                    )}
+                    <StepPill step={step} state={state} clickable={clickable} jobId={jobId} />
+                  </React.Fragment>
+                );
+              })}
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Exit confirmation */}

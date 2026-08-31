@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { Activity, Archive, ArrowDown, ArrowUp, Bot, BriefcaseBusiness, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Copy, EllipsisVertical, Eye, Grid2x2 as Grid2X2, Layers, List, Mic, Pause, Phone, Plus, RotateCcw, Search, Type, Users, Video } from 'lucide-react';
+import { Activity, Archive, ArrowDown, ArrowUp, Bot, BriefcaseBusiness, Calendar, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, CircleCheckBig, CircleX, Copy, EllipsisVertical, Eye, Grid2x2 as Grid2X2, Layers, List, MessageCircle, MessageSquareText, Mic, Pause, Phone, Plus, RotateCcw, Search, Users, Video } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -54,15 +54,16 @@ const toneTile: Record<string, string> = {
   settings: 'bg-settings-wash text-settings-ink',
 };
 
-/* The four interview formats offered by the create-job wizard, with the same
-   icons that wizard uses — the tile tells you how a job interviews, and the
-   colour keeps the formats distinguishable at a glance. */
+/* The six interview formats offered by the create-job wizard, with the same
+   icons and tones that wizard uses — the tile tells you how a job interviews,
+   and the colour keeps the formats distinguishable at a glance. */
 const formatMeta: Record<InterviewFormat, { icon: React.ComponentType<{ className?: string }>; label: string; tone: string }> = {
-  ai_video: { icon: Video, label: 'AI Video Interview', tone: 'jobs' },
-  ai_avatar: { icon: Bot, label: 'AI Avatar Interview', tone: 'ai' },
+  ai_video: { icon: Video, label: 'AI Video Interview', tone: 'settings' },
+  ai_avatar: { icon: Bot, label: 'AI Avatar Interview', tone: 'jobs' },
   ai_voice: { icon: Mic, label: 'AI Voice Interview', tone: 'reports' },
-  ai_phone: { icon: Phone, label: 'AI Phone Screening', tone: 'interviews' },
-  text: { icon: Type, label: 'Text Interview', tone: 'settings' },
+  ai_phone: { icon: Phone, label: 'AI Phone Screening', tone: 'ai' },
+  ai_whatsapp: { icon: MessageCircle, label: 'AI WhatsApp Interview', tone: 'candidates' },
+  ai_sms: { icon: MessageSquareText, label: 'AI SMS Interview', tone: 'interviews' },
 };
 
 const statusStyles: Record<JobStatus, string> = {

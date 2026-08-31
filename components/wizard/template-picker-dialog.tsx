@@ -36,6 +36,11 @@ export function TemplatePickerDialog({
   onImport,
 }: TemplatePickerDialogProps) {
   const availableTypes = getAvailableQuestionTypes(format);
+  const formatAnswerMedium = availableTypes.includes('video')
+    ? 'video'
+    : availableTypes.includes('audio')
+      ? 'audio'
+      : 'text';
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(false);
   const [previewQuestions, setPreviewQuestions] = React.useState<Question[]>([]);
@@ -162,7 +167,7 @@ export function TemplatePickerDialog({
                   <div className="mt-2 flex items-start gap-2 rounded-md border border-warning-border bg-warning-wash px-3 py-2">
                     <AlertCircle size={13} className="mt-0.5 shrink-0 text-warning-ink" />
                     <p className="text-caption text-warning-ink">
-                      {excludedCount} {excludedCount === 1 ? 'question was' : 'questions were'} left out — this is a {format === 'ai_video' ? 'video' : format === 'ai_voice' ? 'audio' : 'text'} interview.
+                      {excludedCount} {excludedCount === 1 ? 'question was' : 'questions were'} left out — this format only accepts {formatAnswerMedium} answers.
                     </p>
                   </div>
                 )}
