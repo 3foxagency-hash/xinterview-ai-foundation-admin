@@ -12,6 +12,8 @@ import { TopBar } from '@/components/interview/top-bar';
 import { DateStrip } from '@/components/interview/date-strip';
 import { TimeWheelColumn } from '@/components/interview/time-wheel-column';
 import { strings } from '@/lib/interview/strings';
+import { maskPhoneNumber } from '@/lib/interview/phone';
+import { formatScheduleDateLabel, formatTimeLabel, formatTimezoneAbbr, formatTimezoneLabel } from '@/lib/interview/schedule-format';
 import type { InterviewConfig } from '@/config/interview.mock';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 
@@ -43,25 +45,6 @@ function detectTimezone(): string {
 
 function timezoneOptions(detected: string): string[] {
   return Array.from(new Set([detected, ...COMMON_TIMEZONES]));
-}
-
-/** "Europe/Amsterdam" + now → "Europe/Amsterdam · CEST (GMT+2)" */
-function formatTimezoneLabel(tz: string): string {
-  const region = tz.replace(/_/g, ' ');
-  const now = new Date();
-  const abbr =
-    new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'short' })
-      .formatToParts(now)
-      .find((p) => p.type === 'timeZoneName')?.value ?? '';
-  const offset =
-    new Intl.DateTimeFormat('en-US', { timeZone: tz, timeZoneName: 'shortOffset' })
-      .formatToParts(now)
-      .find((p) => p.type === 'timeZoneName')?.value ?? '';
-  // Some ICU builds have no real abbreviation for a zone and fall back to
-  // the offset for 'short' too (e.g. "GMT+2" instead of "CEST"), which
-  // would otherwise print the redundant "GMT+2 (GMT+2)".
-  if (!abbr || abbr === offset) return `${region} · ${offset || abbr}`;
-  return `${region} · ${abbr} (${offset})`;
 }
 
 function getWeekDays(weekStart: Date): Date[] {
@@ -109,16 +92,10 @@ export function ScheduleScreen({
   const [timezone, setTimezone] = React.useState(detectedTz);
   const [submitting, setSubmitting] = React.useState(false);
 
-  const maskedNumber = React.useMemo(() => {
-    const digits = nationalNumber.replace(/\D/g, '');
-    if (digits.length <= 5) return `${countryCode} ${digits}`;
-    const visibleStart = digits.slice(0, 1);
-    const middle = digits.slice(1, -4);
-    const end = digits.slice(-4);
-    const maskedMiddle = (middle.match(/.{1,2}/g) ?? []).map((g) => '•'.repeat(g.length)).join(' ');
-    const endGroups = (end.match(/.{1,2}/g) ?? [end]).join(' ');
-    return `${countryCode} ${visibleStart} ${maskedMiddle} ${endGroups}`;
-  }, [countryCode, nationalNumber]);
+  const maskedNumber = React.useMemo(
+    () => maskPhoneNumber(countryCode, nationalNumber),
+    [countryCode, nationalNumber]
+  );
 
   const weekDays = React.useMemo(() => getWeekDays(weekStart), [weekStart]);
 
@@ -129,12 +106,9 @@ export function ScheduleScreen({
 
   const isHourDisabled = (h: number) => h < MIN_HOUR || h > MAX_HOUR;
 
-  const dateLabel = `${selectedDate.toLocaleDateString('en-US', { weekday: 'long' })} ${selectedDate.getDate()} ${selectedDate.toLocaleDateString('en-US', { month: 'long' })}`;
-  const timeLabel = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
-  const tzAbbr =
-    new Intl.DateTimeFormat('en-US', { timeZone: timezone, timeZoneName: 'short' })
-      .formatToParts(new Date())
-      .find((p) => p.type === 'timeZoneName')?.value ?? timezone;
+  const dateLabel = formatScheduleDateLabel(selectedDate);
+  const timeLabel = formatTimeLabel(hour, minute);
+  const tzAbbr = formatTimezoneAbbr(timezone);
 
   const handleConfirm = async () => {
     setSubmitting(true);

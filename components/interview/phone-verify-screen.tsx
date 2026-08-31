@@ -11,33 +11,12 @@ import { AmbientLight } from '@/components/interview/ambient-light';
 import { TopBar } from '@/components/interview/top-bar';
 import { OtpCodeInput } from '@/components/interview/otp-code-input';
 import { strings } from '@/lib/interview/strings';
+import { maskPhoneNumber } from '@/lib/interview/phone';
 import type { InterviewConfig } from '@/config/interview.mock';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 24;
-
-/** ("+31", "612344218") → "+31 6 •• •• 42 18" — the country code and
- *  the last four digits stay visible, everything between is masked in
- *  pairs. Takes the country code and national number as separate
- *  arguments (matching how the application form's phone field already
- *  stores them via CountryCodeSelect) rather than parsing them back
- *  out of one string — a fixed \d{1,3} split can't tell a 2-digit
- *  country code from a 3-digit one apart from the digits after it. */
-function maskPhoneNumber(countryCode: string, nationalNumber: string): string {
-  const digits = nationalNumber.replace(/\D/g, '');
-  if (digits.length <= 5) return `${countryCode} ${digits}`;
-
-  const visibleStart = digits.slice(0, 1);
-  const middle = digits.slice(1, -4);
-  const end = digits.slice(-4);
-  const maskedMiddle = (middle.match(/.{1,2}/g) ?? [])
-    .map((group) => '•'.repeat(group.length))
-    .join(' ');
-  const endGroups = (end.match(/.{1,2}/g) ?? [end]).join(' ');
-
-  return `${countryCode} ${visibleStart} ${maskedMiddle} ${endGroups}`;
-}
 
 interface PhoneVerifyScreenProps {
   config?: InterviewConfig;
@@ -192,7 +171,7 @@ export function PhoneVerifyScreen({
 
             <button
               type="button"
-              className="iv-verify-different-number"
+              className="iv-text-link"
               onClick={onUseDifferentNumber}
             >
               {strings.verifyUseDifferentNumber}

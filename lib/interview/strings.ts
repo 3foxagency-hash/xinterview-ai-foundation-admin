@@ -590,4 +590,38 @@ export const strings = {
   scheduleCta: 'Confirm this time',
   scheduleCtaNow: 'Confirm and call me now',
   scheduleReminderNote: "We'll text you a reminder 15 minutes before.",
+
+  // ── Call status (ai_phone screening) — booked / calling / not received ──
+  callStatusBookedHeading: 'Your call is booked',
+  callStatusBookedBodyPrefix: "We'll call",
+  callStatusBookedBodySuffix: 'The conversation takes about 12 minutes.',
+  callStatusBeforeCallLabel: 'Before the call',
+  callStatusBeforeCallRow1: 'Find somewhere quiet with good signal.',
+  callStatusBeforeCallRow2: (callerNumber: string) =>
+    `The number will show as ${callerNumber} — save it so you don't miss it.`,
+  callStatusBeforeCallRow3: "We'll text you a reminder 15 minutes before.",
+  callStatusAddToCalendar: 'Add to calendar',
+  callStatusChangeTime: 'Change this time',
+  callStatusCloseTab: 'You can close this tab now.',
+
+  callStatusCallingHeading: "We're calling you now",
+  callStatusCallingSub: 'Your phone should ring within a minute.',
+  callStatusCallingBodyPrefix: "We'll call",
+  callStatusCallingBodyFrom: 'from',
+  callStatusWhileYouWaitLabel: 'While you wait',
+  callStatusWhileYouWaitRow1: "Answer as you would any call — just say hello.",
+  callStatusWhileYouWaitRow2: "Find somewhere quiet if you aren't already.",
+  callStatusWhileYouWaitRow3: 'The conversation takes about 12 minutes.',
+  callStatusDidntGetCall: "I didn't get a call",
+  callStatusScheduleInstead: 'Schedule for later instead',
+  callStatusKeepTabOpen: "Keep this tab open — we'll update it when the call connects.",
+
+  callStatusRetryHeading: "Let's try that again",
+  callStatusRetrySub: "Sometimes the first call doesn't get through.",
+  callStatusChecksLabel: 'A few things to check',
+  callStatusCheck1: "Make sure your phone isn't on silent or do-not-disturb.",
+  callStatusCheck2: (callerNumber: string) => `Check whether ${callerNumber} was blocked or sent to voicemail.`,
+  callStatusCheck3Prefix: 'Confirm your number is correct:',
+  callStatusCallAgain: 'Call me again',
+  callStatusUseDifferentNumber: 'Use a different number',
 } as const;

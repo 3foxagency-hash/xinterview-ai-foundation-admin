@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { toast } from 'sonner';
 import { ScheduleScreen } from '@/components/interview/schedule-screen';
 import { DevPanel } from '@/components/interview/dev-panel';
 import type { InterviewConfig } from '@/config/interview.mock';
@@ -22,12 +21,14 @@ export default function SchedulePage() {
       <ScheduleScreen
         config={config}
         onConfirmed={(choice) => {
-          if (choice.mode === 'now') {
-            toast("We're connecting your call now.");
-          } else {
-            toast('Call scheduled — see you then.');
+          const params = new URLSearchParams({ mode: choice.mode });
+          if (choice.mode === 'later') {
+            if (choice.date) params.set('date', choice.date.toISOString());
+            if (choice.hour !== undefined) params.set('hour', String(choice.hour));
+            if (choice.minute !== undefined) params.set('minute', String(choice.minute));
+            if (choice.timezone) params.set('tz', choice.timezone);
           }
-          router.push('./complete');
+          router.push(`./call-status?${params.toString()}`);
         }}
       />
       {isDev && <DevPanel config={config} onChange={setConfig} />}
