@@ -9,6 +9,10 @@ interface DateStripProps {
   onPrevWeek: () => void;
   onNextWeek: () => void;
   isDisabled?: (date: Date) => boolean;
+  /** Marks the cell matching an existing booking with a small accent
+   *  dot, so a reschedule screen can show which slot is being moved
+   *  away from alongside the one being picked. */
+  isCurrent?: (date: Date) => boolean;
 }
 
 function isSameDay(a: Date, b: Date): boolean {
@@ -22,6 +26,7 @@ export function DateStrip({
   onPrevWeek,
   onNextWeek,
   isDisabled = () => false,
+  isCurrent = () => false,
 }: DateStripProps) {
   return (
     <div className="iv-date-strip">
@@ -58,6 +63,7 @@ export function DateStrip({
                 {day.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase()}
               </span>
               <span className="iv-date-cell-day">{day.getDate()}</span>
+              {isCurrent(day) && <span className="iv-date-cell-current-dot" aria-hidden="true" />}
             </button>
           );
         })}

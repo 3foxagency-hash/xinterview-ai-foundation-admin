@@ -624,4 +624,35 @@ export const strings = {
   callStatusCheck3Prefix: 'Confirm your number is correct:',
   callStatusCallAgain: 'Call me again',
   callStatusUseDifferentNumber: 'Use a different number',
+
+  // ── Reschedule (ai_phone screening) ──
+  rescheduleEyebrow: (company: string) => `${company.toUpperCase()} · PHONE SCREENING`,
+  rescheduleHeading: 'Choose a new time',
+  rescheduleCurrentlyBooked: 'Currently booked',
+  rescheduleNote: "Pick another time and we'll cancel the original automatically.",
+  rescheduleChooseATime: 'New time',
+  rescheduleConfirm: (dateLabel: string, time: string, tz: string) =>
+    `We'll call you on ${dateLabel} at ${time} (${tz}) instead.`,
+  rescheduleCta: 'Confirm new time',
+  rescheduleKeepOriginal: 'Keep my original time',
+  rescheduleCancelInterview: 'Cancel my interview',
+
+  // ── Cancel interview (ai_phone screening) ──
+  cancelEyebrow: (company: string) => `${company.toUpperCase()} · PHONE SCREENING`,
+  cancelHeading: 'Cancel your interview?',
+  cancelWhatThisMeansLabel: 'What this means',
+  cancelRow1: 'Your scheduled call will be cancelled.',
+  cancelRow2: (jobTitle: string) => `This withdraws your application for ${jobTitle}.`,
+  cancelRow3: "You won't be able to restart this interview from your link.",
+  cancelKeepInterview: 'Keep my interview',
+  cancelRescheduleInstead: 'Reschedule instead',
+  cancelConfirmCta: 'Cancel my interview',
+  cancelHint: "If you're just unavailable at this time, rescheduling keeps your application open.",
+
+  cancelledHeading: 'Your interview is cancelled',
+  cancelledWhatHappensLabel: 'What happens now',
+  cancelledRow1: (jobTitle: string) => `Your application for ${jobTitle} has been withdrawn.`,
+  cancelledRow2: (company: string) => `${company}'s hiring team has been notified.`,
+  cancelledContactTeam: 'Contact the hiring team',
+  cancelledCloseTab: 'You can close this tab now.',
 } as const;

@@ -6484,6 +6484,17 @@
   cursor: not-allowed;
 }
 
+/* Marks the cell matching an existing booking on a reschedule screen —
+   distinct from the selected-cell tint above, since a candidate can
+   have the current slot and the newly-picked one both visible at once. */
+.iv-date-cell-current-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--iv-accent);
+  margin-top: -2px;
+}
+
 /* ── Time wheel picker ── */
 .iv-time-wheel-label {
   display: block;
@@ -6807,4 +6818,87 @@
   height: 14px;
   background: var(--iv-hairline);
   flex-shrink: 0;
+}
+
+/* Generic strikethrough helper — a superseded booking on the
+   reschedule and cancellation screens. A thin hairline rule through
+   the text, never the heavier default line-through weight. */
+.iv-strike {
+  text-decoration: line-through;
+  text-decoration-color: var(--iv-hairline);
+  text-decoration-thickness: 1px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Reschedule (ai_phone screening) — reuses .iv-layout-two-col /
+   .iv-schedule-right / .iv-plane / .iv-form-panel / .iv-meta-row /
+   .iv-date-strip / .iv-time-wheel / .iv-cta for everything except the
+   "currently booked" reference line below.
+   ═══════════════════════════════════════════════════════════ */
+
+.iv-current-booking-label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.iv-current-booking-value {
+  font-family: var(--iv-font-body);
+  font-size: 17px;
+  color: var(--iv-text-secondary);
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Cancel interview (ai_phone screening) — reuses .iv-layout-centre /
+   .iv-plane / .iv-form-panel / .iv-status-mark / .iv-detail-list /
+   .iv-cta / .iv-text-link / .iv-hairline-short for everything except
+   the quiet destructive action below.
+   ═══════════════════════════════════════════════════════════ */
+
+/* The cancelled state settles the warning mark into the secondary
+   colour rather than the live warning token — same outline, quieter
+   once the action is already done. */
+.iv-status-mark-quiet {
+  border-color: var(--iv-text-secondary);
+}
+
+/* The destructive action itself: a transparent outline pill in the
+   warning token, always visually subordinate to the accent CTA above
+   it — no fill, no bloom, so it never reads as the default choice. */
+.iv-cta-outline-warning {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 52px;
+  border-radius: 9999px;
+  border: 1px solid var(--iv-warning);
+  background: transparent;
+  color: var(--iv-warning);
+  font-family: var(--iv-font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.iv-cta-outline-warning:hover {
+  opacity: 0.75;
+}
+
+.iv-cta-outline-warning:focus-visible {
+  outline: 2px solid var(--iv-warning);
+  outline-offset: 2px;
+}
+
+/* The booking line under the heading — primary text colour (not the
+   secondary tone .iv-status-body uses), since this is the fact being
+   acted on rather than supporting detail. */
+.iv-cancel-booking-line {
+  font-family: var(--iv-font-body);
+  font-size: 17px;
+  color: var(--iv-text);
+  font-variant-numeric: tabular-nums;
+  margin: 4px 0 0;
 }

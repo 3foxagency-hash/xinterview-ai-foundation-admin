@@ -3,12 +3,12 @@
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
-import { CallStatusScreen, type CallStatus } from '@/components/interview/call-status-screen';
+import { CancelScreen } from '@/components/interview/cancel-screen';
 import { DevPanel } from '@/components/interview/dev-panel';
 import type { InterviewConfig } from '@/config/interview.mock';
 import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 
-function CallStatusPageInner() {
+function CancelPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [config, setConfig] = React.useState<InterviewConfig>(defaultConfig);
@@ -18,25 +18,30 @@ function CallStatusPageInner() {
     setIsDev(new URLSearchParams(window.location.search).has('dev'));
   }, []);
 
-  const modeParam = searchParams.get('mode');
-  const initialStatus: CallStatus = modeParam === 'now' ? 'calling' : 'booked';
-
   const dateParam = searchParams.get('date');
   const hourParam = searchParams.get('hour');
   const minuteParam = searchParams.get('minute');
   const tzParam = searchParams.get('tz');
 
+  const backToCallStatus = () => {
+    const params = new URLSearchParams({ mode: 'later' });
+    if (dateParam) params.set('date', dateParam);
+    if (hourParam) params.set('hour', hourParam);
+    if (minuteParam) params.set('minute', minuteParam);
+    if (tzParam) params.set('tz', tzParam);
+    router.push(`./call-status?${params.toString()}`);
+  };
+
   return (
     <>
-      <CallStatusScreen
+      <CancelScreen
         config={config}
-        initialStatus={initialStatus}
-        scheduledDate={dateParam ? new Date(dateParam) : undefined}
-        scheduledHour={hourParam ? Number(hourParam) : undefined}
-        scheduledMinute={minuteParam ? Number(minuteParam) : undefined}
-        timezone={tzParam ?? undefined}
-        onAddToCalendar={() => toast('Calendar file downloaded.')}
-        onChangeTime={() => {
+        bookingDate={dateParam ? new Date(dateParam) : undefined}
+        bookingHour={hourParam ? Number(hourParam) : undefined}
+        bookingMinute={minuteParam ? Number(minuteParam) : undefined}
+        bookingTimezone={tzParam ?? undefined}
+        onKeepInterview={backToCallStatus}
+        onRescheduleInstead={() => {
           const params = new URLSearchParams();
           if (dateParam) params.set('date', dateParam);
           if (hourParam) params.set('hour', hourParam);
@@ -44,20 +49,17 @@ function CallStatusPageInner() {
           if (tzParam) params.set('tz', tzParam);
           router.push(`./reschedule?${params.toString()}`);
         }}
-        onScheduleInstead={() => router.push('./schedule')}
-        onUseDifferentNumber={() => router.push('./phone-verify')}
+        onContactHiringTeam={() => toast('Opening a message to the hiring team.')}
       />
-      {isDev && (
-        <DevPanel config={config} onChange={setConfig} />
-      )}
+      {isDev && <DevPanel config={config} onChange={setConfig} />}
     </>
   );
 }
 
-export default function CallStatusPage() {
+export default function CancelPage() {
   return (
     <React.Suspense fallback={null}>
-      <CallStatusPageInner />
+      <CancelPageInner />
     </React.Suspense>
   );
 }

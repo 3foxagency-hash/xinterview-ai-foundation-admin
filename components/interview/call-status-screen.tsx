@@ -28,9 +28,14 @@ interface CallStatusScreenProps {
   scheduledMinute?: number;
   timezone?: string;
   onAddToCalendar?: () => void;
-  /** Used for both "Change this time" (booked) and "Schedule for later
-   *  instead" (calling / not-received) — same destination, different
-   *  label depending on where the candidate is coming from. */
+  /** "Change this time" on an already-booked call — goes to the
+   *  reschedule screen, which carries the current booking as context.
+   *  Kept separate from onScheduleInstead below since that one has no
+   *  existing booking to reschedule from (mode was 'now' or failed). */
+  onChangeTime?: () => void;
+  /** "Schedule for later instead" (calling / not-received) — there is
+   *  no confirmed slot yet in those states, so this goes to the plain
+   *  scheduling screen rather than the reschedule one. */
   onScheduleInstead?: () => void;
   onUseDifferentNumber?: () => void;
 }
@@ -46,6 +51,7 @@ export function CallStatusScreen({
   scheduledMinute = 30,
   timezone = 'Europe/Amsterdam',
   onAddToCalendar,
+  onChangeTime,
   onScheduleInstead,
   onUseDifferentNumber,
 }: CallStatusScreenProps) {
@@ -231,7 +237,7 @@ export function CallStatusScreen({
                   {strings.callStatusAddToCalendar}
                 </button>
                 <span className="iv-link-row-divider" aria-hidden="true" />
-                <button type="button" className="iv-text-link" onClick={onScheduleInstead}>
+                <button type="button" className="iv-text-link" onClick={onChangeTime}>
                   {strings.callStatusChangeTime}
                 </button>
               </div>
