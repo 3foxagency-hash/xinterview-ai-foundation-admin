@@ -11,7 +11,7 @@ import { getStepNumberFromPath, WIZARD_STEPS } from '@/lib/wizard-config';
 function WizardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const currentStep = getStepNumberFromPath(pathname);
-  const { jobId, chromeMode } = useWizard();
+  const { jobId, chromeMode, isDirty } = useWizard();
 
   const completedSteps = React.useMemo(() => {
     const completed: number[] = [];
@@ -21,6 +21,16 @@ function WizardShell({ children }: { children: React.ReactNode }) {
   }, [currentStep, jobId]);
 
   const currentStepData = WIZARD_STEPS[currentStep - 1];
+
+  React.useEffect(() => {
+    if (!isDirty) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isDirty]);
 
   return (
     <div className="flex min-h-0 flex-col bg-background">
@@ -36,7 +46,7 @@ function WizardShell({ children }: { children: React.ReactNode }) {
         <div
           className={cn(
             'flex w-full flex-1 flex-col px-4 py-4 md:px-8 md:py-6',
-            chromeMode !== 'bare' && 'mx-auto max-w-[1200px]'
+            chromeMode === 'default' && 'mx-auto max-w-[1200px]'
           )}
         >
           {children}

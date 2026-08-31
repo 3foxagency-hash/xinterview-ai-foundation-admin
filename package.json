@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "api:types": "openapi-typescript backend-schema/xinterview-schema.yaml -o lib/api/generated/schema.ts",
     "api:check": "npm run api:types && git diff --exit-code lib/api/generated/schema.ts"
   },
@@ -48,16 +50,20 @@
     "zod": "^4.5.2"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "^24.13.3",
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.5",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.3.3",
+    "jsdom": "^30.0.1",
     "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.17",
-    "typescript": "^5.7.3"
+    "typescript": "^5.7.3",
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "@types/react": "19.2.18",

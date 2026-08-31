@@ -1,9 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { CircleAlert as AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export type RailSectionStatus = 'complete' | 'incomplete' | 'in_progress';
+export type RailSectionStatus = 'complete' | 'incomplete' | 'in_progress' | 'error';
 
 export interface RailSection {
   id: string;
@@ -33,6 +34,7 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
             key={section.id}
             type="button"
             onClick={() => onSectionClick(section.id)}
+            aria-current={activeSection === section.id ? 'true' : undefined}
             className={cn(
               'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors',
               activeSection === section.id
@@ -45,13 +47,15 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
                 'flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-caption font-bold tabular-nums',
                 section.status === 'complete'
                   ? 'bg-success text-success-foreground'
-                  : section.status === 'in_progress'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'border border-border-strong text-muted'
+                  : section.status === 'error'
+                    ? 'bg-error text-error-foreground'
+                    : section.status === 'in_progress'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'border border-border-strong text-muted'
               )}
               aria-hidden
             >
-              {section.status === 'complete' ? '✓' : ''}
+              {section.status === 'complete' ? '✓' : section.status === 'error' ? <AlertCircle size={13} /> : ''}
             </span>
             <div className="flex-1 min-w-0">
               <span

@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { ArrowRight, ArrowLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Loader as Loader2, Check, CircleAlert as AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import type { SaveState } from './wizard-context';
 
 interface StepFooterProps {
   onBack?: () => void;
@@ -14,6 +15,39 @@ interface StepFooterProps {
   nextLoading?: boolean;
   nextDisabled?: boolean;
   nextTooltip?: string;
+  /** Centered save indicator — the single source of truth for save state. */
+  saveState?: SaveState;
+  onRetrySave?: () => void;
+}
+
+function FooterSaveIndicator({ state, onRetry }: { state: SaveState; onRetry?: () => void }) {
+  if (state === 'saving') {
+    return (
+      <span className="flex items-center gap-1.5 text-body-sm text-muted" aria-live="polite">
+        <Loader2 size={14} className="animate-spin" /> Saving…
+      </span>
+    );
+  }
+  if (state === 'saved') {
+    return (
+      <span className="flex items-center gap-1.5 text-body-sm text-muted" aria-live="polite">
+        <Check size={14} className="text-success" /> All changes saved
+      </span>
+    );
+  }
+  if (state === 'error') {
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        className="flex items-center gap-1.5 text-body-sm text-error hover:underline"
+        aria-live="assertive"
+      >
+        <AlertCircle size={14} /> Not saved — retry
+      </button>
+    );
+  }
+  return null;
 }
 
 export function StepFooter({
@@ -26,14 +60,16 @@ export function StepFooter({
   nextLoading = false,
   nextDisabled = false,
   nextTooltip,
+  saveState,
+  onRetrySave,
 }: StepFooterProps) {
   return (
     <div
-      className="fixed inset-x-0 bottom-0 z-savebar flex items-center justify-between border-t border-border bg-surface px-4 py-3 md:px-6"
+      className="fixed inset-x-0 bottom-0 z-savebar grid grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-border bg-surface px-4 py-3 md:px-6"
       style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
     >
       {/* Left — back / cancel */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center justify-self-start gap-2">
         {onBack && (
           <button
             type="button"
@@ -55,8 +91,13 @@ export function StepFooter({
         )}
       </div>
 
+      {/* Center — save indicator */}
+      <div className="hidden justify-self-center sm:flex">
+        {saveState && <FooterSaveIndicator state={saveState} onRetry={onRetrySave} />}
+      </div>
+
       {/* Right — save & exit + forward action */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-self-end gap-3">
         {onSaveExit && (
           <button
             type="button"

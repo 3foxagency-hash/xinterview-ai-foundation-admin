@@ -6,15 +6,26 @@ import { cn } from '@/lib/utils';
 import { RichTextEditor } from './rich-text-editor';
 import { track } from '@/lib/utils/analytics';
 
+export type JobDescriptionViewState =
+  | 'empty'
+  | 'summary'
+  | 'editing'
+  | 'ai_draft'
+  | 'ai_compare'
+  | 'ai_error';
+
 interface JobDescriptionSectionProps {
   value: string;
   onChange: (value: string) => void;
   jobTitle: string;
   onGenerate: () => Promise<string | null>;
   generating: boolean;
+  view: JobDescriptionViewState;
+  onViewChange: (view: JobDescriptionViewState) => void;
 }
 
-type ViewState = 'empty' | 'summary' | 'editing' | 'ai_draft' | 'ai_compare' | 'ai_error';
+/** Bold, Italic, Bullet list, Numbered list, Link, one heading level (§6). */
+const DESCRIPTION_TOOLBAR = ['Bold', 'Italic', 'Bullet list', 'Numbered list', 'Link', 'Heading 1'];
 
 function stripHtml(html: string): string {
   return html.replace(/<[^>]*>/g, '');
@@ -26,24 +37,37 @@ export function JobDescriptionSection({
   jobTitle,
   onGenerate,
   generating,
+  view,
+  onViewChange: setView,
 }: JobDescriptionSectionProps) {
-  const [view, setView] = React.useState<ViewState>(value ? 'summary' : 'empty');
   const [aiDraft, setAiDraft] = React.useState('');
   const [generateError, setGenerateError] = React.useState(false);
+  // Local, render-safe flag for the loading UI — the parent's `generating`
+  // prop only flips back once the mock request resolves, which is too slow
+  // for Cancel to feel instant.
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  // Ref (not state, deliberately not read during render): set the instant
+  // the user clicks Cancel, so the in-flight generate promise can check it
+  // before acting on its result and discard a late resolve after cancel.
+  const cancelledRef = React.useRef(false);
 
   React.useEffect(() => {
     if (!generating && view !== 'editing' && view !== 'ai_draft' && view !== 'ai_compare') {
       if (value && view === 'empty') setView('summary');
       if (!value && view === 'summary') setView('empty');
     }
-  }, [value, view, generating]);
+  }, [value, view, generating, setView]);
 
   const canGenerate = jobTitle.trim().length >= 2;
 
   const handleGenerate = async () => {
     if (!canGenerate) return;
     setGenerateError(false);
+    cancelledRef.current = false;
+    setIsGenerating(true);
     const draft = await onGenerate();
+    if (cancelledRef.current) return;
+    setIsGenerating(false);
     if (draft === null) {
       setGenerateError(true);
       setView('ai_error');
@@ -51,6 +75,13 @@ export function JobDescriptionSection({
     }
     setAiDraft(draft);
     setView(value ? 'ai_compare' : 'ai_draft');
+  };
+
+  const handleCancelGenerate = () => {
+    cancelledRef.current = true;
+    setIsGenerating(false);
+    setGenerateError(false);
+    setView(value ? 'summary' : 'empty');
   };
 
   const handleKeepDraft = () => {
@@ -85,6 +116,7 @@ export function JobDescriptionSection({
   };
 
   const charCount = stripHtml(value).length;
+  const showGenerating = isGenerating;
 
   if (view === 'empty') {
     return (
@@ -106,20 +138,20 @@ export function JobDescriptionSection({
           <button
             type="button"
             onClick={handleGenerate}
-            disabled={!canGenerate || generating}
-            aria-busy={generating}
+            disabled={!canGenerate || showGenerating}
+            aria-busy={showGenerating}
             title={!canGenerate ? 'Add a job title first.' : undefined}
             className="inline-flex h-9 items-center gap-2 rounded-md border border-primary bg-transparent px-4 text-button text-primary transition-colors hover:bg-active-menu-bg disabled:pointer-events-none disabled:opacity-50"
           >
             <Sparkles size={16} /> Generate with AI
           </button>
         </div>
-        {generating && (
+        {showGenerating && (
           <div className="mt-4 flex items-center gap-2 text-body-sm text-muted">
             <Loader2 size={14} className="animate-spin" /> Generating draft…
             <button
               type="button"
-              onClick={() => setGenerateError(false)}
+              onClick={handleCancelGenerate}
               className="ml-2 text-body-sm text-muted hover:text-heading"
             >
               Cancel
@@ -131,23 +163,12 @@ export function JobDescriptionSection({
   }
 
   if (view === 'summary') {
+    // Edit description lives in the card's header (job-details-form.tsx),
+    // not here, so this is a plain read-only preview.
     return (
       <div className="rounded-lg border border-border bg-surface p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1">
-            <p className="text-body text-bodyText line-clamp-3">
-              {stripHtml(value) || 'No description yet.'}
-            </p>
-            <p className="mt-2 text-caption tabular-nums text-muted">{charCount} characters</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setView('editing')}
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
-          >
-            <Pencil size={16} /> Edit description
-          </button>
-        </div>
+        <p className="text-body text-bodyText line-clamp-3">{stripHtml(value) || 'No description yet.'}</p>
+        <p className="mt-2 text-caption tabular-nums text-muted">{charCount} characters</p>
       </div>
     );
   }
@@ -207,7 +228,7 @@ export function JobDescriptionSection({
             </button>
           </div>
         </div>
-        <RichTextEditor value={aiDraft} onChange={setAiDraft} />
+        <RichTextEditor value={aiDraft} onChange={setAiDraft} allowedToolbar={DESCRIPTION_TOOLBAR} />
       </div>
     );
   }
@@ -245,7 +266,7 @@ export function JobDescriptionSection({
           </div>
           <div>
             <p className="mb-2 text-body-sm font-semibold text-primary">AI draft</p>
-            <RichTextEditor value={aiDraft} onChange={setAiDraft} />
+            <RichTextEditor value={aiDraft} onChange={setAiDraft} allowedToolbar={DESCRIPTION_TOOLBAR} />
           </div>
         </div>
       </div>
@@ -265,7 +286,12 @@ export function JobDescriptionSection({
           Done editing
         </button>
       </div>
-      <RichTextEditor value={value} onChange={onChange} generating={generating} />
+      <RichTextEditor
+        value={value}
+        onChange={onChange}
+        generating={generating}
+        allowedToolbar={DESCRIPTION_TOOLBAR}
+      />
     </div>
   );
 }

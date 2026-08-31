@@ -167,9 +167,10 @@ export function WizardHeader() {
               type="button"
               onClick={handleExit}
               aria-label="Close wizard and return to jobs"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              className="flex h-9 shrink-0 items-center gap-2 rounded-md border border-border px-2 text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
             >
               <X size={18} strokeWidth={1.5} />
+              <span className="hidden text-button sm:inline">Close</span>
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
@@ -188,9 +189,14 @@ export function WizardHeader() {
 
           {/* Right — save indicator + actions */}
           <div className="flex shrink-0 items-center gap-3">
-            <div className="hidden md:block">
-              <SaveIndicator state={saveState} onRetry={retrySave} />
-            </div>
+            {/* The Job Details step ('wide') has its own footer indicator,
+                which is the single source of truth there — showing both
+                would just be the same state duplicated on screen twice. */}
+            {chromeMode !== 'wide' && (
+              <div className="hidden md:block">
+                <SaveIndicator state={saveState} onRetry={retrySave} />
+              </div>
+            )}
             {candidateUrl ? (
               <a
                 href={candidateUrl}

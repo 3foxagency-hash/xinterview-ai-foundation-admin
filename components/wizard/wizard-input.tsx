@@ -11,10 +11,12 @@ interface WizardInputProps
   error?: string;
   icon?: LucideIcon;
   description?: string;
+  /** Trailing slot inside the field, e.g. a clear button. */
+  trailing?: React.ReactNode;
 }
 
 export const WizardInput = React.forwardRef<HTMLInputElement, WizardInputProps>(
-  ({ label, required, error, icon: Icon, description, id, className, ...props }, ref) => {
+  ({ label, required, error, icon: Icon, description, trailing, id, className, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
     const errorId = `${inputId}-error`;
@@ -45,12 +47,16 @@ export const WizardInput = React.forwardRef<HTMLInputElement, WizardInputProps>(
             className={cn(
               'h-12 w-full rounded-md border bg-surface text-body text-heading transition-all duration-200 placeholder:text-muted',
               'disabled:cursor-not-allowed disabled:opacity-50',
-              Icon ? 'pl-12 pr-4' : 'px-4',
+              Icon ? 'pl-12' : 'pl-4',
+              trailing ? 'pr-10' : 'pr-4',
               error ?'border-error':'border-border',
               className
             )}
             {...props}
           />
+          {trailing && (
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">{trailing}</div>
+          )}
         </div>
         {error && (
           <div id={errorId} role="alert" className="mt-1.5 flex items-center gap-1.5 text-body-sm text-error">

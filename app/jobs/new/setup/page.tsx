@@ -12,7 +12,19 @@ import type { InterviewFormat, JobSetupInput } from '@/lib/validation/job';
 
 export default function SetupPage() {
   const router = useRouter();
-  const { setJob, jobId, job, markDirty, clearDirty, patchJob, setChromeMode } = useWizard();
+  const {
+    setJob,
+    jobId,
+    job,
+    markDirty,
+    clearDirty,
+    patchJob,
+    saveState,
+    setSaveState,
+    retrySave,
+    setChromeMode,
+  } = useWizard();
+  const creatingDraftRef = React.useRef(false);
   const [subStep, setSubStep] = React.useState<'format' | 'details'>('format');
   const [format, setFormat] = React.useState<InterviewFormat>('ai_video');
   const [submitting, setSubmitting] = React.useState(false);
@@ -25,7 +37,7 @@ export default function SetupPage() {
   // useLayoutEffect, not useEffect: this must land before the browser paints,
   // or the wide/tracked chrome flashes for a frame before flipping to bare.
   React.useLayoutEffect(() => {
-    setChromeMode(subStep === 'format' ? 'bare' : 'default');
+    setChromeMode(subStep === 'format' ? 'bare' : 'wide');
     return () => setChromeMode('default');
   }, [subStep, setChromeMode]);
 
@@ -58,6 +70,64 @@ export default function SetupPage() {
     } catch {
       return null;
     }
+  };
+
+  // Fired on every field blur. Before a job exists, the first save with a
+  // usable title materializes the draft (createJob); after that, every save
+  // goes through the wizard's existing debounced patchJob.
+  const handleFieldSave = (data: JobSetupInput) => {
+    if (jobId) {
+      patchJob({
+        title: data.title,
+        timezone: data.timezone,
+        applicationDeadline: data.applicationDeadline,
+        interviewLanguage: data.interviewLanguage,
+        description: data.description,
+        department: data.department,
+        employmentType: data.employmentType,
+        experienceLevel: data.experienceLevel,
+        locationType: data.locationType,
+        location: data.location,
+        interviewDuration: data.interviewDuration,
+        availabilityWindowStart: data.availabilityWindowStart,
+        availabilityWindowEnd: data.availabilityWindowEnd,
+        breakBetweenInterviews: data.breakBetweenInterviews,
+      });
+      return;
+    }
+    if (!data.title.trim() || creatingDraftRef.current) return;
+    creatingDraftRef.current = true;
+    markDirty();
+    setSaveState('saving');
+    createJob({
+      format,
+      title: data.title,
+      timezone: data.timezone,
+      applicationDeadline: data.applicationDeadline,
+      interviewLanguage: data.interviewLanguage,
+      description: data.description ?? '',
+      department: data.department,
+      employmentType: data.employmentType,
+      experienceLevel: data.experienceLevel,
+      locationType: data.locationType,
+      location: data.location,
+      interviewDuration: data.interviewDuration,
+      availabilityWindowStart: data.availabilityWindowStart,
+      availabilityWindowEnd: data.availabilityWindowEnd,
+      breakBetweenInterviews: data.breakBetweenInterviews,
+    })
+      .then((createdJob) => {
+        setJob(createdJob);
+        clearDirty();
+        setSaveState('saved');
+        setTimeout(() => setSaveState('idle'), 2000);
+      })
+      .catch(() => {
+        setSaveState('error');
+      })
+      .finally(() => {
+        creatingDraftRef.current = false;
+      });
   };
 
   const handleSubmit = async (data: JobSetupInput) => {
@@ -140,6 +210,9 @@ export default function SetupPage() {
       onBackToFormat={() => setSubStep('format')}
       jobCreated={!!jobId}
       onSubmit={handleSubmit}
+      onFieldSave={handleFieldSave}
+      saveState={saveState}
+      onRetrySave={retrySave}
       submitting={submitting}
       submitLabel={jobId ? 'Save and continue' : 'Next: Questions'}
       onGenerateDescription={handleGenerateDescription}
@@ -157,6 +230,9 @@ export default function SetupPage() {
               locationType: job.locationType as JobSetupInput['locationType'],
               location: job.location,
               interviewDuration: job.interviewDuration,
+              availabilityWindowStart: job.availabilityWindowStart,
+              availabilityWindowEnd: job.availabilityWindowEnd,
+              breakBetweenInterviews: job.breakBetweenInterviews,
             }
           : undefined
       }

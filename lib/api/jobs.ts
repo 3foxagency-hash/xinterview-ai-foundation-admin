@@ -1,5 +1,6 @@
 import type { InterviewFormat } from '@/lib/validation/job';
 import { SCORING_BAND_COLOURS } from '@/lib/constants/scoring-band-colours';
+import { CITIES } from '@/lib/constants/locations';
 
 /**
  * Jobs API — the create-job wizard flow.
@@ -169,6 +170,14 @@ function toTeamMember(m: CompanyMember, overrides: Partial<JobTeamMember> = {}):
 export async function getPreviousJobTitles(): Promise<string[]> {
   await delay(150);
   return [...new Set([...jobStore.values()].map((j) => j.title))];
+}
+
+/** Place search for the job location field — filters the curated city list. */
+export async function searchPlaces(query: string): Promise<string[]> {
+  await delay(150);
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  return CITIES.filter((c) => c.toLowerCase().includes(q)).slice(0, 8);
 }
 
 export async function getQuestionTemplates(): Promise<QuestionTemplate[]> {
@@ -388,12 +397,20 @@ export async function bulkInvite(
   return { invited: rows.length, failed: [] };
 }
 
-export async function generateJobDescription(
-  title: string,
-  _language: string
-): Promise<string> {
+export async function generateJobDescription(title: string, language: string): Promise<string> {
   await delay(1000);
-  return `We are looking for a ${title} to join our team. You will collaborate closely with cross-functional partners, own key initiatives end to end, and help raise the bar for quality across the organisation. This role suits someone who is curious, detail-oriented, and energised by solving hard problems with a team.`;
+  // Mock failure case so the ai_error retry path is reachable without a real backend.
+  if (Math.random() < 0.15) {
+    throw new Error('generation_failed');
+  }
+  return [
+    '<h2>Summary</h2>',
+    `<p>We are looking for a ${title} to join our team. This role suits someone who is curious, detail-oriented, and energised by solving hard problems with a team. Interviews for this role are conducted in ${language}.</p>`,
+    '<h2>Responsibilities</h2>',
+    '<ul><li>Own key initiatives end to end, from scoping through delivery.</li><li>Collaborate closely with cross-functional partners across the organisation.</li><li>Help raise the bar for quality in everything the team ships.</li></ul>',
+    '<h2>Requirements</h2>',
+    `<ul><li>Proven experience in a similar ${title} role.</li><li>Strong communication skills and comfort working with ambiguity.</li><li>A track record of delivering high-quality work independently.</li></ul>`,
+  ].join('');
 }
 
 export async function generateAiQuestions(

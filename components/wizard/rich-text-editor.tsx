@@ -11,6 +11,8 @@ interface RichTextEditorProps {
   placeholder?: string;
   maxLength?: number;
   generating?: boolean;
+  /** Restrict the toolbar to a subset of buttons (see FormattingToolbar). */
+  allowedToolbar?: string[];
 }
 
 function stripHtml(html: string): string {
@@ -23,6 +25,7 @@ export function RichTextEditor({
   placeholder = 'Start typing, or generate with AI…',
   maxLength = 5000,
   generating = false,
+  allowedToolbar,
 }: RichTextEditorProps) {
   const editorRef = React.useRef<HTMLDivElement>(null);
   const [fullscreen, setFullscreen] = React.useState(false);
@@ -96,7 +99,7 @@ export function RichTextEditor({
             : 'rounded-md border border-border bg-surface focus-within:border-primary focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2 focus-within:ring-offset-background'
         )}
       >
-        <FormattingToolbar exec={exec} />
+        <FormattingToolbar exec={exec} allowed={allowedToolbar} />
 
         <div className={cn('relative', fullscreen && 'min-h-0 flex-1')}>
           <div

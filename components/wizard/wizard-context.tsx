@@ -31,11 +31,12 @@ interface WizardContextValue {
   /** Call after saving questions so the rail unlocks without a reload. */
   refreshQuestionCount: () => void;
   /**
-   * 'bare' hides the shell's step tracker and centered container — used by
-   * the format-selection sub-step, which precedes step numbering entirely.
+   * 'bare' (format selection) hides the step tracker and the centered
+   * container. 'wide' (job details) keeps the tracker but still goes full
+   * width. 'default' (steps 2-5, not yet built) is centered with the tracker.
    */
-  chromeMode: 'default' | 'bare';
-  setChromeMode: (mode: 'default' | 'bare') => void;
+  chromeMode: 'default' | 'wide' | 'bare';
+  setChromeMode: (mode: 'default' | 'wide' | 'bare') => void;
 }
 
 const WizardContext = React.createContext<WizardContextValue | null>(null);
@@ -65,7 +66,7 @@ export function WizardProvider({ children }: { children: React.ReactNode }) {
   const [saveState, setSaveState] = React.useState<SaveState>('idle');
   const [isDirty, setIsDirty] = React.useState(false);
   const [questionCount, setQuestionCount] = React.useState(0);
-  const [chromeMode, setChromeMode] = React.useState<'default' | 'bare'>('default');
+  const [chromeMode, setChromeMode] = React.useState<'default' | 'wide' | 'bare'>('default');
   const pendingPatch = React.useRef<Partial<Job> | null>(null);
   const saveTimer = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 

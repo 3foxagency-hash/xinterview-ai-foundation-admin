@@ -65,3 +65,41 @@ export function getDefaultTimezone(): string {
     return fallback;
   }
 }
+
+/**
+ * Mock company-level default — this repo has no workspace-settings timezone
+ * field yet, so this stands in for it until one exists.
+ */
+export function getCompanyDefaultTimezone(): string {
+  return 'Europe/Berlin';
+}
+
+export type TimezoneSource = 'saved' | 'detected' | 'company';
+
+/**
+ * The create-job wizard's timezone priority chain: a saved job value wins,
+ * then the device's own zone, then the company default, then GMT as the
+ * last resort. Kept pure (no React) so it's unit-testable without rendering.
+ */
+export function resolveInitialTimezone(opts: {
+  savedTimezone?: string | null;
+  companyTimezone?: string;
+}): { timezone: string; source: TimezoneSource } {
+  const { savedTimezone, companyTimezone = getCompanyDefaultTimezone() } = opts;
+
+  if (savedTimezone && TIMEZONE_KEYS.has(savedTimezone)) {
+    return { timezone: savedTimezone, source: 'saved' };
+  }
+
+  try {
+    const device = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (device && TIMEZONE_KEYS.has(device)) {
+      return { timezone: device, source: 'detected' };
+    }
+  } catch {
+    // Detection unsupported/failed — fall through to the company default.
+  }
+
+  const fallback = TIMEZONE_KEYS.has(companyTimezone) ? companyTimezone : 'Europe/London';
+  return { timezone: fallback, source: 'company' };
+}

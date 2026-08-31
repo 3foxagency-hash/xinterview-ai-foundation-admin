@@ -41,11 +41,24 @@ const TOOLBAR_BUTTONS: ToolbarButton[] = [
  * email template dialog). Pulled out on its own so both call `exec` the
  * same way instead of keeping two copies of this button list in sync.
  */
-export function FormattingToolbar({ exec }: { exec: (command: string, value?: string) => void }) {
+export function FormattingToolbar({
+  exec,
+  allowed,
+}: {
+  exec: (command: string, value?: string) => void;
+  /** Restrict to a subset of button labels (e.g. the job-description editor's
+   * limited set). Omit to show every button — the placeholder-chip editor's
+   * existing full toolbar. */
+  allowed?: string[];
+}) {
   const handleLink = () => {
     const url = window.prompt('Enter URL');
     if (url) exec('createLink', url);
   };
+
+  const buttons = allowed
+    ? TOOLBAR_BUTTONS.filter((btn) => allowed.includes(btn.label))
+    : TOOLBAR_BUTTONS;
 
   return (
     <div
@@ -53,9 +66,9 @@ export function FormattingToolbar({ exec }: { exec: (command: string, value?: st
       role="toolbar"
       aria-label="Formatting options"
     >
-      {TOOLBAR_BUTTONS.map((btn, i) => {
+      {buttons.map((btn, i) => {
         const Icon = btn.icon;
-        const prevBtn = TOOLBAR_BUTTONS[i - 1];
+        const prevBtn = buttons[i - 1];
         const showDivider = prevBtn && prevBtn.group !== btn.group;
         const handleClick = () => {
           switch (btn.label) {
