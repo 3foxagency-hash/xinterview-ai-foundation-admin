@@ -5,7 +5,7 @@ import { Lock, Check, CircleAlert as AlertCircle, Info, ArrowRight } from 'lucid
 import { cn } from '@/lib/utils';
 import { SectionCard } from '@/components/wizard/section-card';
 import { Popover, PopoverTrigger, PopoverClose, PopoverContent } from '@/components/ui/popover';
-import { INTERVIEW_FORMAT_CONFIG, type FormatConfig } from '@/lib/constants/interview-formats';
+import { INTERVIEW_FORMAT_CONFIG, TONE_TILE, type FormatConfig } from '@/lib/constants/interview-formats';
 import type { InterviewFormat } from '@/lib/validation/job';
 
 interface JobFormatSelectionProps {
@@ -13,15 +13,6 @@ interface JobFormatSelectionProps {
   onSelect: (format: InterviewFormat) => void;
   onContinue: () => void;
 }
-
-const TONE_TILE: Record<FormatConfig['tone'], string> = {
-  settings: 'bg-settings-wash text-settings-ink',
-  jobs: 'bg-jobs-wash text-jobs-ink',
-  reports: 'bg-reports-wash text-reports-ink',
-  ai: 'bg-ai-wash text-ai-ink',
-  candidates: 'bg-candidates-wash text-candidates-ink',
-  interviews: 'bg-interviews-wash text-interviews-ink',
-};
 
 function FormatCardContent({ card, selected }: { card: FormatConfig; selected: boolean }) {
   const Icon = card.icon;

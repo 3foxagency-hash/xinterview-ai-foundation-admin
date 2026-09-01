@@ -8,10 +8,13 @@ interface SegmentedControlProps {
   value: string;
   onChange: (value: string) => void;
   id?: string;
+  /** Overall control height — 'md' (default, 40px) matches settings-page controls; 'lg' (48px) matches the h-12 inputs/selects used in the job wizard. */
+  size?: 'md' | 'lg';
 }
 
-export function SegmentedControl({ options, value, onChange, id }: SegmentedControlProps) {
-  const groupId = id ?? React.useId();
+export function SegmentedControl({ options, value, onChange, id, size = 'md' }: SegmentedControlProps) {
+  const generatedId = React.useId();
+  const groupId = id ?? generatedId;
   const refs = React.useRef<(HTMLButtonElement | null)[]>([]);
 
   const handleKeyDown = (e: React.KeyboardEvent, idx: number) => {
@@ -32,7 +35,10 @@ export function SegmentedControl({ options, value, onChange, id }: SegmentedCont
     <div
       role="radiogroup"
       id={groupId}
-      className="inline-flex w-full rounded-md border border-border bg-muted-bg p-1"
+      className={cn(
+        'inline-flex w-full items-center rounded-md border border-border bg-muted-bg p-1',
+        size === 'lg' ? 'h-12' : 'h-10'
+      )}
     >
       {options.map((opt, idx) => {
         const selected = opt.value === value;
@@ -47,7 +53,7 @@ export function SegmentedControl({ options, value, onChange, id }: SegmentedCont
             onClick={() => onChange(opt.value)}
             onKeyDown={(e) => handleKeyDown(e, idx)}
             className={cn(
-              'flex h-8 flex-1 items-center justify-center rounded-sm px-3 text-body font-medium transition-all',
+              'flex h-full flex-1 items-center justify-center rounded-sm px-3 text-body font-medium transition-all',
               selected
                 ? 'bg-surface text-heading shadow-sm'
                 : 'text-muted hover:text-bodyText'

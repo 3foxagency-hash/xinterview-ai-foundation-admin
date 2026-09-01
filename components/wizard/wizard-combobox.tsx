@@ -119,11 +119,6 @@ export function WizardCombobox({
         {label}
         {required && <span className="ml-0.5 text-error">*</span>}
       </label>
-      {description && (
-        <p id={descId} className="mb-2 text-body-sm text-muted">
-          {description}
-        </p>
-      )}
 
       <div className="relative">
         {Icon && (
@@ -232,6 +227,12 @@ export function WizardCombobox({
           </>
         )}
       </div>
+
+      {description && !error && (
+        <p id={descId} className="mt-1.5 text-body-sm text-muted">
+          {description}
+        </p>
+      )}
 
       {error && (
         <div id={errorId} role="alert" className="mt-1.5 flex items-center gap-1.5 text-body-sm text-error">

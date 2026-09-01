@@ -13,6 +13,7 @@ import {
   Check,
   X,
   Pencil,
+  ChevronRight,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -48,7 +49,7 @@ import {
   DURATION_OPTIONS,
   BREAK_OPTIONS,
 } from '@/lib/constants/job-options';
-import { INTERVIEW_FORMAT_CONFIG } from '@/lib/constants/interview-formats';
+import { INTERVIEW_FORMAT_CONFIG, TONE_TILE } from '@/lib/constants/interview-formats';
 import { timezones, getCompanyDefaultTimezone, resolveInitialTimezone } from '@/lib/constants/timezones';
 import { availableLanguages, DEFAULT_LANGUAGE } from '@/lib/constants/languages';
 import { searchPlaces } from '@/lib/api/jobs';
@@ -370,10 +371,11 @@ export function JobDetailsForm({
       label: 'Role',
       caption: 'Role title, department & type',
       status: errors.title || errors.location ? 'error' : roleComplete ? 'complete' : activeSection === 'role' ? 'in_progress' : 'incomplete',
+      icon: Briefcase,
     },
     {
       id: 'schedule',
-      label: 'Schedule & language',
+      label: 'Schedule & Language',
       caption: 'Duration, timezone & language',
       status:
         errors.timezone || errors.interviewLanguage || errors.applicationDeadline || errors.interviewDuration
@@ -383,12 +385,14 @@ export function JobDetailsForm({
             : activeSection === 'schedule'
               ? 'in_progress'
               : 'incomplete',
+      icon: CalendarIcon,
     },
     {
       id: 'description',
-      label: 'Job description',
+      label: 'Job Description',
       caption: 'Description, requirements & skills',
       status: descriptionComplete ? 'complete' : activeSection === 'description' ? 'in_progress' : 'incomplete',
+      icon: FileText,
     },
   ];
 
@@ -415,16 +419,26 @@ export function JobDetailsForm({
   return (
     <div className="space-y-5 pb-24 sm:pb-20">
       {/* Format strip */}
-      <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
         <div className="flex items-center gap-3">
           {formatConfig && (
-            <div className="flex h-8 w-8 items-center justify-center rounded-md border border-border bg-card-hover">
-              <formatConfig.icon size={16} strokeWidth={1.5} className="text-bodyText" />
+            <div
+              className={cn(
+                'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg',
+                TONE_TILE[formatConfig.tone]
+              )}
+            >
+              <formatConfig.icon size={22} />
             </div>
           )}
-          <span className="text-body-sm font-semibold text-heading">
-            {formatConfig?.name ?? 'Interview format'}
-          </span>
+          <div>
+            <span className="block text-h3 text-heading">
+              {formatConfig?.name ?? 'Interview format'}
+            </span>
+            {formatConfig?.description && (
+              <span className="block text-body-sm text-muted">{formatConfig.description}</span>
+            )}
+          </div>
         </div>
         {jobCreated ? (
           <span className="text-body-sm text-muted" title="The interview format can't be changed after a job is created.">
@@ -437,9 +451,10 @@ export function JobDetailsForm({
               track('job_format_change_clicked');
               onBackToFormat();
             }}
-            className="text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-md"
+            className="inline-flex shrink-0 items-center gap-0.5 text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-md"
           >
             Change
+            <ChevronRight size={16} />
           </button>
         )}
       </div>
@@ -670,6 +685,7 @@ export function JobDetailsForm({
                   </label>
                   <SegmentedControl
                     id="location-type"
+                    size="lg"
                     options={LOCATION_TYPE_OPTIONS}
                     value={formData.locationType}
                     onChange={(v) => {
@@ -701,7 +717,7 @@ export function JobDetailsForm({
                     placeholder={isRemote ? 'Not needed for remote roles' : 'e.g. London, UK'}
                     error={errors.location}
                     disabled={isRemote}
-                    description={isRemote ? "Remote roles don't need a location." : undefined}
+                    infoTooltip={isRemote ? "Remote roles don't need a location." : undefined}
                     autoComplete="off"
                     trailing={
                       formData.location && !isRemote ? (
@@ -914,80 +930,83 @@ export function JobDetailsForm({
                   )}
                 </div>
 
-                {/* Availability window — only for live formats */}
+                {/* Break between interviews — live formats only (buffers scheduled slots;
+                    async formats like AI Video have no back-to-back slots to buffer). */}
                 {isLiveFormat && (
-                  <>
-                    <div className="sm:col-span-2">
-                      <div className="flex items-center gap-2">
-                        <label className="text-body-sm font-semibold text-heading">
-                          Availability window
-                        </label>
-                        <span className="text-caption text-muted">(optional)</span>
-                        <span className="flex items-center gap-1 text-caption text-muted" title="The date and time range candidates can start the interview.">
-                          <Info size={12} /> When candidates can start
-                        </span>
-                      </div>
-                      <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                        <WizardInput
-                          label="Availability start"
-                          name="availabilityWindowStart"
-                          type="date"
-                          value={formData.availabilityWindowStart}
-                          onChange={(e) => update('availabilityWindowStart', e.target.value)}
-                          onBlur={() => {
-                            onFieldSave?.(formData);
-                            track('job_details_saved', { section: 'schedule' });
-                          }}
-                          placeholder="Start date"
-                        />
-                        <WizardInput
-                          label="Availability end"
-                          name="availabilityWindowEnd"
-                          type="date"
-                          value={formData.availabilityWindowEnd}
-                          onChange={(e) => update('availabilityWindowEnd', e.target.value)}
-                          onBlur={() => {
-                            onFieldSave?.(formData);
-                            track('job_details_saved', { section: 'schedule' });
-                          }}
-                          placeholder="End date"
-                        />
-                      </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <label className="mb-2 block text-body-sm font-semibold text-heading">
+                        Break between interviews
+                      </label>
+                      <span className="flex items-center gap-1 text-caption text-muted" title="Buffer time between consecutive candidate interviews.">
+                        <Info size={12} />
+                      </span>
                     </div>
-
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <label className="mb-2 block text-body-sm font-semibold text-heading">
-                          Break between interviews
-                        </label>
-                        <span className="flex items-center gap-1 text-caption text-muted" title="Buffer time between consecutive candidate interviews.">
-                          <Info size={12} />
-                        </span>
-                      </div>
-                      <Select
-                        value={formData.breakBetweenInterviews || '__none__'}
-                        onValueChange={(v) => {
-                          const next = v === '__none__' ? '' : v;
-                          update('breakBetweenInterviews', next);
-                          onFieldSave?.({ ...formData, breakBetweenInterviews: next });
-                          track('job_details_saved', { section: 'schedule' });
-                        }}
-                      >
-                        <SelectTrigger className="h-12">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {BREAK_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </>
+                    <Select
+                      value={formData.breakBetweenInterviews || '__none__'}
+                      onValueChange={(v) => {
+                        const next = v === '__none__' ? '' : v;
+                        update('breakBetweenInterviews', next);
+                        onFieldSave?.({ ...formData, breakBetweenInterviews: next });
+                        track('job_details_saved', { section: 'schedule' });
+                      }}
+                    >
+                      <SelectTrigger className="h-12">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BREAK_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 )}
               </div>
+
+              {/* Availability window — only for live formats — its own full-width row so the
+                  start/end pair doesn't crowd or misalign against the single-column fields above. */}
+              {isLiveFormat && (
+                <div className="mt-6">
+                  <div className="flex items-center gap-2">
+                    <label className="text-body-sm font-semibold text-heading">
+                      Availability window
+                    </label>
+                    <span className="text-caption text-muted">(optional)</span>
+                    <span className="flex items-center gap-1 text-caption text-muted" title="The date and time range candidates can start the interview.">
+                      <Info size={12} /> When candidates can start
+                    </span>
+                  </div>
+                  <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <WizardInput
+                      label="Availability start"
+                      name="availabilityWindowStart"
+                      type="date"
+                      value={formData.availabilityWindowStart}
+                      onChange={(e) => update('availabilityWindowStart', e.target.value)}
+                      onBlur={() => {
+                        onFieldSave?.(formData);
+                        track('job_details_saved', { section: 'schedule' });
+                      }}
+                      placeholder="Start date"
+                    />
+                    <WizardInput
+                      label="Availability end"
+                      name="availabilityWindowEnd"
+                      type="date"
+                      value={formData.availabilityWindowEnd}
+                      onChange={(e) => update('availabilityWindowEnd', e.target.value)}
+                      onBlur={() => {
+                        onFieldSave?.(formData);
+                        track('job_details_saved', { section: 'schedule' });
+                      }}
+                      placeholder="End date"
+                    />
+                  </div>
+                </div>
+              )}
             </SectionCard>
           </div>
 

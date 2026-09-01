@@ -8,6 +8,17 @@ export type FormatTone = 'settings' | 'jobs' | 'reports' | 'ai' | 'candidates' |
 /** Solid/filled icon set (Material Design + Simple Icons for brand logos). */
 export type FormatIcon = IconType;
 
+/** Tile background + icon color for each format's tone, shared by the format
+ *  picker cards and the compact format banner shown on later wizard steps. */
+export const TONE_TILE: Record<FormatTone, string> = {
+  settings: 'bg-settings-wash text-settings-ink',
+  jobs: 'bg-jobs-wash text-jobs-ink',
+  reports: 'bg-reports-wash text-reports-ink',
+  ai: 'bg-ai-wash text-ai-ink',
+  candidates: 'bg-candidates-wash text-candidates-ink',
+  interviews: 'bg-interviews-wash text-interviews-ink',
+};
+
 export type FormatConfig = {
   id: InterviewFormat;
   name: string;

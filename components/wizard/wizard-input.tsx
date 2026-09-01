@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { AlertCircle, type LucideIcon } from 'lucide-react';
+import { AlertCircle, Info, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 
 interface WizardInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
@@ -11,12 +12,15 @@ interface WizardInputProps
   error?: string;
   icon?: LucideIcon;
   description?: string;
+  /** Shown as a small info icon next to the label; click to reveal in a popover
+   *  instead of a permanent line of text (keeps the field row single-line). */
+  infoTooltip?: string;
   /** Trailing slot inside the field, e.g. a clear button. */
   trailing?: React.ReactNode;
 }
 
 export const WizardInput = React.forwardRef<HTMLInputElement, WizardInputProps>(
-  ({ label, required, error, icon: Icon, description, trailing, id, className, ...props }, ref) => {
+  ({ label, required, error, icon: Icon, description, infoTooltip, trailing, id, className, ...props }, ref) => {
     const generatedId = React.useId();
     const inputId = id ?? generatedId;
     const errorId = `${inputId}-error`;
@@ -24,10 +28,28 @@ export const WizardInput = React.forwardRef<HTMLInputElement, WizardInputProps>(
 
     return (
       <div className="w-full">
-        <label htmlFor={inputId} className="mb-2 block text-body-sm font-semibold text-heading">
-          {label}
-          {required && <span className="ml-0.5 text-error">*</span>}
-        </label>
+        <div className="mb-2 flex items-center gap-1.5">
+          <label htmlFor={inputId} className="block text-body-sm font-semibold text-heading">
+            {label}
+            {required && <span className="ml-0.5 text-error">*</span>}
+          </label>
+          {infoTooltip && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label={`More information about ${label}`}
+                  className="flex h-4 w-4 items-center justify-center rounded-sm text-muted hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                >
+                  <Info size={14} />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 text-body-sm text-heading" align="start">
+                {infoTooltip}
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
         {description && (
           <p id={descId} className="mb-2 text-body-sm text-muted">
             {description}
