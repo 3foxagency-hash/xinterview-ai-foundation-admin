@@ -33,7 +33,7 @@ function FormatCardContent({ card, selected }: { card: FormatConfig; selected: b
           selected ? 'border-primary bg-primary/10' : cn('border-transparent', TONE_TILE[card.tone])
         )}
       >
-        <Icon size={22} strokeWidth={1.5} className={selected ? 'text-primary' : undefined} />
+        <Icon size={22} className={selected ? 'text-primary' : undefined} />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
@@ -71,7 +71,7 @@ function LockedFormatCard({ card }: { card: FormatConfig }) {
         >
           <div className="flex items-start gap-4">
             <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', TONE_TILE[card.tone])}>
-              <Icon size={22} strokeWidth={1.5} />
+              <Icon size={22} />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
