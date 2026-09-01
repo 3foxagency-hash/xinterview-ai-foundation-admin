@@ -31,7 +31,8 @@ import {
   type Question,
   type QuestionTemplate,
 } from '@/lib/api/jobs';
-import { INTERVIEW_FORMAT_CONFIG } from '@/lib/constants/interview-formats';
+import { INTERVIEW_FORMAT_CONFIG, TONE_TILE } from '@/lib/constants/interview-formats';
+import { cn } from '@/lib/utils';
 import {
   getAvailableQuestionTypes,
   QUESTION_TYPE_CONFIG,
@@ -348,9 +349,14 @@ export default function QuestionsPage() {
 
       {/* Format strip */}
       <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
-        {FormatIcon && (
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
-            <FormatIcon size={16} className="text-bodyText" />
+        {FormatIcon && formatConfig && (
+          <div
+            className={cn(
+              'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
+              TONE_TILE[formatConfig.tone]
+            )}
+          >
+            <FormatIcon size={16} />
           </div>
         )}
         <span className="text-body-sm font-semibold text-heading">

@@ -174,9 +174,17 @@ export function QuestionRow({
         </span>
 
         {/* Type indicator */}
-        <div className={cn('flex shrink-0 items-center gap-1.5', typeConfig.colorClass)}>
-          <TypeIcon size={14} strokeWidth={1.5} />
-          <span className="hidden text-body-sm font-medium sm:inline">
+        <div className="flex shrink-0 items-center gap-2">
+          <div
+            className={cn(
+              'flex h-7 w-7 shrink-0 items-center justify-center rounded-md',
+              typeConfig.tileClass,
+              typeConfig.colorClass
+            )}
+          >
+            <TypeIcon size={14} strokeWidth={1.5} />
+          </div>
+          <span className={cn('hidden text-body-sm font-medium sm:inline', typeConfig.colorClass)}>
             {typeConfig.label}
           </span>
         </div>

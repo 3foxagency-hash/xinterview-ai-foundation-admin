@@ -49,8 +49,8 @@ export function QuestionsRail({ questions, interviewDurationMinutes }: Questions
     <div className="space-y-4">
       {/* Step header */}
       <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface">
-          <HelpCircle size={18} className="text-bodyText" />
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-active-menu-bg">
+          <HelpCircle size={18} className="text-primary" />
         </div>
         <div>
           <h2 className="text-h3 text-heading">Questions</h2>

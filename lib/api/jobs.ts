@@ -413,34 +413,92 @@ export async function generateJobDescription(title: string, language: string): P
   ].join('');
 }
 
+const AI_QUESTION_BANK: Record<QuestionType, Array<Omit<Question, 'id'>>> = {
+  video: [
+    { type: 'video', title: 'Tell us about your experience in this field', description: 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'video', title: 'Describe a challenging project you led', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '3min' },
+    { type: 'video', title: 'Walk us through a recent problem you solved', description: 'Share the context, your approach, and the outcome.', retakesAllowed: 1, thinkingTime: '45s', answerTime: '3min' },
+    { type: 'video', title: 'Where do you see yourself in three years?', description: 'Share your career goals and how this role fits into them.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'video', title: 'How do you handle tight deadlines?', description: 'Describe your approach to prioritising work under pressure.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+  ],
+  audio: [
+    { type: 'audio', title: 'Describe your ideal team environment', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
+    { type: 'audio', title: 'Describe a time you handled conflict at work', description: 'How did you approach the situation and what was the result?', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'audio', title: 'How do you stay organised across multiple priorities?', description: 'Talk through the tools or habits you rely on.', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
+  ],
+  text: [
+    { type: 'text', title: 'Why are you interested in this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
+    { type: 'text', title: 'What are your salary expectations?', description: 'Please provide a range and any relevant context.', charLimit: 300 },
+    { type: 'text', title: 'Do you have any questions for us?', description: 'Anything you would like to know about the role or team.', charLimit: 500 },
+  ],
+  single_choice: [
+    { type: 'single_choice', title: 'How do you prefer to work?', description: 'Which best describes your preferred working style?', options: [
+      { id: `aio_${Date.now()}_a`, text: 'Independently with clear goals', isCorrect: false },
+      { id: `aio_${Date.now()}_b`, text: 'Collaboratively in constant sync', isCorrect: false },
+      { id: `aio_${Date.now()}_c`, text: 'A mix of both', isCorrect: true },
+      { id: `aio_${Date.now()}_f`, text: 'It depends on the project', isCorrect: false },
+    ] },
+    { type: 'single_choice', title: 'Are you willing to relocate?', description: 'Let us know your relocation preferences.', options: [
+      { id: `aio_${Date.now()}_d`, text: 'Yes, I am willing to relocate', isCorrect: true },
+      { id: `aio_${Date.now()}_e`, text: 'No, I prefer remote only', isCorrect: false },
+      { id: `aio_${Date.now()}_g`, text: 'Open to relocation for the right role', isCorrect: false },
+      { id: `aio_${Date.now()}_h`, text: 'Only within my current region', isCorrect: false },
+    ] },
+  ],
+};
+
+/** Options are trimmed to the requested count (min 2, max 4), keeping the
+ *  template's marked-correct option whenever it survives the trim. */
+function buildOptions(
+  template: Array<{ text: string; isCorrect: boolean }>,
+  optionsPerChoice: number,
+  uidRef: { current: number }
+): Array<{ id: string; text: string; isCorrect: boolean }> {
+  const count = Math.max(2, Math.min(4, optionsPerChoice));
+  const trimmed = template.slice(0, count);
+  if (!trimmed.some((o) => o.isCorrect) && trimmed.length > 0) {
+    trimmed[0] = { ...trimmed[0], isCorrect: true };
+  }
+  return trimmed.map((o) => ({ ...o, id: `aio_${Date.now()}_${uidRef.current++}` }));
+}
+
 export async function generateAiQuestions(
   counts: { video: number; audio: number; text: number; singleChoice: number },
   jobTitle: string,
   _jobId?: string,
-  focus?: string
+  focus?: string,
+  optionsPerChoice = 3
 ): Promise<Question[]> {
   await delay(1200);
-  const total = counts.video + counts.audio + counts.text + counts.singleChoice;
-  const bank: Question[] = [
-    { id: `aiq_${Date.now()}_1`, type: 'video', title: `Tell us about your experience as a ${jobTitle}`, description: focus ? `Focus: ${focus}` : 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    { id: `aiq_${Date.now()}_2`, type: 'video', title: 'Describe a challenging project you led', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '3min' },
-    { id: `aiq_${Date.now()}_3`, type: 'text', title: 'Why are you interested in this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
-    { id: `aiq_${Date.now()}_4`, type: 'audio', title: 'Describe your ideal team environment', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
-    { id: `aiq_${Date.now()}_5`, type: 'single_choice', title: 'How do you prefer to work?', description: 'Which best describes your preferred working style?', options: [
-      { id: `aio_${Date.now()}_a`, text: 'Independently with clear goals', isCorrect: false },
-      { id: `aio_${Date.now()}_b`, text: 'Collaboratively in constant sync', isCorrect: false },
-      { id: `aio_${Date.now()}_c`, text: 'A mix of both', isCorrect: true },
-    ] },
-    { id: `aiq_${Date.now()}_6`, type: 'video', title: 'Walk us through a recent problem you solved', description: 'Share the context, your approach, and the outcome.', retakesAllowed: 1, thinkingTime: '45s', answerTime: '3min' },
-    { id: `aiq_${Date.now()}_7`, type: 'text', title: 'What are your salary expectations?', description: 'Please provide a range and any relevant context.', charLimit: 300 },
-    { id: `aiq_${Date.now()}_8`, type: 'single_choice', title: 'Are you willing to relocate?', description: 'Let us know your relocation preferences.', options: [
-      { id: `aio_${Date.now()}_d`, text: 'Yes, I am willing to relocate', isCorrect: true },
-      { id: `aio_${Date.now()}_e`, text: 'No, I prefer remote only', isCorrect: false },
-    ] },
-    { id: `aiq_${Date.now()}_9`, type: 'audio', title: 'Describe a time you handled conflict at work', description: 'How did you approach the situation and what was the result?', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    { id: `aiq_${Date.now()}_10`, type: 'video', title: 'Where do you see yourself in three years?', description: 'Share your career goals and how this role fits into them.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+  const requested: Array<[QuestionType, number]> = [
+    ['video', counts.video],
+    ['audio', counts.audio],
+    ['text', counts.text],
+    ['single_choice', counts.singleChoice],
   ];
-  return bank.slice(0, Math.max(1, Math.min(total, 10)));
+
+  const results: Question[] = [];
+  const uidRef = { current: 0 };
+  for (const [type, count] of requested) {
+    const pool = AI_QUESTION_BANK[type];
+    if (!pool.length) continue;
+    for (let i = 0; i < count; i++) {
+      // Cycle through the pool if more of a type is requested than we have
+      // canned drafts for, so counts are always honoured exactly.
+      const template = pool[i % pool.length];
+      const isFirstVideo = type === 'video' && i === 0;
+      results.push({
+        ...template,
+        id: `aiq_${Date.now()}_${uidRef.current++}`,
+        title: isFirstVideo ? `Tell us about your experience as a ${jobTitle}` : template.title,
+        description: isFirstVideo && focus ? `Focus: ${focus}` : template.description,
+        options: template.options
+          ? buildOptions(template.options, optionsPerChoice, uidRef)
+          : undefined,
+      });
+    }
+  }
+  return results;
 }
 
 export async function publishJob(jobId: string): Promise<{
