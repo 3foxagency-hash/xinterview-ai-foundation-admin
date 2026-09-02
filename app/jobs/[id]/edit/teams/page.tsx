@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Search, Plus, Lock } from 'lucide-react';
+import { Search, Plus, Lock, Info, Users } from 'lucide-react';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
 import { TeamRail } from '@/components/wizard/team-rail';
@@ -27,8 +27,15 @@ import {
 import { getProfile } from '@/lib/api/profile';
 import { track } from '@/lib/utils/analytics';
 import { toast } from 'sonner';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
-const SEARCH_THRESHOLD = 10;
+type RoleFilter = 'all' | JobTeamMember['role'];
 
 export default function TeamsPage() {
   const router = useRouter();
@@ -43,6 +50,7 @@ export default function TeamsPage() {
   const [loading, setLoading] = React.useState(true);
 
   const [search, setSearch] = React.useState('');
+  const [roleFilter, setRoleFilter] = React.useState<RoleFilter>('all');
   const [addSheetOpen, setAddSheetOpen] = React.useState(false);
   const [removeTarget, setRemoveTarget] = React.useState<{
     member: JobTeamMember;
@@ -76,13 +84,12 @@ export default function TeamsPage() {
   const notificationsLocked = plan ? !plan.emailNotifications : false;
   const hasCandidates = job?.status === 'active';
 
-  const filteredMembers =
-    members.length > SEARCH_THRESHOLD && search
-      ? members.filter((m) => {
-          const q = search.toLowerCase();
-          return m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
-        })
-      : members;
+  const filteredMembers = members.filter((m) => {
+    const matchesRole = roleFilter === 'all' || m.role === roleFilter;
+    const q = search.trim().toLowerCase();
+    const matchesSearch = !q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q);
+    return matchesRole && matchesSearch;
+  });
 
   // ─── Save-state wrapper — mirrors the autosave indicator used on earlier steps ───
   const runMutation = React.useCallback(
@@ -331,14 +338,43 @@ export default function TeamsPage() {
                 Team members{' '}
                 <span className="text-body font-normal text-muted">({members.length})</span>
               </h2>
-              <button
-                type="button"
-                onClick={() => setAddSheetOpen(true)}
-                className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-              >
-                <Plus size={15} />
-                Add people
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                {members.length > 0 && (
+                  <>
+                    <div className="relative">
+                      <Search
+                        size={16}
+                        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+                      />
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search members…"
+                        className="h-9 w-52 pl-9"
+                      />
+                    </div>
+                    <Select value={roleFilter} onValueChange={(v) => setRoleFilter(v as RoleFilter)}>
+                      <SelectTrigger className="h-9 w-36">
+                        <SelectValue placeholder="All roles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All roles</SelectItem>
+                        <SelectItem value="Admin">Admin</SelectItem>
+                        <SelectItem value="Manager">Manager</SelectItem>
+                        <SelectItem value="Executive">Executive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setAddSheetOpen(true)}
+                  className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+                >
+                  <Plus size={15} />
+                  Add people
+                </button>
+              </div>
             </div>
 
             {notificationsLocked && !loading && members.length > 0 && (
@@ -350,23 +386,6 @@ export default function TeamsPage() {
                     See plans
                   </a>
                 </p>
-              </div>
-            )}
-
-            {members.length > SEARCH_THRESHOLD && (
-              <div className="px-4 pt-4">
-                <div className="relative">
-                  <Search
-                    size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
-                  />
-                  <Input
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search members…"
-                    className="h-9 pl-9"
-                  />
-                </div>
               </div>
             )}
 
@@ -412,6 +431,27 @@ export default function TeamsPage() {
                 </p>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
+                  {/* Column headers — grid matches TeamMemberRow's column template exactly,
+                      so labels sit directly above the values they describe. */}
+                  <div className="hidden border-b border-border bg-card-hover px-4 py-2.5 sm:grid sm:grid-cols-[1fr_92px_110px_170px_64px] sm:items-center sm:gap-5">
+                    <span className="text-caption font-medium uppercase tracking-wide text-muted">
+                      Member
+                    </span>
+                    <span className="flex items-center gap-1 text-caption font-medium uppercase tracking-wide text-muted">
+                      Company role
+                      <Info size={11} />
+                    </span>
+                    <span className="flex items-center gap-1 text-caption font-medium uppercase tracking-wide text-muted">
+                      Access
+                      <Info size={11} />
+                    </span>
+                    <span className="text-caption font-medium uppercase tracking-wide text-muted">
+                      Email notifications
+                    </span>
+                    <span className="justify-self-end text-caption font-medium uppercase tracking-wide text-muted">
+                      Actions
+                    </span>
+                  </div>
                   {filteredMembers.map((m) => (
                     <TeamMemberRow
                       key={m.id}
@@ -428,6 +468,17 @@ export default function TeamsPage() {
                 </div>
               )}
             </div>
+
+            {/* Footer disclaimer */}
+            {!loading && members.length > 0 && (
+              <div className="flex items-center gap-2 border-t border-border px-4 py-3">
+                <Users size={14} className="shrink-0 text-muted" />
+                <p className="text-body-sm text-muted">
+                  Everyone on a job has the same access today. Per-job permission levels are
+                  coming.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Soft warning — never blocks */}

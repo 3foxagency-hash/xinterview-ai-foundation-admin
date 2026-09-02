@@ -1,6 +1,7 @@
 import type { InterviewFormat } from '@/lib/validation/job';
 import { SCORING_BAND_COLOURS } from '@/lib/constants/scoring-band-colours';
 import { CITIES } from '@/lib/constants/locations';
+import { PersistentMap } from '@/lib/utils/persistent-map';
 
 /**
  * Jobs API — the create-job wizard flow.
@@ -116,28 +117,34 @@ function ulid(): string {
   return `${Date.now().toString(36).toUpperCase()}${rand}`.slice(0, 26);
 }
 
-// ─── In-memory store ───
+// ─── Store — persisted to localStorage so a job survives a page refresh
+// or a direct URL visit (there's no real backend behind this mock layer) ───
 
-const jobStore = new Map<string, Job>();
-const questionStore = new Map<string, Question[]>();
-const teamStore = new Map<string, JobTeamMember[]>();
+const jobStore = new PersistentMap<Job>('xi_mock_jobs');
+const questionStore = new PersistentMap<Question[]>('xi_mock_questions');
+const teamStore = new PersistentMap<JobTeamMember[]>('xi_mock_team');
 
 const COMPANY_MEMBERS: CompanyMember[] = [
-  { id: 'mem_1', name: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', role: 'Admin', initials: 'SC' },
-  { id: 'mem_2', name: 'James Patel', email: 'james.patel@xinterview.ai', role: 'Manager', initials: 'JP' },
-  { id: 'mem_3', name: 'Ava Thompson', email: 'ava.thompson@xinterview.ai', role: 'Manager', initials: 'AT' },
-  { id: 'mem_4', name: 'Diego Morales', email: 'diego.morales@xinterview.ai', role: 'Executive', initials: 'DM' },
-  { id: 'mem_5', name: 'Priya Nair', email: 'priya.nair@xinterview.ai', role: 'Admin', initials: 'PN' },
-  { id: 'mem_6', name: 'Marcus Webb', email: 'marcus.webb@xinterview.ai', role: 'Manager', initials: 'MW' },
-  { id: 'mem_7', name: 'Lena Kowalski', email: 'lena.kowalski@xinterview.ai', role: 'Executive', initials: 'LK' },
-  { id: 'mem_8', name: 'Tomás Rivera', email: 'tomas.rivera@xinterview.ai', role: 'Manager', initials: 'TR' },
-  { id: 'mem_9', name: 'Yuki Tanaka', email: 'yuki.tanaka@xinterview.ai', role: 'Manager', initials: 'YT' },
-  { id: 'mem_10', name: 'Grace Okafor', email: 'grace.okafor@xinterview.ai', role: 'Executive', initials: 'GO' },
-  { id: 'mem_11', name: 'Noah Bergström', email: 'noah.bergstrom@xinterview.ai', role: 'Manager', initials: 'NB' },
-  { id: 'mem_12', name: 'Isabelle Dubois', email: 'isabelle.dubois@xinterview.ai', role: 'Manager', initials: 'ID' },
-  { id: 'mem_13', name: 'Ravi Subramaniam', email: 'ravi.subramaniam@xinterview.ai', role: 'Manager', initials: 'RS' },
-  { id: 'mem_14', name: 'Hannah Kim', email: 'hannah.kim@xinterview.ai', role: 'Manager', initials: 'HK' },
+  { id: 'mem_1', name: 'Priya Shah', email: 'priya.shah@acme.com', role: 'Admin', initials: 'PS' },
+  { id: 'mem_2', name: 'Arjun Mehta', email: 'arjun.mehta@acme.com', role: 'Admin', initials: 'AM' },
+  { id: 'mem_3', name: 'Neha Verma', email: 'neha.verma@acme.com', role: 'Manager', initials: 'NV' },
+  { id: 'mem_4', name: 'Rohan Kapoor', email: 'rohan.kapoor@acme.com', role: 'Manager', initials: 'RK' },
+  { id: 'mem_5', name: 'Ananya Iyer', email: 'ananya.iyer@acme.com', role: 'Manager', initials: 'AI' },
+  { id: 'mem_6', name: 'Vikram Rao', email: 'vikram.rao@acme.com', role: 'Executive', initials: 'VR' },
+  { id: 'mem_7', name: 'Lena Kowalski', email: 'lena.kowalski@acme.com', role: 'Executive', initials: 'LK' },
+  { id: 'mem_8', name: 'Tomás Rivera', email: 'tomas.rivera@acme.com', role: 'Manager', initials: 'TR' },
+  { id: 'mem_9', name: 'Yuki Tanaka', email: 'yuki.tanaka@acme.com', role: 'Manager', initials: 'YT' },
+  { id: 'mem_10', name: 'Grace Okafor', email: 'grace.okafor@acme.com', role: 'Executive', initials: 'GO' },
+  { id: 'mem_11', name: 'Noah Bergström', email: 'noah.bergstrom@acme.com', role: 'Manager', initials: 'NB' },
+  { id: 'mem_12', name: 'Isabelle Dubois', email: 'isabelle.dubois@acme.com', role: 'Manager', initials: 'ID' },
+  { id: 'mem_13', name: 'Ravi Subramaniam', email: 'ravi.subramaniam@acme.com', role: 'Manager', initials: 'RS' },
+  { id: 'mem_14', name: 'Hannah Kim', email: 'hannah.kim@acme.com', role: 'Manager', initials: 'HK' },
 ];
+
+/** Team members every new job starts with, alongside its owner — mirrors a
+ *  small hiring team already collaborating, so the Team step isn't empty
+ *  the first time a job is created. */
+const DEFAULT_TEAM_MEMBER_IDS = ['mem_2', 'mem_3', 'mem_4', 'mem_5', 'mem_6'];
 
 const QUESTION_TEMPLATES: QuestionTemplate[] = [
   { id: 'tpl_frontend', name: 'Frontend Engineer', questionCount: 5, typeBreakdown: { video: 3, text: 1, single_choice: 1 }, lastUsedAt: '2026-08-20T10:00:00Z' },
@@ -244,7 +251,11 @@ export async function createJob(input: {
     breakBetweenInterviews: input.breakBetweenInterviews,
   };
   jobStore.set(id, job);
-  teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true })]);
+  const defaultMembers = DEFAULT_TEAM_MEMBER_IDS
+    .map((mid) => COMPANY_MEMBERS.find((m) => m.id === mid))
+    .filter((m): m is CompanyMember => m !== undefined)
+    .map((m) => toTeamMember(m, { notifyOnComplete: m.id !== 'mem_5' }));
+  teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true }), ...defaultMembers]);
   return job;
 }
 
@@ -572,11 +583,17 @@ import type {
   QuestionScoring,
 } from '@/lib/validation/job';
 
-const customStore = new Map<string, Record<string, unknown>>();
+const customStore = new PersistentMap<Record<string, unknown>>('xi_mock_customisation');
 
 function getCustom(jobId: string): Record<string, unknown> {
   if (!customStore.has(jobId)) customStore.set(jobId, {});
   return customStore.get(jobId)!;
+}
+
+/** Setters mutate the object `getCustom` returns in place, then call this to
+ *  write the change back through the store so it actually persists. */
+function setCustom(jobId: string, data: Record<string, unknown>) {
+  customStore.set(jobId, data);
 }
 
 export async function getBranding(jobId: string): Promise<BrandingInput> {
@@ -597,6 +614,7 @@ export async function saveBranding(jobId: string, input: BrandingInput): Promise
   await delay(400);
   const data = getCustom(jobId);
   data.branding = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -619,6 +637,7 @@ export async function saveWelcomePage(jobId: string, input: WelcomePageInput): P
   await delay(400);
   const data = getCustom(jobId);
   data.welcomePage = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -644,6 +663,7 @@ export async function saveFormSettings(jobId: string, input: FormSettingsInput):
   await delay(400);
   const data = getCustom(jobId);
   data.formSettings = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -663,6 +683,7 @@ export async function saveThankYouPage(jobId: string, input: ThankYouPageInput):
   await delay(400);
   const data = getCustom(jobId);
   data.thankYouPage = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -681,6 +702,7 @@ export async function saveSocialPreview(jobId: string, input: SocialPreviewInput
   await delay(400);
   const data = getCustom(jobId);
   data.socialPreview = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -699,6 +721,7 @@ export async function saveInterviewExperience(jobId: string, input: InterviewExp
   await delay(400);
   const data = getCustom(jobId);
   data.interviewExperience = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -727,6 +750,7 @@ export async function saveNotifications(jobId: string, input: NotificationsInput
   await delay(400);
   const data = getCustom(jobId);
   data.notifications = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -746,6 +770,7 @@ export async function saveAiEvaluation(jobId: string, input: AiEvaluationInput):
   await delay(400);
   const data = getCustom(jobId);
   data.aiEvaluation = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -779,6 +804,7 @@ export async function saveStages(jobId: string, input: StagesInput): Promise<Sta
     }
   }
   data.stages = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -798,6 +824,7 @@ export async function saveScoringLabels(jobId: string, input: ScoringLabelsInput
   await delay(400);
   const data = getCustom(jobId);
   data.scoringLabels = input;
+  setCustom(jobId, data);
   return input;
 }
 
