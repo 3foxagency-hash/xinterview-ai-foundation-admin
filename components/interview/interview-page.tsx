@@ -52,22 +52,44 @@ function resolveLayoutMode(config: InterviewConfig): LayoutMode {
   return showVideo ? (showDescription ? 'A' : 'B') : showDescription ? 'C' : 'D';
 }
 
-export function InterviewPage({ token }: { token: string }) {
+interface InterviewPageProps {
+  token: string;
+  /** Overrides the mock config this screen otherwise self-initializes
+   *  from — used by the admin customisation preview to render this exact
+   *  screen against live draft data instead of the static mock. Omitted
+   *  (the real candidate route), behavior is unchanged. */
+  configOverride?: InterviewConfig;
+  /** Disables the dev-only toggles (`?dev`, `?preview=A|B|C|D`, the
+   *  DisplayToggles panel) when rendering a controlled configOverride —
+   *  those exist for testing the live route and would otherwise let the
+   *  preview drift from what the admin form actually says. */
+  disableDevControls?: boolean;
+}
+
+export function InterviewPage({ token, configOverride, disableDevControls }: InterviewPageProps) {
   const router = useRouter();
-  const [config, setConfig] = React.useState<InterviewConfig>(defaultConfig);
+  const [config, setConfig] = React.useState<InterviewConfig>(configOverride ?? defaultConfig);
   const [isDev, setIsDev] = React.useState(false);
   /** ?preview=A|B|C|D — testing override so all four modes can be
    *  checked without editing job settings. Testing only. */
   const [previewMode, setPreviewMode] = React.useState<LayoutMode | null>(null);
 
   React.useEffect(() => {
+    if (disableDevControls) return;
     const params = new URLSearchParams(window.location.search);
     setIsDev(params.has('dev'));
     const preview = params.get('preview')?.toUpperCase();
     if (preview === 'A' || preview === 'B' || preview === 'C' || preview === 'D') {
       setPreviewMode(preview);
     }
-  }, []);
+  }, [disableDevControls]);
+
+  // Keep `config` in sync with a live configOverride (e.g. the admin
+  // customisation preview re-computing this on every keystroke). Real
+  // candidate sessions never pass configOverride, so this is a no-op there.
+  React.useEffect(() => {
+    if (configOverride) setConfig(configOverride);
+  }, [configOverride]);
 
   const layoutMode = previewMode ?? resolveLayoutMode(config);
   const scenario = MODE_TO_SCENARIO[layoutMode];
@@ -198,10 +220,12 @@ export function InterviewPage({ token }: { token: string }) {
         )}
 
         {/* TEMPORARY — remove with the API integration (see
-            components/interview/display-toggles.tsx). */}
-        <DisplayToggles config={config} onChange={setConfig} />
+            components/interview/display-toggles.tsx). Hidden when a live
+            configOverride is driving this screen (the admin preview) so its
+            floating panel doesn't sit on top of / fight with that data. */}
+        {!disableDevControls && <DisplayToggles config={config} onChange={setConfig} />}
 
-        {isDev && <DevPanel config={config} onChange={setConfig} />}
+        {isDev && !disableDevControls && <DevPanel config={config} onChange={setConfig} />}
       </InterviewThemeProvider>
     </>
   );

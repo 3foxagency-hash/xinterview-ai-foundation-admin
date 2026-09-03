@@ -46,12 +46,15 @@ function CustomisationShell({ jobId, children }: { jobId: string | null; childre
       <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-4 lg:overflow-hidden">
         {jobId && <CustomisationSubNav jobId={jobId} />}
 
-        {/* Settings column */}
-        <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:overflow-y-auto xl:max-w-[calc(100%-260px-420px-2rem)]">
+        {/* Settings column — capped at 560px (narrow enough to hand the
+            preview real room, wide enough that its label/field rows don't
+            wrap awkwardly) so the preview, which is what actually shows the
+            effect of these settings, gets the lion's share of the width. */}
+        <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:w-[560px] lg:flex-none lg:overflow-y-auto">
           {children}
         </div>
 
-        {/* Preview column — visible only on xl+ */}
+        {/* Preview column — visible only on xl+, grows to fill remaining width */}
         <CustomisationPreviewPanel />
 
         {/* Preview toggle for below xl */}

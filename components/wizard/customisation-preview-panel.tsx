@@ -14,6 +14,11 @@ import { InterviewScreen } from '@/components/interview/interview-screen';
 import { CompletionScreen } from '@/components/interview/completion-screen';
 import { interviewSession as defaultSession } from '@/config/interview-session';
 import { track } from '@/lib/utils/analytics';
+// The interview screens rendered below (InterviewPage, InterviewScreen,
+// CompletionScreen) are styled entirely by this stylesheet. The real
+// candidate route pulls it in via app/interview/[token]/layout.tsx; this
+// preview panel needs the same import since it's outside that layout.
+import '@/app/interview/[token]/interview.css';
 
 const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
   { value: 'landing', label: 'Landing page' },
@@ -279,26 +284,141 @@ function SocialLinkPreview() {
   );
 }
 
-function InertWrapper({ children, device }: { children: React.ReactNode; device: 'desktop' | 'mobile' }) {
+const PHONE_WIDTH = 375;
+const PHONE_HEIGHT = 812;
+/** Extra room around the phone chassis (border + a little breathing room)
+ *  so the scale-to-fit math doesn't shave the bezel off against the panel edge. */
+const PHONE_CHROME_PADDING = 24;
+
+function MobileFrame({ children }: { children: React.ReactNode }) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const compute = () => {
+      const { width, height } = el.getBoundingClientRect();
+      const availableW = width - PHONE_CHROME_PADDING;
+      const availableH = height - PHONE_CHROME_PADDING;
+      const next = Math.min(1, availableW / PHONE_WIDTH, availableH / PHONE_HEIGHT);
+      setScale(next > 0 ? next : 1);
+    };
+    compute();
+    const observer = new ResizeObserver(compute);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div
-      aria-hidden="true"
-      inert
-      className={cn(
-        'pointer-events-none select-none overflow-hidden',
-        device === 'mobile'
-          ? 'mx-auto rounded-[2rem] border-4 border-border-strong bg-surface p-2 shadow-md'
-          : 'rounded-lg border border-border bg-surface shadow-sm'
-      )}
-      style={
-        device === 'mobile'
-          ? { width: 380, height: 680, maxHeight: '100%' }
-          : { width: '100%', height: '100%', maxHeight: '100%' }
-      }
-    >
-      {children}
+    <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-hidden">
+      {/* Phone chassis — fixed 375×812 (iPhone-size) content viewport, scaled
+          to fit whatever room the panel actually has, with a notch and side
+          buttons so it reads as "a phone", not just a narrower box. The
+          interview page's own CSS still only responds to the real browser
+          viewport width, so this narrows what's visible rather than
+          guaranteeing pixel-identical mobile breakpoints. */}
+      <div
+        className="relative shrink-0"
+        style={{ width: PHONE_WIDTH * scale, height: PHONE_HEIGHT * scale }}
+      >
+        <div
+          className="absolute left-0 top-0 origin-top-left"
+          style={{ width: PHONE_WIDTH, height: PHONE_HEIGHT, transform: `scale(${scale})` }}
+        >
+          <div className="absolute -left-[3px] top-24 h-16 w-[3px] rounded-l-sm bg-border-strong" aria-hidden />
+          <div className="absolute -right-[3px] top-32 h-24 w-[3px] rounded-r-sm bg-border-strong" aria-hidden />
+          <div
+            aria-hidden="true"
+            inert
+            className="relative pointer-events-none h-full w-full select-none overflow-hidden rounded-[2.5rem] border-[6px] border-border-strong bg-surface shadow-lg"
+          >
+            <div className="absolute left-1/2 top-0 z-10 h-6 w-32 -translate-x-1/2 rounded-b-2xl bg-border-strong" aria-hidden />
+            {/* pt-8 clears the notch so real page content (a logo, a nav bar)
+                doesn't render underneath it, like a phone's safe-area inset. */}
+            <div className="h-full w-full overflow-y-auto pt-8">{children}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
+}
+
+/** The width the real desktop landing page actually wants to lay out at
+ *  (its two-column CSS starts feeling cramped below this). The panel is
+ *  rarely that wide once the nav + settings columns take their share, so
+ *  rendering at this width and scaling down guarantees the two-column
+ *  layout never clips — instead of forcing a real ~1200px browser layout
+ *  into a ~700px box and cutting off whatever doesn't fit. */
+const DESKTOP_DESIGN_WIDTH = 1200;
+
+function DesktopFrame({ children }: { children: React.ReactNode }) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+  const [contentHeight, setContentHeight] = React.useState(0);
+  const contentRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const compute = () => {
+      const { width } = el.getBoundingClientRect();
+      setScale(Math.min(1, width / DESKTOP_DESIGN_WIDTH));
+    };
+    compute();
+    const observer = new ResizeObserver(compute);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // Track the rendered content's real (unscaled) height so the scaled-down
+  // box doesn't leave a tall empty gap below it. Read this from the
+  // ResizeObserver's own content-box size, not getBoundingClientRect() —
+  // the latter reports the post-transform (already-scaled) size on an
+  // element with `transform: scale()` applied, which would double-shrink
+  // the height once multiplied by `scale` again below.
+  React.useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      const height = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
+      setContentHeight(height);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={containerRef}
+      className="h-full w-full overflow-y-auto overflow-x-hidden rounded-lg border border-border bg-surface shadow-sm"
+    >
+      <div style={{ height: contentHeight * scale }}>
+        <div
+          ref={contentRef}
+          aria-hidden="true"
+          inert
+          className="pointer-events-none select-none"
+          style={{
+            width: DESKTOP_DESIGN_WIDTH,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InertWrapper({ children, device }: { children: React.ReactNode; device: 'desktop' | 'mobile' }) {
+  if (device === 'mobile') {
+    return <MobileFrame>{children}</MobileFrame>;
+  }
+
+  return <DesktopFrame>{children}</DesktopFrame>;
 }
 
 export function CustomisationPreviewPanel() {
@@ -333,7 +453,7 @@ export function CustomisationPreviewPanel() {
 
   return (
     <aside
-      className="hidden w-[420px] shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-surface xl:flex"
+      className="hidden min-w-[420px] flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface xl:flex"
       aria-label="Live preview"
       role="complementary"
     >
@@ -451,28 +571,23 @@ export function CustomisationPreviewPanel() {
           <SocialLinkPreview />
         ) : (
           <InertWrapper device={previewDevice}>
-            <div
-              className="overflow-y-auto"
-              style={
-                previewDevice === 'mobile'
-                  ? { width: '100%', height: '100%' }
-                  : { width: '100%', height: '100%' }
-              }
-            >
-              {previewScreen === 'landing' && <InterviewPage token="preview" />}
-              {previewScreen === 'form' && <InterviewPage token="preview" />}
-              {previewScreen === 'interview' && (
-                <InterviewScreen
-                  session={session}
-                  forcedQuestionIndex={0}
-                  forcedState="thinking"
-                  simFailure="unsupported_browser"
-                />
-              )}
-              {previewScreen === 'thank-you' && (
-                <CompletionScreen session={session} state="complete" />
-              )}
-            </div>
+            {previewScreen === 'landing' && (
+              <InterviewPage token="preview" configOverride={config} disableDevControls />
+            )}
+            {previewScreen === 'form' && (
+              <InterviewPage token="preview" configOverride={config} disableDevControls />
+            )}
+            {previewScreen === 'interview' && (
+              <InterviewScreen
+                session={session}
+                forcedQuestionIndex={0}
+                forcedState="thinking"
+                simFailure="unsupported_browser"
+              />
+            )}
+            {previewScreen === 'thank-you' && (
+              <CompletionScreen session={session} state="complete" />
+            )}
           </InertWrapper>
         )}
       </div>

@@ -6,17 +6,26 @@ import { WizardProvider, useWizard } from '@/components/wizard/wizard-context';
 import { WizardHeader } from '@/components/wizard/wizard-header';
 import { MobileStepBar } from '@/components/wizard/mobile-step-bar';
 import { getStepNumberFromPath, WIZARD_STEPS } from '@/lib/wizard-config';
+import { cn } from '@/lib/utils';
 
 function EditShell({ children }: { children: React.ReactNode }) {
   const params = useParams<{ id: string }>();
   const jobIdParam = params?.id ?? null;
   const pathname = usePathname();
   const currentStep = getStepNumberFromPath(pathname);
-  const { setJobId } = useWizard();
+  const { setJobId, chromeMode, setChromeMode } = useWizard();
 
   React.useEffect(() => {
     if (jobIdParam) setJobId(jobIdParam);
   }, [jobIdParam, setJobId]);
+
+  // Customisation's live preview needs real width to be worth anything —
+  // opt that step out of the 1200px cap the other steps use. Reverts the
+  // instant another step mounts, same pattern as the pre-creation wizard.
+  React.useLayoutEffect(() => {
+    setChromeMode(pathname.includes('/customisation') ? 'wide' : 'default');
+    return () => setChromeMode('default');
+  }, [pathname, setChromeMode]);
 
   const currentStepData = WIZARD_STEPS[currentStep - 1];
 
@@ -32,7 +41,12 @@ function EditShell({ children }: { children: React.ReactNode }) {
           does, so its two columns can scroll independently) while normal
           steps still scroll the page as a whole. */}
       <main className="flex min-h-0 flex-1 flex-col">
-        <div className="mx-auto flex w-full min-h-0 max-w-[1200px] flex-1 flex-col px-4 py-4 md:px-8 md:py-6">
+        <div
+          className={cn(
+            'flex w-full min-h-0 flex-1 flex-col px-4 py-4 md:px-8 md:py-6',
+            chromeMode === 'default' && 'mx-auto max-w-[1200px]'
+          )}
+        >
           {children}
         </div>
       </main>
