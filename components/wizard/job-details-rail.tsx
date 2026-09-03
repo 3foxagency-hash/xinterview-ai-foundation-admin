@@ -29,7 +29,7 @@ interface JobDetailsRailProps {
 export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobDetailsRailProps) {
   return (
     <div className="space-y-4">
-      <div>
+      <div className="rounded-lg border border-border bg-surface p-4">
         <div className="flex items-center gap-1.5">
           <h2 className="text-h3 text-heading">Job Details</h2>
           <TooltipProvider delayDuration={300}>
@@ -44,10 +44,8 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
         <p className="mt-1 text-body-sm text-muted">
           Add the role information and job requirements.
         </p>
-      </div>
 
-      <div>
-        <p className="mb-2 text-caption font-semibold uppercase tracking-wide text-muted">
+        <p className="mb-2 mt-4 text-caption font-semibold uppercase tracking-wide text-muted">
           Sections
         </p>
         <nav className="space-y-2" aria-label="Job details sections">
@@ -109,9 +107,9 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
       </div>
 
       {/* Tip card */}
-      <div className="rounded-lg border border-border bg-surface p-4">
+      <div className="rounded-lg border border-primary/20 bg-active-menu-bg p-4">
         <div className="flex items-start gap-2.5">
-          <Lightbulb size={16} className="mt-0.5 shrink-0 text-warning" />
+          <Lightbulb size={16} className="mt-0.5 shrink-0 text-primary" />
           <div>
             <h3 className="text-body-sm font-semibold text-heading">Tip</h3>
             <p className="mt-0.5 text-body-sm text-muted">

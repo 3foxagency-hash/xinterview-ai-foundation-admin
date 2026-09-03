@@ -418,48 +418,7 @@ export function JobDetailsForm({
 
   return (
     <div className="space-y-5 pb-24 sm:pb-20">
-      {/* Format strip */}
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
-        <div className="flex items-center gap-3">
-          {formatConfig && (
-            <div
-              className={cn(
-                'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg',
-                TONE_TILE[formatConfig.tone]
-              )}
-            >
-              <formatConfig.icon size={22} />
-            </div>
-          )}
-          <div>
-            <span className="block text-h3 text-heading">
-              {formatConfig?.name ?? 'Interview format'}
-            </span>
-            {formatConfig?.description && (
-              <span className="block text-body-sm text-muted">{formatConfig.description}</span>
-            )}
-          </div>
-        </div>
-        {jobCreated ? (
-          <span className="text-body-sm text-muted" title="The interview format can't be changed after a job is created.">
-            The interview format can&apos;t be changed after a job is created.
-          </span>
-        ) : (
-          <button
-            type="button"
-            onClick={() => {
-              track('job_format_change_clicked');
-              onBackToFormat();
-            }}
-            className="inline-flex shrink-0 items-center gap-0.5 text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-md"
-          >
-            Change
-            <ChevronRight size={16} />
-          </button>
-        )}
-      </div>
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[clamp(300px,23%,420px)_1fr]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
         {/* Left rail — sticky on desktop */}
         <div className="hidden lg:block">
           <div className="sticky top-4">
@@ -492,6 +451,48 @@ export function JobDetailsForm({
 
         {/* Main column */}
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Format strip — confined to the right column, not spanning
+              above the left rail as well. */}
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface p-4">
+            <div className="flex items-center gap-3">
+              {formatConfig && (
+                <div
+                  className={cn(
+                    'flex h-11 w-11 shrink-0 items-center justify-center rounded-lg',
+                    TONE_TILE[formatConfig.tone]
+                  )}
+                >
+                  <formatConfig.icon size={22} />
+                </div>
+              )}
+              <div>
+                <span className="block text-h3 text-heading">
+                  {formatConfig?.name ?? 'Interview format'}
+                </span>
+                {formatConfig?.description && (
+                  <span className="block text-body-sm text-muted">{formatConfig.description}</span>
+                )}
+              </div>
+            </div>
+            {jobCreated ? (
+              <span className="text-body-sm text-muted" title="The interview format can't be changed after a job is created.">
+                The interview format can&apos;t be changed after a job is created.
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  track('job_format_change_clicked');
+                  onBackToFormat();
+                }}
+                className="inline-flex shrink-0 items-center gap-0.5 text-body-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface rounded-md"
+              >
+                Change
+                <ChevronRight size={16} />
+              </button>
+            )}
+          </div>
+
           {/* Section 1 — Role */}
           <div id="section-role" className="scroll-mt-6">
             <SectionCard

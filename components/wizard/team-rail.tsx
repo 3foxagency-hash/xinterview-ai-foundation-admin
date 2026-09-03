@@ -26,16 +26,18 @@ export function TeamRail({ people }: TeamRailProps) {
 
   return (
     <div className="space-y-4">
-      {/* Step header */}
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface">
-          <Users size={18} className="text-bodyText" />
-        </div>
-        <div>
-          <h2 className="text-h3 text-heading">Team</h2>
-          <p className="mt-0.5 text-body-sm text-muted">
-            Choose who works on this job and who gets notified.
-          </p>
+      <div className="rounded-lg border border-border bg-surface p-4">
+        {/* Step header */}
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-card-hover">
+            <Users size={18} className="text-bodyText" />
+          </div>
+          <div>
+            <h2 className="text-h3 text-heading">Team</h2>
+            <p className="mt-0.5 text-body-sm text-muted">
+              Choose who works on this job and who gets notified.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -82,9 +84,9 @@ export function TeamRail({ people }: TeamRailProps) {
       </div>
 
       {/* Tip card */}
-      <div className="rounded-lg border border-border bg-surface p-4">
+      <div className="rounded-lg border border-primary/20 bg-active-menu-bg p-4">
         <div className="flex items-start gap-2.5">
-          <Lightbulb size={16} className="mt-0.5 shrink-0 text-warning" />
+          <Lightbulb size={16} className="mt-0.5 shrink-0 text-primary" />
           <div>
             <h3 className="text-body-sm font-semibold text-heading">Tip</h3>
             <p className="mt-0.5 text-body-sm text-muted">

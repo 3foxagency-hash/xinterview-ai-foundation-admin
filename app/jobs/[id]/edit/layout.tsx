@@ -19,13 +19,15 @@ function EditShell({ children }: { children: React.ReactNode }) {
     if (jobIdParam) setJobId(jobIdParam);
   }, [jobIdParam, setJobId]);
 
-  // Customisation's live preview needs real width to be worth anything —
-  // opt that step out of the 1200px cap the other steps use. Reverts the
-  // instant another step mounts, same pattern as the pre-creation wizard.
+  // Every post-creation step uses the same full-bleed 'wide' chrome as the
+  // pre-creation Job Details page (app/jobs/new/layout.tsx) — otherwise
+  // Questions/Team render inside the 1200px-capped 'default' shell while
+  // Job Details/Customisation don't, and the left rail ends up starting at
+  // a visibly different x-position from one step to the next.
   React.useLayoutEffect(() => {
-    setChromeMode(pathname.includes('/customisation') ? 'wide' : 'default');
+    setChromeMode('wide');
     return () => setChromeMode('default');
-  }, [pathname, setChromeMode]);
+  }, [setChromeMode]);
 
   const currentStepData = WIZARD_STEPS[currentStep - 1];
 

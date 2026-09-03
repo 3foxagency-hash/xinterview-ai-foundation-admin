@@ -347,26 +347,6 @@ export default function QuestionsPage() {
       {/* Live region for screen reader announcements */}
       <div ref={announceRef} aria-live="polite" className="sr-only" />
 
-      {/* Format strip */}
-      <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
-        {FormatIcon && formatConfig && (
-          <div
-            className={cn(
-              'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
-              TONE_TILE[formatConfig.tone]
-            )}
-          >
-            <FormatIcon size={16} />
-          </div>
-        )}
-        <span className="text-body-sm font-semibold text-heading">
-          {formatConfig?.name ?? 'Interview format'}
-        </span>
-        <span className="text-body-sm text-muted">
-          — {formatConfig?.description ?? 'Candidates record their answers.'}
-        </span>
-      </div>
-
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
         {/* Left rail — sticky on desktop */}
         <div className="hidden lg:block">
@@ -386,255 +366,279 @@ export default function QuestionsPage() {
           />
         </div>
 
-        {/* Main column — question card */}
-        <div className="rounded-lg border border-border bg-surface">
-          {/* Card header */}
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <h2 className="text-h3 text-heading">
-              Your questions{' '}
-              <span className="text-body font-normal text-muted">({questions.length})</span>
-            </h2>
-            <div className="flex items-center gap-2">
-              {/* Add question with type menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                  >
-                    <Plus size={15} />
-                    Add question
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  {availableTypes.map((type) => {
-                    const cfg = QUESTION_TYPE_CONFIG[type];
-                    const Icon = cfg.icon;
-                    return (
-                      <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
-                        <Icon size={14} className={cfg.colorClass} />
-                        {cfg.label}
-                      </DropdownMenuItem>
-                    );
-                  })}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <button
-                type="button"
-                onClick={() => setAiPanelOpen(true)}
-                className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+        {/* Main column — confined to the right column, not spanning above
+            the left rail as well. */}
+        <div className="space-y-5">
+          {/* Format strip */}
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3">
+            {FormatIcon && formatConfig && (
+              <div
+                className={cn(
+                  'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
+                  TONE_TILE[formatConfig.tone]
+                )}
               >
-                <Sparkles size={15} className="text-primary" />
-                <span className="hidden sm:inline">Generate with AI</span>
-              </button>
-
-              {/* Overflow menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label="More actions"
-                    className="flex h-9 w-9 items-center justify-center rounded-md border border-border-strong bg-surface text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                  >
-                    <MoreVertical size={15} />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() => setTemplatePickerOpen(true)}
-                    disabled={!hasTemplates}
-                  >
-                    <FileText size={14} /> Use a template
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setSaveTemplateOpen(true)}
-                    disabled={questions.length === 0}
-                  >
-                    <Save size={14} /> Save as template
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setDeleteAllOpen(true)}
-                    disabled={questions.length === 0}
-                    className="text-error"
-                  >
-                    <Trash2 size={14} /> Delete all questions
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                <FormatIcon size={16} />
+              </div>
+            )}
+            <span className="text-body-sm font-semibold text-heading">
+              {formatConfig?.name ?? 'Interview format'}
+            </span>
+            <span className="text-body-sm text-muted">
+              — {formatConfig?.description ?? 'Candidates record their answers.'}
+            </span>
           </div>
 
-          {/* Question list or empty state */}
-          <div className="p-4">
-            {loading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="h-14 animate-pulse rounded-lg border border-border bg-card-hover"
-                  />
-                ))}
-              </div>
-            ) : questions.length === 0 ? (
-              <div className="flex flex-col items-center py-12 text-center">
-                <p className="max-w-md text-body text-muted">
-                  Start from scratch, let AI draft a set, or reuse a template your team saved.
-                </p>
-                <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
-                      >
-                        <Plus size={16} /> Add question
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="center">
-                      {availableTypes.map((type) => {
-                        const cfg = QUESTION_TYPE_CONFIG[type];
-                        const Icon = cfg.icon;
-                        return (
-                          <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
-                            <Icon size={14} className={cfg.colorClass} />
-                            {cfg.label}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <button
-                    type="button"
-                    onClick={() => setAiPanelOpen(true)}
-                    className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
-                  >
-                    <Sparkles size={16} className="text-primary" /> Generate with AI
-                  </button>
-                  {hasTemplates ? (
+          {/* Question card */}
+          <div className="rounded-lg border border-border bg-surface">
+            {/* Card header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <h2 className="text-h3 text-heading">
+                Your questions{' '}
+                <span className="text-body font-normal text-muted">({questions.length})</span>
+              </h2>
+              <div className="flex items-center gap-2">
+                {/* Add question with type menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <button
                       type="button"
+                      className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                    >
+                      <Plus size={15} />
+                      Add question
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {availableTypes.map((type) => {
+                      const cfg = QUESTION_TYPE_CONFIG[type];
+                      const Icon = cfg.icon;
+                      return (
+                        <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                          <Icon size={14} className={cfg.colorClass} />
+                          {cfg.label}
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <button
+                  type="button"
+                  onClick={() => setAiPanelOpen(true)}
+                  className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                >
+                  <Sparkles size={15} className="text-primary" />
+                  <span className="hidden sm:inline">Generate with AI</span>
+                </button>
+
+                {/* Overflow menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="More actions"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-border-strong bg-surface text-heading transition-colors hover:bg-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                    >
+                      <MoreVertical size={15} />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
                       onClick={() => setTemplatePickerOpen(true)}
+                      disabled={!hasTemplates}
+                    >
+                      <FileText size={14} /> Use a template
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setSaveTemplateOpen(true)}
+                      disabled={questions.length === 0}
+                    >
+                      <Save size={14} /> Save as template
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => setDeleteAllOpen(true)}
+                      disabled={questions.length === 0}
+                      className="text-error"
+                    >
+                      <Trash2 size={14} /> Delete all questions
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+
+            {/* Question list or empty state */}
+            <div className="p-4">
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div
+                      key={i}
+                      className="h-14 animate-pulse rounded-lg border border-border bg-card-hover"
+                    />
+                  ))}
+                </div>
+              ) : questions.length === 0 ? (
+                <div className="flex flex-col items-center py-12 text-center">
+                  <p className="max-w-md text-body text-muted">
+                    Start from scratch, let AI draft a set, or reuse a template your team saved.
+                  </p>
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-button text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
+                        >
+                          <Plus size={16} /> Add question
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="center">
+                        {availableTypes.map((type) => {
+                          const cfg = QUESTION_TYPE_CONFIG[type];
+                          const Icon = cfg.icon;
+                          return (
+                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                              <Icon size={14} className={cfg.colorClass} />
+                              {cfg.label}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <button
+                      type="button"
+                      onClick={() => setAiPanelOpen(true)}
                       className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
                     >
-                      <Layers size={16} /> Use a template
+                      <Sparkles size={16} className="text-primary" /> Generate with AI
                     </button>
-                  ) : (
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            disabled
-                            className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md border border-border bg-surface px-4 text-button text-muted opacity-50"
-                          >
-                            <Layers size={16} /> Use a template
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          No templates saved yet. Save this set as a template to reuse it.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Ordered list */}
-                <ol className="space-y-2">
-                  {questions.map((question, index) => (
-                    <li key={question.id}>
-                      <QuestionRow
-                        question={question}
-                        index={index}
-                        isDragging={dragIndex === index}
-                        isDropTarget={dropIndex === index && dragIndex !== index}
-                        onDragStart={handleDragStart(index)}
-                        onDragEnd={handleDragEnd()}
-                        onDragOver={handleDragOver(index)}
-                        onDrop={handleDrop(index)}
-                        onEdit={() => handleEdit(question)}
-                        onDuplicate={() => handleDuplicate(question)}
-                        onDelete={() => handleDeleteRequest(question)}
-                        onMoveUp={() => moveQuestion(index, index - 1)}
-                        onMoveDown={() => moveQuestion(index, index + 1)}
-                        onKeyboardGrab={() => handleKeyboardGrab(index)}
-                        onKeyboardMove={(dir) => handleKeyboardMove(keyboardGrabIndex ?? index, dir)}
-                        onKeyboardDrop={handleKeyboardDrop}
-                        onKeyboardCancel={handleKeyboardCancel}
-                        isKeyboardGrabbing={keyboardGrabIndex === index}
-                      />
-                    </li>
-                  ))}
-                </ol>
-
-                {/* Dashed drop zone */}
-                <div className="mt-3 flex h-12 items-center justify-center rounded-lg border-2 border-dashed border-border text-body-sm text-muted">
-                  Drag and drop to reorder questions
-                </div>
-
-                {/* Footer actions inside the card */}
-                <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    {hasTemplates ? (
                       <button
                         type="button"
-                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover"
+                        onClick={() => setTemplatePickerOpen(true)}
+                        className="inline-flex h-10 items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover"
                       >
-                        <Plus size={15} /> Add question
+                        <Layers size={16} /> Use a template
                       </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      {availableTypes.map((type) => {
-                        const cfg = QUESTION_TYPE_CONFIG[type];
-                        const Icon = cfg.icon;
-                        return (
-                          <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
-                            <Icon size={14} className={cfg.colorClass} />
-                            {cfg.label}
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <button
-                    type="button"
-                    onClick={() => setAiPanelOpen(true)}
-                    className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover"
-                  >
-                    <Sparkles size={15} className="text-primary" /> Generate with AI
-                  </button>
-                  {hasTemplates ? (
+                    ) : (
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              disabled
+                              className="inline-flex h-10 cursor-not-allowed items-center gap-2 rounded-md border border-border bg-surface px-4 text-button text-muted opacity-50"
+                            >
+                              <Layers size={16} /> Use a template
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            No templates saved yet. Save this set as a template to reuse it.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Ordered list */}
+                  <ol className="space-y-2">
+                    {questions.map((question, index) => (
+                      <li key={question.id}>
+                        <QuestionRow
+                          question={question}
+                          index={index}
+                          isDragging={dragIndex === index}
+                          isDropTarget={dropIndex === index && dragIndex !== index}
+                          onDragStart={handleDragStart(index)}
+                          onDragEnd={handleDragEnd()}
+                          onDragOver={handleDragOver(index)}
+                          onDrop={handleDrop(index)}
+                          onEdit={() => handleEdit(question)}
+                          onDuplicate={() => handleDuplicate(question)}
+                          onDelete={() => handleDeleteRequest(question)}
+                          onMoveUp={() => moveQuestion(index, index - 1)}
+                          onMoveDown={() => moveQuestion(index, index + 1)}
+                          onKeyboardGrab={() => handleKeyboardGrab(index)}
+                          onKeyboardMove={(dir) => handleKeyboardMove(keyboardGrabIndex ?? index, dir)}
+                          onKeyboardDrop={handleKeyboardDrop}
+                          onKeyboardCancel={handleKeyboardCancel}
+                          isKeyboardGrabbing={keyboardGrabIndex === index}
+                        />
+                      </li>
+                    ))}
+                  </ol>
+
+                  {/* Dashed drop zone */}
+                  <div className="mt-3 flex h-12 items-center justify-center rounded-lg border-2 border-dashed border-border text-body-sm text-muted">
+                    Drag and drop to reorder questions
+                  </div>
+
+                  {/* Footer actions inside the card */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover"
+                        >
+                          <Plus size={15} /> Add question
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        {availableTypes.map((type) => {
+                          const cfg = QUESTION_TYPE_CONFIG[type];
+                          const Icon = cfg.icon;
+                          return (
+                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                              <Icon size={14} className={cfg.colorClass} />
+                              {cfg.label}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                     <button
                       type="button"
-                      onClick={() => setTemplatePickerOpen(true)}
+                      onClick={() => setAiPanelOpen(true)}
                       className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover"
                     >
-                      <Layers size={15} /> Use a template
+                      <Sparkles size={15} className="text-primary" /> Generate with AI
                     </button>
-                  ) : (
-                    <TooltipProvider delayDuration={300}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            disabled
-                            className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-md border border-border bg-surface px-3 text-button text-muted opacity-50"
-                          >
-                            <Layers size={15} /> Use a template
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          No templates saved yet. Save this set as a template to reuse it.
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              </>
-            )}
+                    {hasTemplates ? (
+                      <button
+                        type="button"
+                        onClick={() => setTemplatePickerOpen(true)}
+                        className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover"
+                      >
+                        <Layers size={15} /> Use a template
+                      </button>
+                    ) : (
+                      <TooltipProvider delayDuration={300}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              disabled
+                              className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-md border border-border bg-surface px-3 text-button text-muted opacity-50"
+                            >
+                              <Layers size={15} /> Use a template
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            No templates saved yet. Save this set as a template to reuse it.
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>

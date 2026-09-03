@@ -159,10 +159,9 @@ export function WizardHeader() {
         className="sticky top-0 z-topbar shrink-0 border-b border-border bg-surface"
         role="banner"
       >
-        {/* Row 1 — main bar */}
         <div className="flex h-[60px] items-center justify-between gap-4 px-4 md:px-6">
-          {/* Left — close + title */}
-          <div className="flex min-w-0 items-center gap-3">
+          {/* Left — close (+ Draft badge, since the title that used to carry it is gone) */}
+          <div className="flex min-w-0 shrink-0 items-center gap-3">
             <button
               type="button"
               onClick={handleExit}
@@ -172,27 +171,54 @@ export function WizardHeader() {
               <X size={18} strokeWidth={1.5} />
               <span className="hidden text-button sm:inline">Close</span>
             </button>
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <h1 className="truncate text-h3 text-heading">Create new job</h1>
-                {isDraft && (
-                  <span className="inline-flex shrink-0 items-center rounded-full border border-warning-border bg-warning-wash px-2 py-0.5 text-caption font-medium text-warning-ink">
-                    Draft
-                  </span>
-                )}
-              </div>
-              <p className="hidden text-body-sm text-muted sm:block">
-                Build a professional interview experience
-              </p>
-            </div>
+            {isDraft && (
+              <span className="hidden shrink-0 items-center rounded-full border border-warning-border bg-warning-wash px-2 py-0.5 text-caption font-medium text-warning-ink sm:inline-flex">
+                Draft
+              </span>
+            )}
           </div>
+
+          {/* Center — horizontal step tracker, the wizard's main orientation cue */}
+          {chromeMode !== 'bare' && (
+            <div className="hidden min-w-0 flex-1 items-center justify-center gap-1 overflow-x-auto md:flex">
+              <nav aria-label="Wizard steps" className="flex items-center gap-1">
+                {WIZARD_STEPS.map((step, index) => {
+                  const state: 'complete' | 'current' | 'upcoming' =
+                    step.number < currentStepNumber
+                      ? 'complete'
+                      : step.number === currentStepNumber
+                        ? 'current'
+                        : 'upcoming';
+                  const unlocked = jobId !== null && (step.number <= 2 || questionCount > 0);
+                  const clickable = unlocked && state !== 'current';
+
+                  return (
+                    <React.Fragment key={step.id}>
+                      {index > 0 && (
+                        <div
+                          className={cn(
+                            'mx-1 h-px w-6 transition-colors',
+                            state !== 'upcoming' ? 'bg-success' : 'bg-border'
+                          )}
+                          aria-hidden
+                        />
+                      )}
+                      <StepPill step={step} state={state} clickable={clickable} jobId={jobId} />
+                    </React.Fragment>
+                  );
+                })}
+              </nav>
+            </div>
+          )}
 
           {/* Right — save indicator + actions */}
           <div className="flex shrink-0 items-center gap-3">
-            {/* The Job Details step ('wide') has its own footer indicator,
-                which is the single source of truth there — showing both
-                would just be the same state duplicated on screen twice. */}
-            {chromeMode !== 'wide' && (
+            {/* Job Details (step 1) has its own footer indicator, which is
+                the single source of truth there — showing both would just
+                be the same state duplicated on screen twice. This is keyed
+                off the step, not chromeMode, since every step now shares
+                the same 'wide' layout chrome for consistent rail widths. */}
+            {currentStepNumber !== 1 && (
               <div className="hidden md:block">
                 <SaveIndicator state={saveState} onRetry={retrySave} />
               </div>
@@ -241,39 +267,6 @@ export function WizardHeader() {
             </button>
           </div>
         </div>
-
-        {/* Row 2 — horizontal step tracker (desktop) */}
-        {chromeMode !== 'bare' && (
-          <div className="hidden items-center justify-center gap-1 border-t border-border px-6 py-2 md:flex">
-            <nav aria-label="Wizard steps" className="flex items-center gap-1">
-              {WIZARD_STEPS.map((step, index) => {
-                const state: 'complete' | 'current' | 'upcoming' =
-                  step.number < currentStepNumber
-                    ? 'complete'
-                    : step.number === currentStepNumber
-                      ? 'current'
-                      : 'upcoming';
-                const unlocked = jobId !== null && (step.number <= 2 || questionCount > 0);
-                const clickable = unlocked && state !== 'current';
-
-                return (
-                  <React.Fragment key={step.id}>
-                    {index > 0 && (
-                      <div
-                        className={cn(
-                          'mx-1 h-px w-6 transition-colors',
-                          state !== 'upcoming' ? 'bg-success' : 'bg-border'
-                        )}
-                        aria-hidden
-                      />
-                    )}
-                    <StepPill step={step} state={state} clickable={clickable} jobId={jobId} />
-                  </React.Fragment>
-                );
-              })}
-            </nav>
-          </div>
-        )}
       </header>
 
       {/* Exit confirmation */}
