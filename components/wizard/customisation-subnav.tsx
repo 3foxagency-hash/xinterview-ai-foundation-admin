@@ -111,9 +111,10 @@ export function CustomisationSubNav({ jobId }: CustomisationSubNavProps) {
 
   return (
     <>
-      {/* Desktop nav */}
+      {/* Desktop nav — 280px matches the left rail width used on Job
+          Details/Questions/Team/Invite for a consistent layout. */}
       <aside
-        className="hidden w-[260px] shrink-0 flex-col overflow-y-auto rounded-lg border border-border bg-surface px-3 py-5 lg:flex"
+        className="hidden w-[280px] shrink-0 flex-col overflow-y-auto rounded-lg border border-border bg-surface px-3 py-5 lg:flex"
         aria-label="Customisation sections"
       >
         <div className="px-3">
