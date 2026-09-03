@@ -162,9 +162,6 @@ export function QuestionEditorDrawer({
     onOpenChange(next);
   };
 
-  const TypeIcon = QUESTION_TYPE_CONFIG[question.type].icon;
-  const typeConfig = QUESTION_TYPE_CONFIG[question.type];
-
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent side="right">
@@ -192,10 +189,7 @@ export function QuestionEditorDrawer({
                 disabled={mode === 'edit'}
               >
                 <SelectTrigger className="h-10">
-                  <div className="flex items-center gap-2">
-                    <TypeIcon size={16} className={typeConfig.colorClass} />
-                    <SelectValue />
-                  </div>
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {availableTypes.map((t) => {

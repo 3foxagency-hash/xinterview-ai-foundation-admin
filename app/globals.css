@@ -137,17 +137,22 @@
     --shadow-token-lg: 0 12px 32px rgba(16, 24, 40, 0.12);
     --shadow-token-xl: 0 16px 48px rgba(16, 24, 40, 0.16);
 
-    /* ─── Z-index scale (§5.4) — every layered element uses one of these ─── */
+    /* ─── Z-index scale (§5.4) — every layered element uses one of these ───
+       --z-dropdown sits above --z-drawer/--z-modal (not between topbar and
+       drawer) because a Select/Popover/DropdownMenu is always triggered by
+       something the user opened *inside* a sheet or dialog (e.g. the
+       question-editor drawer's "Thinking time" select) — it must render on
+       top of that container, not underneath it. */
     --z-base: 0;
     --z-sticky: 10;
     --z-savebar: 20;
     --z-sidebar: 30;
     --z-topbar: 40;
-    --z-dropdown: 50;
     --z-drawer-backdrop: 55;
     --z-drawer: 60;
     --z-modal-backdrop: 70;
     --z-modal: 71;
+    --z-dropdown: 75;
     --z-toast: 80;
     --z-tooltip: 90;
     --z-command: 100;
