@@ -40,19 +40,15 @@ function CustomisationShell({ jobId, children }: { jobId: string | null; childre
 
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col">
-      {/* Three columns: nav | settings | preview.
+      {/* Two columns: nav-or-form | preview. The left column is always
+          280px, matching the rest of the wizard — its content switches
+          between the section list and a section's form (see
+          CustomisationSubNav), so there's no separate settings column
+          taking width away from the preview.
           Below xl (1280px) the preview becomes a sheet toggle.
-          Below lg (900px) the nav becomes a compact strip. */}
+          Below lg (900px) the nav/form stacks full-width, no preview. */}
       <div className="flex min-w-0 flex-1 flex-col lg:min-h-0 lg:flex-row lg:gap-4 lg:overflow-hidden">
-        {jobId && <CustomisationSubNav jobId={jobId} />}
-
-        {/* Settings column — capped at 560px (narrow enough to hand the
-            preview real room, wide enough that its label/field rows don't
-            wrap awkwardly) so the preview, which is what actually shows the
-            effect of these settings, gets the lion's share of the width. */}
-        <div className="min-w-0 flex-1 rounded-lg border border-border bg-[var(--background-200)] p-5 lg:h-full lg:w-[560px] lg:flex-none lg:overflow-y-auto">
-          {children}
-        </div>
+        {jobId && <CustomisationSubNav jobId={jobId}>{children}</CustomisationSubNav>}
 
         {/* Preview column — visible only on xl+, grows to fill remaining width */}
         <CustomisationPreviewPanel />

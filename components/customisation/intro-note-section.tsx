@@ -48,6 +48,7 @@ export function IntroNoteSection({
         description="Shown before the candidate starts. They must acknowledge it to continue."
       >
         <SettingsRow
+          layout="stacked"
           label="Introduction note"
           helper="Turn this on to require an acknowledgement before the interview starts."
           control={
@@ -64,6 +65,7 @@ export function IntroNoteSection({
         {data.introNoteEnabled && (
           <>
             <SettingsRow
+              layout="stacked"
               label="Note title"
               control={
                 <>

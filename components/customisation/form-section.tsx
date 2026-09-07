@@ -110,12 +110,12 @@ export function FormSection({
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Form settings"
         description="Choose what information to collect from candidates."
       >
         {FIELDS.map((field) => (
           <SettingsRow
             key={field.key}
+            layout="stacked"
             label={field.label}
             helper={
               field.locked
@@ -153,6 +153,7 @@ export function FormSection({
         <div className="border-t border-border" />
 
         <SettingsRow
+          layout="stacked"
           label="Privacy policy"
           helper="Require candidates to agree to your privacy policy."
           control={
@@ -165,6 +166,7 @@ export function FormSection({
         />
         {data.privacyPolicyEnabled && (
           <SettingsRow
+            layout="stacked"
             label="Privacy policy URL"
             control={
               <Input
@@ -178,6 +180,7 @@ export function FormSection({
         )}
 
         <SettingsRow
+          layout="stacked"
           label="Terms & conditions"
           helper="Require candidates to agree to your terms."
           control={
@@ -190,6 +193,7 @@ export function FormSection({
         />
         {data.termsEnabled && (
           <SettingsRow
+            layout="stacked"
             label="Terms URL"
             control={
               <Input

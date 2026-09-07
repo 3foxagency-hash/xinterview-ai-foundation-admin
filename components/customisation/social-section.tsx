@@ -47,10 +47,10 @@ export function SocialSection({
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Social preview"
         description="Control how your interview link appears when shared on social media or in chat apps."
       >
         <SettingsRow
+          layout="stacked"
           label="Favicon"
           helper="Recommended: 32×32px PNG or ICO."
           control={
@@ -62,6 +62,7 @@ export function SocialSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Share image"
           helper="Recommended: 1200×630px PNG or JPG."
           control={
@@ -73,6 +74,7 @@ export function SocialSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Meta title"
           helper="The title shown in search results and browser tabs."
           control={
@@ -89,6 +91,7 @@ export function SocialSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Meta description"
           helper="A brief summary shown in search results."
           control={

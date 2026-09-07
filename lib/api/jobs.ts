@@ -625,7 +625,7 @@ export async function getWelcomePage(jobId: string): Promise<WelcomePageInput> {
     headline: '',
     subtitle: '',
     estimatedTime: 15,
-    introVideoEnabled: false,
+    introVideoEnabled: true,
     introVideoUrl: '',
     introNoteEnabled: false,
     introNoteTitle: '',

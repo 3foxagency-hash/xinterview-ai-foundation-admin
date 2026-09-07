@@ -373,10 +373,10 @@ export function EvaluationSection({
     <div className="space-y-6">
       {/* General settings */}
       <SettingsSection
-        title="AI evaluation"
         description="Configure how the AI scores candidate responses."
       >
         <SettingsRow
+          layout="stacked"
           label="Position level"
           helper="Helps the AI calibrate expectations."
           control={
@@ -397,6 +397,7 @@ export function EvaluationSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Strictness"
           helper="How strict the AI is when scoring."
           control={
@@ -420,6 +421,7 @@ export function EvaluationSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Automatic AI evaluation"
           helper="Candidates are scored automatically on completion."
           control={

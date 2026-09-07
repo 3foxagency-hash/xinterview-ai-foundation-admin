@@ -8,17 +8,9 @@ import {
   type PreviewScreen,
 } from '@/components/wizard/customisation-preview-context';
 import { buildPreviewConfig, buildPreviewSession } from '@/components/wizard/customisation-preview-context';
-import { InterviewPage } from '@/components/interview/interview-page';
-import { SetupScreen } from '@/components/interview/setup-screen';
-import { InterviewScreen } from '@/components/interview/interview-screen';
-import { CompletionScreen } from '@/components/interview/completion-screen';
-import { interviewSession as defaultSession } from '@/config/interview-session';
+import type { InterviewConfig } from '@/config/interview.mock';
+import type { InterviewSession } from '@/config/interview-session';
 import { track } from '@/lib/utils/analytics';
-// The interview screens rendered below (InterviewPage, InterviewScreen,
-// CompletionScreen) are styled entirely by this stylesheet. The real
-// candidate route pulls it in via app/interview/[token]/layout.tsx; this
-// preview panel needs the same import since it's outside that layout.
-import '@/app/interview/[token]/interview.css';
 
 const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
   { value: 'landing', label: 'Landing page' },
@@ -290,9 +282,62 @@ const PHONE_HEIGHT = 812;
  *  so the scale-to-fit math doesn't shave the bezel off against the panel edge. */
 const PHONE_CHROME_PADDING = 24;
 
-function MobileFrame({ children }: { children: React.ReactNode }) {
+interface PreviewFramePayload {
+  screen: PreviewScreen;
+  config: InterviewConfig;
+  session: InterviewSession;
+}
+
+/**
+ * Keeps a preview <iframe> fed with live state via postMessage. Both the
+ * mobile and desktop previews render the real interview components inside
+ * /preview/customisation instead of the admin bundle rendering them inline
+ * and shrinking the result with a CSS transform — the interview CSS relies
+ * on things a `transform: scale()` can't fake for an inner document: real
+ * `@media (max-width: 767px)` breakpoints (a shrunk box is still the same
+ * viewport underneath) and `100vh`-based panel heights (which resolve
+ * against the real browser window regardless of an ancestor's transform,
+ * so an inner scroll panel would size itself far taller than the visible,
+ * scaled-down box and trap scroll input intended for the outer container).
+ * An iframe has its own genuine viewport matching its element box, so both
+ * kinds of CSS resolve correctly and native scrolling just works.
+ *
+ * The iframe can't read the admin's React context across the frame
+ * boundary, so state arrives via postMessage on every change instead of
+ * props/children.
+ */
+function usePreviewFrameSync(payload: PreviewFramePayload) {
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [iframeReady, setIframeReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      if (event.data?.source === 'xinterview-customisation-preview-ready') {
+        setIframeReady(true);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  React.useEffect(() => {
+    if (!iframeReady) return;
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage(
+      { source: 'xinterview-customisation-preview', ...payload },
+      window.location.origin
+    );
+  }, [iframeReady, payload]);
+
+  return iframeRef;
+}
+
+function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [scale, setScale] = React.useState(1);
+  const iframeRef = usePreviewFrameSync(payload);
 
   React.useEffect(() => {
     const el = containerRef.current;
@@ -310,115 +355,72 @@ function MobileFrame({ children }: { children: React.ReactNode }) {
     return () => observer.disconnect();
   }, []);
 
+  const scaledWidth = PHONE_WIDTH * scale;
+  const scaledHeight = PHONE_HEIGHT * scale;
+
   return (
     <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-hidden">
-      {/* Phone chassis — fixed 375×812 (iPhone-size) content viewport, scaled
-          to fit whatever room the panel actually has, with a notch and side
-          buttons so it reads as "a phone", not just a narrower box. The
-          interview page's own CSS still only responds to the real browser
-          viewport width, so this narrows what's visible rather than
-          guaranteeing pixel-identical mobile breakpoints. */}
+      {/* Phone chassis, sized directly at its final on-screen pixels rather
+          than rendered at a fixed 375×812 and shrunk with `transform:
+          scale()`. A CSS transform on an iframe's ancestor doesn't reliably
+          carry mouse-wheel/trackpad input through to the iframe in Chromium
+          — clicks still hit-test correctly, but scrolling inside the frame
+          stops responding. Sizing the iframe (and the notch/buttons around
+          it) to the real scaled dimensions means there's no transform in
+          the way, so native scroll just works; the trade-off is the
+          candidate CSS sees e.g. a 260px-wide viewport instead of exactly
+          375px, which still sits comfortably inside the same mobile
+          breakpoint. */}
       <div
-        className="relative shrink-0"
-        style={{ width: PHONE_WIDTH * scale, height: PHONE_HEIGHT * scale }}
+        className="relative shrink-0 select-none overflow-hidden rounded-[2.5rem] border-[6px] border-border-strong bg-surface shadow-lg"
+        style={{ width: scaledWidth, height: scaledHeight }}
       >
         <div
-          className="absolute left-0 top-0 origin-top-left"
-          style={{ width: PHONE_WIDTH, height: PHONE_HEIGHT, transform: `scale(${scale})` }}
-        >
-          <div className="absolute -left-[3px] top-24 h-16 w-[3px] rounded-l-sm bg-border-strong" aria-hidden />
-          <div className="absolute -right-[3px] top-32 h-24 w-[3px] rounded-r-sm bg-border-strong" aria-hidden />
-          <div
-            aria-hidden="true"
-            inert
-            className="relative pointer-events-none h-full w-full select-none overflow-hidden rounded-[2.5rem] border-[6px] border-border-strong bg-surface shadow-lg"
-          >
-            <div className="absolute left-1/2 top-0 z-10 h-6 w-32 -translate-x-1/2 rounded-b-2xl bg-border-strong" aria-hidden />
-            {/* pt-8 clears the notch so real page content (a logo, a nav bar)
-                doesn't render underneath it, like a phone's safe-area inset. */}
-            <div className="h-full w-full overflow-y-auto pt-8">{children}</div>
-          </div>
-        </div>
+          className="absolute -left-[3px] rounded-l-sm bg-border-strong"
+          style={{ top: 96 * scale, height: 64 * scale, width: 3 }}
+          aria-hidden
+        />
+        <div
+          className="absolute -right-[3px] rounded-r-sm bg-border-strong"
+          style={{ top: 128 * scale, height: 96 * scale, width: 3 }}
+          aria-hidden
+        />
+        <div
+          className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-b-2xl bg-border-strong"
+          style={{ height: 24 * scale, width: 128 * scale }}
+          aria-hidden
+        />
+        {/* Padding-top clears the notch so real page content (a logo, a nav
+            bar) doesn't render underneath it, like a phone's safe-area inset. */}
+        <iframe
+          ref={iframeRef}
+          src="/preview/customisation"
+          title="Mobile preview"
+          className="h-full w-full border-0"
+          style={{ paddingTop: 32 * scale }}
+        />
       </div>
     </div>
   );
 }
 
-/** The width the real desktop landing page actually wants to lay out at
- *  (its two-column CSS starts feeling cramped below this). The panel is
- *  rarely that wide once the nav + settings columns take their share, so
- *  rendering at this width and scaling down guarantees the two-column
- *  layout never clips — instead of forcing a real ~1200px browser layout
- *  into a ~700px box and cutting off whatever doesn't fit. */
-const DESKTOP_DESIGN_WIDTH = 1200;
-
-function DesktopFrame({ children }: { children: React.ReactNode }) {
-  const containerRef = React.useRef<HTMLDivElement>(null);
-  const [scale, setScale] = React.useState(1);
-  const [contentHeight, setContentHeight] = React.useState(0);
-  const contentRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-    const compute = () => {
-      const { width } = el.getBoundingClientRect();
-      setScale(Math.min(1, width / DESKTOP_DESIGN_WIDTH));
-    };
-    compute();
-    const observer = new ResizeObserver(compute);
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
-
-  // Track the rendered content's real (unscaled) height so the scaled-down
-  // box doesn't leave a tall empty gap below it. Read this from the
-  // ResizeObserver's own content-box size, not getBoundingClientRect() —
-  // the latter reports the post-transform (already-scaled) size on an
-  // element with `transform: scale()` applied, which would double-shrink
-  // the height once multiplied by `scale` again below.
-  React.useEffect(() => {
-    const el = contentRef.current;
-    if (!el) return;
-    const observer = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      const height = entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height;
-      setContentHeight(height);
-    });
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+function DesktopFrame({ payload }: { payload: PreviewFramePayload }) {
+  const iframeRef = usePreviewFrameSync(payload);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full overflow-y-auto overflow-x-hidden rounded-lg border border-border bg-surface shadow-sm"
-    >
-      <div style={{ height: contentHeight * scale }}>
-        <div
-          ref={contentRef}
-          aria-hidden="true"
-          inert
-          className="pointer-events-none select-none"
-          style={{
-            width: DESKTOP_DESIGN_WIDTH,
-            transform: `scale(${scale})`,
-            transformOrigin: 'top left',
-          }}
-        >
-          {children}
-        </div>
-      </div>
+    <div className="h-full w-full overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+      {/* Full-size iframe — no CSS scaling. The panel's own dimensions ARE
+          the iframe's viewport, so 100vh-based panel heights and native
+          scroll (wheel, trackpad momentum, scrollbar drag) all behave
+          exactly as they would in a real browser window, just narrower. */}
+      <iframe
+        ref={iframeRef}
+        src="/preview/customisation"
+        title="Desktop preview"
+        className="h-full w-full border-0"
+      />
     </div>
   );
-}
-
-function InertWrapper({ children, device }: { children: React.ReactNode; device: 'desktop' | 'mobile' }) {
-  if (device === 'mobile') {
-    return <MobileFrame>{children}</MobileFrame>;
-  }
-
-  return <DesktopFrame>{children}</DesktopFrame>;
 }
 
 export function CustomisationPreviewPanel() {
@@ -569,26 +571,10 @@ export function CustomisationPreviewPanel() {
           <EmailPreviewPanel />
         ) : isSocial ? (
           <SocialLinkPreview />
+        ) : previewDevice === 'mobile' ? (
+          <MobileFrame payload={{ screen: previewScreen, config, session }} />
         ) : (
-          <InertWrapper device={previewDevice}>
-            {previewScreen === 'landing' && (
-              <InterviewPage token="preview" configOverride={config} disableDevControls />
-            )}
-            {previewScreen === 'form' && (
-              <InterviewPage token="preview" configOverride={config} disableDevControls />
-            )}
-            {previewScreen === 'interview' && (
-              <InterviewScreen
-                session={session}
-                forcedQuestionIndex={0}
-                forcedState="thinking"
-                simFailure="unsupported_browser"
-              />
-            )}
-            {previewScreen === 'thank-you' && (
-              <CompletionScreen session={session} state="complete" />
-            )}
-          </InertWrapper>
+          <DesktopFrame payload={{ screen: previewScreen, config, session }} />
         )}
       </div>
 

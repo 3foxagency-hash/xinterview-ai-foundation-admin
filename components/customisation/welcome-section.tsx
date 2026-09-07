@@ -41,8 +41,9 @@ export function WelcomeSection({
 
   return (
     <div className="space-y-6">
-      <SettingsSection title="Welcome page" description="The first thing candidates see when they open your interview link.">
+      <SettingsSection description="The first thing candidates see when they open your interview link.">
         <SettingsRow
+          layout="stacked"
           label="Headline"
           helper="The main heading on the landing page."
           control={
@@ -64,6 +65,7 @@ export function WelcomeSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Subtitle"
           helper="A supporting line beneath the headline."
           control={
@@ -84,6 +86,7 @@ export function WelcomeSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Estimated time"
           helper="Shown to candidates before they start."
           control={
@@ -101,6 +104,7 @@ export function WelcomeSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Intro video"
           helper="Embed a short video introducing the role or company."
           control={
@@ -117,6 +121,7 @@ export function WelcomeSection({
         {data.introVideoEnabled && (
           <>
             <SettingsRow
+              layout="stacked"
               label="Video URL"
               helper="A public YouTube or Vimeo link."
               control={
@@ -138,6 +143,7 @@ export function WelcomeSection({
           </>
         )}
         <SettingsRow
+          layout="stacked"
           label="Show estimated time"
           helper="Displays the estimated interview duration on the landing page."
           control={
