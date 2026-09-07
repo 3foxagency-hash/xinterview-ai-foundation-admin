@@ -40,6 +40,8 @@ export const AUTH_PATHS = {
     `/user-management/${companyId}/join/`,
   me: '/user-management/me/',
   myCompanies: '/user-management/my-companies/',
+  /** Mock-only — does not exist on the real backend yet (frontend-proposed). */
+  inviteBySlug: (slug: string) => `/companies/invite/${encodeURIComponent(slug)}`,
 } as const;
 
 /**
@@ -358,6 +360,10 @@ export const AUTH_ERROR_CODE = {
   PASSWORD_MISMATCH: 'password_mismatch',
   UNAUTHENTICATED: 'unauthenticated',
   NETWORK_ERROR: 'network_error',
+  /** Mock-only lockout scenario — see backend-docs/auth-api.md. */
+  ACCOUNT_LOCKED: 'account_locked',
+  /** GET /companies/invite/{slug} — unknown or expired slug. */
+  INVITE_NOT_FOUND: 'invite_not_found',
   UNKNOWN: 'unknown',
 } as const;
 

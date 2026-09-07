@@ -19,13 +19,13 @@ import { getSettingsErrorMessage } from '@/lib/errors/settings-messages';
 interface InviteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onInvite: (email: string, role: 'Admin' | 'Member') => Promise<void>;
+  onInvite: (email: string, role: 'MA' | 'EX') => Promise<void>;
   seatsFull: boolean;
 }
 
 export function InviteDialog({ open, onOpenChange, onInvite, seatsFull }: InviteDialogProps) {
   const [email, setEmail] = React.useState('');
-  const [role, setRole] = React.useState<'Admin' | 'Member'>('Member');
+  const [role, setRole] = React.useState<'MA' | 'EX'>('EX');
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
@@ -33,7 +33,7 @@ export function InviteDialog({ open, onOpenChange, onInvite, seatsFull }: Invite
   React.useEffect(() => {
     if (open) {
       setEmail('');
-      setRole('Member');
+      setRole('EX');
       setError(null);
       setLoading(false);
       setTimeout(() => emailRef.current?.focus(), 50);
@@ -88,15 +88,15 @@ export function InviteDialog({ open, onOpenChange, onInvite, seatsFull }: Invite
             <SettingsSelect
               label="Role"
               value={role}
-              onChange={(v) => setRole(v as 'Admin' | 'Member')}
+              onChange={(v) => setRole(v as 'MA' | 'EX')}
               options={[
-                { value: 'Member', label: 'Member' },
-                { value: 'Admin', label: 'Admin' },
+                { value: 'EX', label: 'Executive' },
+                { value: 'MA', label: 'Manager' },
               ]}
               description={
-                role === 'Admin'
-                  ? 'Admins can invite members, change roles, and manage all jobs and candidates.'
-                  : 'Members can view and manage jobs and candidates. They cannot invite or remove team members.'
+                role === 'MA'
+                  ? 'Managers can invite members, change roles, and manage all jobs and candidates.'
+                  : 'Executives can view and manage jobs and candidates. They cannot invite or remove team members.'
               }
             />
           )}

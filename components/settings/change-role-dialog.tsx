@@ -19,7 +19,7 @@ interface ChangeRoleDialogProps {
   onOpenChange: (open: boolean) => void;
   memberName: string;
   currentRole: Role;
-  onConfirm: (newRole: 'Admin' | 'Member') => Promise<void>;
+  onConfirm: (newRole: 'MA' | 'EX') => Promise<void>;
 }
 
 export function ChangeRoleDialog({
@@ -29,13 +29,13 @@ export function ChangeRoleDialog({
   currentRole,
   onConfirm,
 }: ChangeRoleDialogProps) {
-  const [newRole, setNewRole] = React.useState<'Admin' | 'Member'>('Member');
+  const [newRole, setNewRole] = React.useState<'MA' | 'EX'>('EX');
   const [loading, setLoading] = React.useState(false);
   const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   React.useEffect(() => {
     if (open) {
-      setNewRole(currentRole === 'Owner' ? 'Member' : currentRole);
+      setNewRole(currentRole === 'Owner' ? 'EX' : currentRole);
       setLoading(false);
       setTimeout(() => cancelRef.current?.focus(), 50);
     }
@@ -67,15 +67,15 @@ export function ChangeRoleDialog({
           <SettingsSelect
             label="New role"
             value={newRole}
-            onChange={(v) => setNewRole(v as 'Admin' | 'Member')}
+            onChange={(v) => setNewRole(v as 'MA' | 'EX')}
             options={[
-              { value: 'Member', label: 'Member' },
-              { value: 'Admin', label: 'Admin' },
+              { value: 'EX', label: 'Executive' },
+              { value: 'MA', label: 'Manager' },
             ]}
             description={
-              newRole === 'Admin'
-                ? 'Admins can invite members, change roles, and manage all jobs and candidates.'
-                : 'Members can view and manage jobs and candidates. They cannot invite or remove team members.'
+              newRole === 'MA'
+                ? 'Managers can invite members, change roles, and manage all jobs and candidates.'
+                : 'Executives can view and manage jobs and candidates. They cannot invite or remove team members.'
             }
           />
         </div>

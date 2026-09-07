@@ -27,6 +27,10 @@ const AUTH_MESSAGES: Record<string, string> = {
     'Could not reach the server. Check your connection and try again.',
   disposable_domain:
     'Please use a valid business or personal email address. Temporary email addresses are not supported.',
+  account_locked:
+    'Too many failed attempts. Please wait a few minutes before trying again.',
+  invite_not_found:
+    'This invite is invalid or has expired.',
 };
 
 const FALLBACK = 'Something went wrong. Please try again.';

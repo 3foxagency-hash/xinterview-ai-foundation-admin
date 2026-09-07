@@ -1,4 +1,16 @@
-/** The signed-in user's own profile — Settings → Profile. */
+/**
+ * The signed-in user's own profile — Settings → Profile.
+ *
+ * This is a display-model blend: `firstName`/`lastName`/`email`/`timezone`/
+ * `avatarUrl` come from the real GET /user-management/me/ (via getMe()) each
+ * call; `phone`/`jobTitle`/`location`/`bio`/`role`/`organization`/`status`/
+ * `joinedOn` have no equivalent in backend-docs/usermanagement-api.md and stay
+ * local-only. Don't assume the whole shape round-trips to a backend.
+ */
+
+import { apiFetch } from './client';
+import { UM_PATHS } from './user-management-contract';
+import { getMe } from './auth';
 
 function delay(ms = 600) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -24,46 +36,80 @@ export type UserProfile = {
   joinedOn: string;
 };
 
-let store: UserProfile = {
-  firstName: 'Sarah',
-  lastName: 'Chen',
-  email: 'sarah.chen@xinterview.ai',
+type LocalFields = Pick<
+  UserProfile,
+  'phone' | 'jobTitle' | 'location' | 'bio' | 'role' | 'organization' | 'status' | 'joinedOn'
+>;
+
+const SEED_LOCAL: LocalFields = {
   phone: '+1 555 0142',
   jobTitle: 'Talent Acquisition Lead',
   location: 'San Francisco, CA',
-  timezone: 'America/Los_Angeles',
   bio: 'Leading technical hiring across engineering and product.',
-  avatarUrl: null,
   role: 'Owner',
   organization: 'XInterview',
   status: 'Active',
   joinedOn: 'Jan 15, 2024',
 };
 
+let localStore: LocalFields = { ...SEED_LOCAL };
+
 export async function getProfile(): Promise<UserProfile> {
   await delay();
-  return { ...store };
+  const me = await getMe();
+  return {
+    firstName: me.first_name,
+    lastName: me.last_name,
+    email: me.email,
+    timezone: me.timezone,
+    avatarUrl: me.profile_pic,
+    ...localStore,
+  };
 }
 
 export async function saveProfile(patch: Partial<UserProfile>): Promise<UserProfile> {
   await delay(700);
-  const next = { ...store, ...patch };
-  if (!next.firstName.trim()) throw err('profile_first_name_required');
-  if (!next.lastName.trim()) throw err('profile_last_name_required');
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(next.email.trim())) {
+
+  if (patch.firstName !== undefined && !patch.firstName.trim()) {
+    throw err('profile_first_name_required');
+  }
+  if (patch.lastName !== undefined && !patch.lastName.trim()) {
+    throw err('profile_last_name_required');
+  }
+  if (patch.email !== undefined && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(patch.email.trim())) {
     throw err('profile_email_invalid');
   }
-  store = next;
-  return { ...store };
+
+  const remoteKeys = ['firstName', 'lastName', 'timezone', 'avatarUrl'] as const;
+  const remotePatch: Record<string, unknown> = {};
+  if (patch.firstName !== undefined) remotePatch.first_name = patch.firstName;
+  if (patch.lastName !== undefined) remotePatch.last_name = patch.lastName;
+  if (patch.timezone !== undefined) remotePatch.timezone = patch.timezone;
+  if (patch.avatarUrl !== undefined) remotePatch.profile_pic = patch.avatarUrl;
+
+  if (Object.keys(remotePatch).length > 0) {
+    await apiFetch(UM_PATHS.me, { method: 'PATCH', body: remotePatch });
+  }
+
+  const localPatch: Partial<LocalFields> = {};
+  for (const key of Object.keys(patch) as (keyof UserProfile)[]) {
+    if (!remoteKeys.includes(key as (typeof remoteKeys)[number]) && key in localStore) {
+      (localPatch as Record<string, unknown>)[key] = patch[key];
+    }
+  }
+  localStore = { ...localStore, ...localPatch };
+
+  return getProfile();
 }
 
 export const AVATAR_MAX_BYTES = 800 * 1024;
 const AVATAR_TYPES = ['image/png', 'image/jpeg'];
 
 /**
- * Reads the file to a data URL so this in-memory store can actually display
- * the avatar. The real endpoint will return a hosted URL instead; callers
- * only care that they get back something assignable to `avatarUrl`.
+ * No avatar-upload endpoint exists in the docs (profile_pic is a plain string
+ * field set via PATCH, not a multipart upload) — kept entirely local.
+ * Reads the file to a data URL so this in-memory flow can actually display
+ * the avatar; a real upload endpoint would return a hosted URL instead.
  */
 export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
   if (!AVATAR_TYPES.includes(file.type)) throw err('avatar_type_invalid');
@@ -77,17 +123,15 @@ export async function uploadAvatar(file: File): Promise<{ avatarUrl: string }> {
   });
 
   await delay(600);
-  store = { ...store, avatarUrl };
+  await apiFetch(UM_PATHS.me, { method: 'PATCH', body: { profile_pic: avatarUrl } });
   return { avatarUrl };
 }
 
-/** Mirrors the password policy in lib/validation/auth.ts. */
 export async function changePassword(
   current: string,
   next: string,
   confirm: string
 ): Promise<{ success: boolean }> {
-  await delay(800);
   if (!current.trim()) throw err('password_current_required');
   if (next !== confirm) throw err('password_mismatch');
   if (next.length < 8) throw err('password_too_short');
@@ -95,12 +139,21 @@ export async function changePassword(
     throw err('password_too_weak');
   }
   if (current === next) throw err('password_same_as_current');
-  // Anything other than this is treated as the wrong current password.
-  if (current !== 'Passw0rd!x') throw err('password_current_wrong');
+
+  await apiFetch<{ message: string }>(UM_PATHS.changePassword, {
+    method: 'POST',
+    body: { old_password: current, new_password: next },
+  });
   return { success: true };
 }
 
-/** A device signed in to this account — Settings → Password & security. */
+/** Sends a confirmation link; the address is not changed until it's clicked. */
+export async function changeEmail(email: string): Promise<{ sent: boolean }> {
+  await apiFetch<{ message: string }>(UM_PATHS.changeEmail, { method: 'PUT', body: { email } });
+  return { sent: true };
+}
+
+/** A device signed in to this account — Settings → Password & security. No doc equivalent; stays local. */
 export type ActiveSession = {
   id: string;
   device: string;
@@ -111,7 +164,7 @@ export type ActiveSession = {
   current: boolean;
 };
 
-let sessionStore: ActiveSession[] = [
+const SEED_SESSIONS: ActiveSession[] = [
   {
     id: 'ses_1',
     device: 'Chrome on macOS',
@@ -138,6 +191,8 @@ let sessionStore: ActiveSession[] = [
   },
 ];
 
+let sessionStore: ActiveSession[] = [...SEED_SESSIONS];
+
 export async function getSessions(): Promise<ActiveSession[]> {
   await delay(500);
   return sessionStore.map((s) => ({ ...s }));
@@ -153,5 +208,6 @@ export async function revokeSession(id: string): Promise<{ success: boolean }> {
 }
 
 export function _resetProfileStore() {
-  store = { ...store };
+  localStore = { ...SEED_LOCAL };
+  sessionStore = [...SEED_SESSIONS];
 }

@@ -1,5 +1,11 @@
 # XInterview — API, Mocking, Testing & Middleware Standard
 
+> **Superseded for auth + user-management by `docs/msw-mocking.md`.** That
+> document describes what's actually implemented for those two surfaces
+> today (a smaller, root-level MSW setup — no `src/`, no `@mswjs/data`, no
+> TanStack Query yet). This document remains the long-term target for
+> jobs/candidates/reports mocking and the fuller middleware/testing stack.
+
 **Version:** 1.0 · **Status:** Proposal for review
 **Companion to:** `xinterview-frontend-architecture-v2.0.md` (the architecture standard)
 **Scope:** How API work actually starts in this repo — the mock layer, the environment switch, the middleware stack, the testing regime, and the review gates that keep feature N+1 from breaking feature N.
