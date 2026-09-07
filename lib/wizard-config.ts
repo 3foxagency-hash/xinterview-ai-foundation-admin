@@ -16,7 +16,7 @@ export type WizardStep = {
 export const WIZARD_STEPS: WizardStep[] = [
   {
     id: 'setup',
-    label: 'Job details',
+    label: 'Job Details',
     description: 'Add basic information about the role',
     icon: Briefcase,
     number: 1,
@@ -48,7 +48,7 @@ export const WIZARD_STEPS: WizardStep[] = [
   },
   {
     id: 'invite',
-    label: 'Invite candidates',
+    label: 'Invite Candidates',
     description: 'Share your interview with candidates',
     icon: Mail,
     number: 5,

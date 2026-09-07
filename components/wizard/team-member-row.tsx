@@ -46,9 +46,9 @@ export function TeamMemberRow({
 
   return (
     <div className="border-b border-border px-4 py-3 last:border-0">
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Identity — its own line on narrow screens */}
-        <div className="flex min-w-0 basis-full items-center gap-3 sm:basis-auto sm:flex-1">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_92px_110px_170px_64px] sm:items-center sm:gap-5">
+        {/* Identity */}
+        <div className="flex min-w-0 items-center gap-3">
           <Checkbox
             checked={selected}
             onCheckedChange={() => onToggleSelect(member.id)}
@@ -68,8 +68,8 @@ export function TeamMemberRow({
           </div>
         </div>
 
-        {/* Role, access, notifications, actions — wraps to its own line on narrow screens */}
-        <div className="flex basis-full flex-wrap items-center gap-4 sm:basis-auto sm:flex-nowrap sm:justify-end sm:gap-5">
+        {/* Company role */}
+        <div className="flex items-center gap-4 sm:contents">
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -83,6 +83,7 @@ export function TeamMemberRow({
             </Tooltip>
           </TooltipProvider>
 
+          {/* Access */}
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -98,6 +99,7 @@ export function TeamMemberRow({
             </Tooltip>
           </TooltipProvider>
 
+          {/* Email notifications */}
           <div className="flex items-center gap-1.5">
             <Switch
               checked={member.notifyOnComplete}
@@ -114,59 +116,61 @@ export function TeamMemberRow({
             {notificationsLocked && <NotificationLockPopover memberName={member.name} />}
           </div>
 
-          {/* Remove / leave */}
-          {isCurrentUser ? (
-            <DropdownMenu>
+          {/* Actions */}
+          <div className="ml-auto sm:ml-0 sm:justify-self-end">
+            {isCurrentUser ? (
+              <DropdownMenu>
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label={`More actions for ${member.name}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+                        >
+                          <MoreVertical size={15} />
+                        </button>
+                      </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-[220px]">
+                      You can&apos;t remove yourself from a job you&apos;re on.
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() => onLeaveRequest(member)}
+                    className="text-error"
+                  >
+                    <LogOut size={14} /> Leave this job
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : isAdmin ? (
               <TooltipProvider delayDuration={200}>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <DropdownMenuTrigger asChild>
-                      <button
-                        type="button"
-                        aria-label={`More actions for ${member.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-card-hover hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-                      >
-                        <MoreVertical size={15} />
-                      </button>
-                    </DropdownMenuTrigger>
+                    <span className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-md text-muted opacity-50">
+                      <Trash2 size={14} />
+                    </span>
                   </TooltipTrigger>
                   <TooltipContent side="top" className="max-w-[220px]">
-                    You can&apos;t remove yourself from a job you&apos;re on.
+                    Company admins always have access to every job.
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem
-                  onClick={() => onLeaveRequest(member)}
-                  className="text-error"
-                >
-                  <LogOut size={14} /> Leave this job
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : isAdmin ? (
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-md text-muted opacity-50">
-                    <Trash2 size={14} />
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[220px]">
-                  Company admins always have access to every job.
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onRemoveRequest(member)}
-              aria-label={`Remove ${member.name}`}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
-            >
-              <Trash2 size={14} />
-            </button>
-          )}
+            ) : (
+              <button
+                type="button"
+                onClick={() => onRemoveRequest(member)}
+                aria-label={`Remove ${member.name}`}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted transition-colors hover:bg-error-banner-bg hover:text-error focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+              >
+                <Trash2 size={14} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

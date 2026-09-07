@@ -5,7 +5,7 @@ import { Lock, Check, CircleAlert as AlertCircle, Info, ArrowRight } from 'lucid
 import { cn } from '@/lib/utils';
 import { SectionCard } from '@/components/wizard/section-card';
 import { Popover, PopoverTrigger, PopoverClose, PopoverContent } from '@/components/ui/popover';
-import { INTERVIEW_FORMAT_CONFIG, type FormatConfig } from '@/lib/constants/interview-formats';
+import { INTERVIEW_FORMAT_CONFIG, TONE_TILE, type FormatConfig } from '@/lib/constants/interview-formats';
 import type { InterviewFormat } from '@/lib/validation/job';
 
 interface JobFormatSelectionProps {
@@ -13,15 +13,6 @@ interface JobFormatSelectionProps {
   onSelect: (format: InterviewFormat) => void;
   onContinue: () => void;
 }
-
-const TONE_TILE: Record<FormatConfig['tone'], string> = {
-  settings: 'bg-settings-wash text-settings-ink',
-  jobs: 'bg-jobs-wash text-jobs-ink',
-  reports: 'bg-reports-wash text-reports-ink',
-  ai: 'bg-ai-wash text-ai-ink',
-  candidates: 'bg-candidates-wash text-candidates-ink',
-  interviews: 'bg-interviews-wash text-interviews-ink',
-};
 
 function FormatCardContent({ card, selected }: { card: FormatConfig; selected: boolean }) {
   const Icon = card.icon;
@@ -33,7 +24,7 @@ function FormatCardContent({ card, selected }: { card: FormatConfig; selected: b
           selected ? 'border-primary bg-primary/10' : cn('border-transparent', TONE_TILE[card.tone])
         )}
       >
-        <Icon size={22} strokeWidth={1.5} className={selected ? 'text-primary' : undefined} />
+        <Icon size={22} className={selected ? 'text-primary' : undefined} />
       </div>
       <div className="flex-1">
         <div className="flex items-center gap-2">
@@ -71,7 +62,7 @@ function LockedFormatCard({ card }: { card: FormatConfig }) {
         >
           <div className="flex items-start gap-4">
             <div className={cn('flex h-11 w-11 shrink-0 items-center justify-center rounded-lg', TONE_TILE[card.tone])}>
-              <Icon size={22} strokeWidth={1.5} />
+              <Icon size={22} />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">

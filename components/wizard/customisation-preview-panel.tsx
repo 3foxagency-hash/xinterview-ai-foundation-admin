@@ -8,11 +8,8 @@ import {
   type PreviewScreen,
 } from '@/components/wizard/customisation-preview-context';
 import { buildPreviewConfig, buildPreviewSession } from '@/components/wizard/customisation-preview-context';
-import { InterviewPage } from '@/components/interview/interview-page';
-import { SetupScreen } from '@/components/interview/setup-screen';
-import { InterviewScreen } from '@/components/interview/interview-screen';
-import { CompletionScreen } from '@/components/interview/completion-screen';
-import { interviewSession as defaultSession } from '@/config/interview-session';
+import type { InterviewConfig } from '@/config/interview.mock';
+import type { InterviewSession } from '@/config/interview-session';
 import { track } from '@/lib/utils/analytics';
 
 const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
@@ -279,24 +276,149 @@ function SocialLinkPreview() {
   );
 }
 
-function InertWrapper({ children, device }: { children: React.ReactNode; device: 'desktop' | 'mobile' }) {
-  return (
-    <div
-      aria-hidden="true"
-      inert
-      className={cn(
-        'pointer-events-none select-none overflow-hidden',
-        device === 'mobile'
-          ? 'mx-auto rounded-[2rem] border-4 border-border-strong bg-surface p-2 shadow-md'
-          : 'rounded-lg border border-border bg-surface shadow-sm'
-      )}
-      style={
-        device === 'mobile'
-          ? { width: 380, height: 680, maxHeight: '100%' }
-          : { width: '100%', height: '100%', maxHeight: '100%' }
+const PHONE_WIDTH = 375;
+const PHONE_HEIGHT = 812;
+/** Extra room around the phone chassis (border + a little breathing room)
+ *  so the scale-to-fit math doesn't shave the bezel off against the panel edge. */
+const PHONE_CHROME_PADDING = 24;
+
+interface PreviewFramePayload {
+  screen: PreviewScreen;
+  config: InterviewConfig;
+  session: InterviewSession;
+}
+
+/**
+ * Keeps a preview <iframe> fed with live state via postMessage. Both the
+ * mobile and desktop previews render the real interview components inside
+ * /preview/customisation instead of the admin bundle rendering them inline
+ * and shrinking the result with a CSS transform — the interview CSS relies
+ * on things a `transform: scale()` can't fake for an inner document: real
+ * `@media (max-width: 767px)` breakpoints (a shrunk box is still the same
+ * viewport underneath) and `100vh`-based panel heights (which resolve
+ * against the real browser window regardless of an ancestor's transform,
+ * so an inner scroll panel would size itself far taller than the visible,
+ * scaled-down box and trap scroll input intended for the outer container).
+ * An iframe has its own genuine viewport matching its element box, so both
+ * kinds of CSS resolve correctly and native scrolling just works.
+ *
+ * The iframe can't read the admin's React context across the frame
+ * boundary, so state arrives via postMessage on every change instead of
+ * props/children.
+ */
+function usePreviewFrameSync(payload: PreviewFramePayload) {
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+  const [iframeReady, setIframeReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.source !== iframeRef.current?.contentWindow) return;
+      if (event.data?.source === 'xinterview-customisation-preview-ready') {
+        setIframeReady(true);
       }
-    >
-      {children}
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  React.useEffect(() => {
+    if (!iframeReady) return;
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    win.postMessage(
+      { source: 'xinterview-customisation-preview', ...payload },
+      window.location.origin
+    );
+  }, [iframeReady, payload]);
+
+  return iframeRef;
+}
+
+function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [scale, setScale] = React.useState(1);
+  const iframeRef = usePreviewFrameSync(payload);
+
+  React.useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const compute = () => {
+      const { width, height } = el.getBoundingClientRect();
+      const availableW = width - PHONE_CHROME_PADDING;
+      const availableH = height - PHONE_CHROME_PADDING;
+      const next = Math.min(1, availableW / PHONE_WIDTH, availableH / PHONE_HEIGHT);
+      setScale(next > 0 ? next : 1);
+    };
+    compute();
+    const observer = new ResizeObserver(compute);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const scaledWidth = PHONE_WIDTH * scale;
+  const scaledHeight = PHONE_HEIGHT * scale;
+
+  return (
+    <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-hidden">
+      {/* Phone chassis, sized directly at its final on-screen pixels rather
+          than rendered at a fixed 375×812 and shrunk with `transform:
+          scale()`. A CSS transform on an iframe's ancestor doesn't reliably
+          carry mouse-wheel/trackpad input through to the iframe in Chromium
+          — clicks still hit-test correctly, but scrolling inside the frame
+          stops responding. Sizing the iframe (and the notch/buttons around
+          it) to the real scaled dimensions means there's no transform in
+          the way, so native scroll just works; the trade-off is the
+          candidate CSS sees e.g. a 260px-wide viewport instead of exactly
+          375px, which still sits comfortably inside the same mobile
+          breakpoint. */}
+      <div
+        className="relative shrink-0 select-none overflow-hidden rounded-[2.5rem] border-[6px] border-border-strong bg-surface shadow-lg"
+        style={{ width: scaledWidth, height: scaledHeight }}
+      >
+        <div
+          className="absolute -left-[3px] rounded-l-sm bg-border-strong"
+          style={{ top: 96 * scale, height: 64 * scale, width: 3 }}
+          aria-hidden
+        />
+        <div
+          className="absolute -right-[3px] rounded-r-sm bg-border-strong"
+          style={{ top: 128 * scale, height: 96 * scale, width: 3 }}
+          aria-hidden
+        />
+        <div
+          className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-b-2xl bg-border-strong"
+          style={{ height: 24 * scale, width: 128 * scale }}
+          aria-hidden
+        />
+        {/* Padding-top clears the notch so real page content (a logo, a nav
+            bar) doesn't render underneath it, like a phone's safe-area inset. */}
+        <iframe
+          ref={iframeRef}
+          src="/preview/customisation"
+          title="Mobile preview"
+          className="h-full w-full border-0"
+          style={{ paddingTop: 32 * scale }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function DesktopFrame({ payload }: { payload: PreviewFramePayload }) {
+  const iframeRef = usePreviewFrameSync(payload);
+
+  return (
+    <div className="h-full w-full overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
+      {/* Full-size iframe — no CSS scaling. The panel's own dimensions ARE
+          the iframe's viewport, so 100vh-based panel heights and native
+          scroll (wheel, trackpad momentum, scrollbar drag) all behave
+          exactly as they would in a real browser window, just narrower. */}
+      <iframe
+        ref={iframeRef}
+        src="/preview/customisation"
+        title="Desktop preview"
+        className="h-full w-full border-0"
+      />
     </div>
   );
 }
@@ -333,7 +455,7 @@ export function CustomisationPreviewPanel() {
 
   return (
     <aside
-      className="hidden w-[420px] shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-surface xl:flex"
+      className="hidden min-w-[420px] flex-1 flex-col overflow-hidden rounded-lg border border-border bg-surface xl:flex"
       aria-label="Live preview"
       role="complementary"
     >
@@ -449,31 +571,10 @@ export function CustomisationPreviewPanel() {
           <EmailPreviewPanel />
         ) : isSocial ? (
           <SocialLinkPreview />
+        ) : previewDevice === 'mobile' ? (
+          <MobileFrame payload={{ screen: previewScreen, config, session }} />
         ) : (
-          <InertWrapper device={previewDevice}>
-            <div
-              className="overflow-y-auto"
-              style={
-                previewDevice === 'mobile'
-                  ? { width: '100%', height: '100%' }
-                  : { width: '100%', height: '100%' }
-              }
-            >
-              {previewScreen === 'landing' && <InterviewPage token="preview" />}
-              {previewScreen === 'form' && <InterviewPage token="preview" />}
-              {previewScreen === 'interview' && (
-                <InterviewScreen
-                  session={session}
-                  forcedQuestionIndex={0}
-                  forcedState="thinking"
-                  simFailure="unsupported_browser"
-                />
-              )}
-              {previewScreen === 'thank-you' && (
-                <CompletionScreen session={session} state="complete" />
-              )}
-            </div>
-          </InertWrapper>
+          <DesktopFrame payload={{ screen: previewScreen, config, session }} />
         )}
       </div>
 

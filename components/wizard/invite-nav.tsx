@@ -70,13 +70,15 @@ export function InviteNav({ activeSection, indicators, onNavigate, variant = 'fu
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border bg-surface">
-          <Mail size={18} className="text-bodyText" />
-        </div>
-        <div>
-          <h2 className="text-h3 text-heading">Invite candidates</h2>
-          <p className="mt-0.5 text-body-sm text-muted">Share your interview with the right people.</p>
+      <div className="rounded-lg border border-border bg-surface p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-active-menu-bg">
+            <Mail size={18} className="text-primary" />
+          </div>
+          <div>
+            <h2 className="text-h3 text-heading">Invite candidates</h2>
+            <p className="mt-0.5 text-body-sm text-muted">Share your interview with the right people.</p>
+          </div>
         </div>
       </div>
 
@@ -109,7 +111,7 @@ export function InviteNav({ activeSection, indicators, onNavigate, variant = 'fu
         })}
       </nav>
 
-      <div className="rounded-lg border border-border bg-surface p-4">
+      <div className="rounded-lg border border-primary/20 bg-active-menu-bg p-4">
         <div className="flex items-start gap-2.5">
           <GraduationCap size={16} className="mt-0.5 shrink-0 text-primary" />
           <div>

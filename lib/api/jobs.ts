@@ -1,6 +1,7 @@
 import type { InterviewFormat } from '@/lib/validation/job';
 import { SCORING_BAND_COLOURS } from '@/lib/constants/scoring-band-colours';
 import { CITIES } from '@/lib/constants/locations';
+import { PersistentMap } from '@/lib/utils/persistent-map';
 
 /**
  * Jobs API — the create-job wizard flow.
@@ -116,28 +117,34 @@ function ulid(): string {
   return `${Date.now().toString(36).toUpperCase()}${rand}`.slice(0, 26);
 }
 
-// ─── In-memory store ───
+// ─── Store — persisted to localStorage so a job survives a page refresh
+// or a direct URL visit (there's no real backend behind this mock layer) ───
 
-const jobStore = new Map<string, Job>();
-const questionStore = new Map<string, Question[]>();
-const teamStore = new Map<string, JobTeamMember[]>();
+const jobStore = new PersistentMap<Job>('xi_mock_jobs');
+const questionStore = new PersistentMap<Question[]>('xi_mock_questions');
+const teamStore = new PersistentMap<JobTeamMember[]>('xi_mock_team');
 
 const COMPANY_MEMBERS: CompanyMember[] = [
-  { id: 'mem_1', name: 'Sarah Chen', email: 'sarah.chen@xinterview.ai', role: 'Admin', initials: 'SC' },
-  { id: 'mem_2', name: 'James Patel', email: 'james.patel@xinterview.ai', role: 'Manager', initials: 'JP' },
-  { id: 'mem_3', name: 'Ava Thompson', email: 'ava.thompson@xinterview.ai', role: 'Manager', initials: 'AT' },
-  { id: 'mem_4', name: 'Diego Morales', email: 'diego.morales@xinterview.ai', role: 'Executive', initials: 'DM' },
-  { id: 'mem_5', name: 'Priya Nair', email: 'priya.nair@xinterview.ai', role: 'Admin', initials: 'PN' },
-  { id: 'mem_6', name: 'Marcus Webb', email: 'marcus.webb@xinterview.ai', role: 'Manager', initials: 'MW' },
-  { id: 'mem_7', name: 'Lena Kowalski', email: 'lena.kowalski@xinterview.ai', role: 'Executive', initials: 'LK' },
-  { id: 'mem_8', name: 'Tomás Rivera', email: 'tomas.rivera@xinterview.ai', role: 'Manager', initials: 'TR' },
-  { id: 'mem_9', name: 'Yuki Tanaka', email: 'yuki.tanaka@xinterview.ai', role: 'Manager', initials: 'YT' },
-  { id: 'mem_10', name: 'Grace Okafor', email: 'grace.okafor@xinterview.ai', role: 'Executive', initials: 'GO' },
-  { id: 'mem_11', name: 'Noah Bergström', email: 'noah.bergstrom@xinterview.ai', role: 'Manager', initials: 'NB' },
-  { id: 'mem_12', name: 'Isabelle Dubois', email: 'isabelle.dubois@xinterview.ai', role: 'Manager', initials: 'ID' },
-  { id: 'mem_13', name: 'Ravi Subramaniam', email: 'ravi.subramaniam@xinterview.ai', role: 'Manager', initials: 'RS' },
-  { id: 'mem_14', name: 'Hannah Kim', email: 'hannah.kim@xinterview.ai', role: 'Manager', initials: 'HK' },
+  { id: 'mem_1', name: 'Priya Shah', email: 'priya.shah@acme.com', role: 'Admin', initials: 'PS' },
+  { id: 'mem_2', name: 'Arjun Mehta', email: 'arjun.mehta@acme.com', role: 'Admin', initials: 'AM' },
+  { id: 'mem_3', name: 'Neha Verma', email: 'neha.verma@acme.com', role: 'Manager', initials: 'NV' },
+  { id: 'mem_4', name: 'Rohan Kapoor', email: 'rohan.kapoor@acme.com', role: 'Manager', initials: 'RK' },
+  { id: 'mem_5', name: 'Ananya Iyer', email: 'ananya.iyer@acme.com', role: 'Manager', initials: 'AI' },
+  { id: 'mem_6', name: 'Vikram Rao', email: 'vikram.rao@acme.com', role: 'Executive', initials: 'VR' },
+  { id: 'mem_7', name: 'Lena Kowalski', email: 'lena.kowalski@acme.com', role: 'Executive', initials: 'LK' },
+  { id: 'mem_8', name: 'Tomás Rivera', email: 'tomas.rivera@acme.com', role: 'Manager', initials: 'TR' },
+  { id: 'mem_9', name: 'Yuki Tanaka', email: 'yuki.tanaka@acme.com', role: 'Manager', initials: 'YT' },
+  { id: 'mem_10', name: 'Grace Okafor', email: 'grace.okafor@acme.com', role: 'Executive', initials: 'GO' },
+  { id: 'mem_11', name: 'Noah Bergström', email: 'noah.bergstrom@acme.com', role: 'Manager', initials: 'NB' },
+  { id: 'mem_12', name: 'Isabelle Dubois', email: 'isabelle.dubois@acme.com', role: 'Manager', initials: 'ID' },
+  { id: 'mem_13', name: 'Ravi Subramaniam', email: 'ravi.subramaniam@acme.com', role: 'Manager', initials: 'RS' },
+  { id: 'mem_14', name: 'Hannah Kim', email: 'hannah.kim@acme.com', role: 'Manager', initials: 'HK' },
 ];
+
+/** Team members every new job starts with, alongside its owner — mirrors a
+ *  small hiring team already collaborating, so the Team step isn't empty
+ *  the first time a job is created. */
+const DEFAULT_TEAM_MEMBER_IDS = ['mem_2', 'mem_3', 'mem_4', 'mem_5', 'mem_6'];
 
 const QUESTION_TEMPLATES: QuestionTemplate[] = [
   { id: 'tpl_frontend', name: 'Frontend Engineer', questionCount: 5, typeBreakdown: { video: 3, text: 1, single_choice: 1 }, lastUsedAt: '2026-08-20T10:00:00Z' },
@@ -244,7 +251,11 @@ export async function createJob(input: {
     breakBetweenInterviews: input.breakBetweenInterviews,
   };
   jobStore.set(id, job);
-  teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true })]);
+  const defaultMembers = DEFAULT_TEAM_MEMBER_IDS
+    .map((mid) => COMPANY_MEMBERS.find((m) => m.id === mid))
+    .filter((m): m is CompanyMember => m !== undefined)
+    .map((m) => toTeamMember(m, { notifyOnComplete: m.id !== 'mem_5' }));
+  teamStore.set(id, [toTeamMember(COMPANY_MEMBERS[0], { isCreator: true }), ...defaultMembers]);
   return job;
 }
 
@@ -413,34 +424,92 @@ export async function generateJobDescription(title: string, language: string): P
   ].join('');
 }
 
+const AI_QUESTION_BANK: Record<QuestionType, Array<Omit<Question, 'id'>>> = {
+  video: [
+    { type: 'video', title: 'Tell us about your experience in this field', description: 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'video', title: 'Describe a challenging project you led', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '3min' },
+    { type: 'video', title: 'Walk us through a recent problem you solved', description: 'Share the context, your approach, and the outcome.', retakesAllowed: 1, thinkingTime: '45s', answerTime: '3min' },
+    { type: 'video', title: 'Where do you see yourself in three years?', description: 'Share your career goals and how this role fits into them.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'video', title: 'How do you handle tight deadlines?', description: 'Describe your approach to prioritising work under pressure.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+  ],
+  audio: [
+    { type: 'audio', title: 'Describe your ideal team environment', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
+    { type: 'audio', title: 'Describe a time you handled conflict at work', description: 'How did you approach the situation and what was the result?', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+    { type: 'audio', title: 'How do you stay organised across multiple priorities?', description: 'Talk through the tools or habits you rely on.', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
+  ],
+  text: [
+    { type: 'text', title: 'Why are you interested in this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
+    { type: 'text', title: 'What are your salary expectations?', description: 'Please provide a range and any relevant context.', charLimit: 300 },
+    { type: 'text', title: 'Do you have any questions for us?', description: 'Anything you would like to know about the role or team.', charLimit: 500 },
+  ],
+  single_choice: [
+    { type: 'single_choice', title: 'How do you prefer to work?', description: 'Which best describes your preferred working style?', options: [
+      { id: `aio_${Date.now()}_a`, text: 'Independently with clear goals', isCorrect: false },
+      { id: `aio_${Date.now()}_b`, text: 'Collaboratively in constant sync', isCorrect: false },
+      { id: `aio_${Date.now()}_c`, text: 'A mix of both', isCorrect: true },
+      { id: `aio_${Date.now()}_f`, text: 'It depends on the project', isCorrect: false },
+    ] },
+    { type: 'single_choice', title: 'Are you willing to relocate?', description: 'Let us know your relocation preferences.', options: [
+      { id: `aio_${Date.now()}_d`, text: 'Yes, I am willing to relocate', isCorrect: true },
+      { id: `aio_${Date.now()}_e`, text: 'No, I prefer remote only', isCorrect: false },
+      { id: `aio_${Date.now()}_g`, text: 'Open to relocation for the right role', isCorrect: false },
+      { id: `aio_${Date.now()}_h`, text: 'Only within my current region', isCorrect: false },
+    ] },
+  ],
+};
+
+/** Options are trimmed to the requested count (min 2, max 4), keeping the
+ *  template's marked-correct option whenever it survives the trim. */
+function buildOptions(
+  template: Array<{ text: string; isCorrect: boolean }>,
+  optionsPerChoice: number,
+  uidRef: { current: number }
+): Array<{ id: string; text: string; isCorrect: boolean }> {
+  const count = Math.max(2, Math.min(4, optionsPerChoice));
+  const trimmed = template.slice(0, count);
+  if (!trimmed.some((o) => o.isCorrect) && trimmed.length > 0) {
+    trimmed[0] = { ...trimmed[0], isCorrect: true };
+  }
+  return trimmed.map((o) => ({ ...o, id: `aio_${Date.now()}_${uidRef.current++}` }));
+}
+
 export async function generateAiQuestions(
   counts: { video: number; audio: number; text: number; singleChoice: number },
   jobTitle: string,
   _jobId?: string,
-  focus?: string
+  focus?: string,
+  optionsPerChoice = 3
 ): Promise<Question[]> {
   await delay(1200);
-  const total = counts.video + counts.audio + counts.text + counts.singleChoice;
-  const bank: Question[] = [
-    { id: `aiq_${Date.now()}_1`, type: 'video', title: `Tell us about your experience as a ${jobTitle}`, description: focus ? `Focus: ${focus}` : 'A brief introduction covering your background and what draws you to this role.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    { id: `aiq_${Date.now()}_2`, type: 'video', title: 'Describe a challenging project you led', description: 'Walk through a project that pushed your skills and how you approached it.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '3min' },
-    { id: `aiq_${Date.now()}_3`, type: 'text', title: 'Why are you interested in this role?', description: 'What interests you about this position specifically?', charLimit: 500 },
-    { id: `aiq_${Date.now()}_4`, type: 'audio', title: 'Describe your ideal team environment', description: 'What does a productive team environment look like to you?', retakesAllowed: 1, thinkingTime: '20s', answerTime: '1min' },
-    { id: `aiq_${Date.now()}_5`, type: 'single_choice', title: 'How do you prefer to work?', description: 'Which best describes your preferred working style?', options: [
-      { id: `aio_${Date.now()}_a`, text: 'Independently with clear goals', isCorrect: false },
-      { id: `aio_${Date.now()}_b`, text: 'Collaboratively in constant sync', isCorrect: false },
-      { id: `aio_${Date.now()}_c`, text: 'A mix of both', isCorrect: true },
-    ] },
-    { id: `aiq_${Date.now()}_6`, type: 'video', title: 'Walk us through a recent problem you solved', description: 'Share the context, your approach, and the outcome.', retakesAllowed: 1, thinkingTime: '45s', answerTime: '3min' },
-    { id: `aiq_${Date.now()}_7`, type: 'text', title: 'What are your salary expectations?', description: 'Please provide a range and any relevant context.', charLimit: 300 },
-    { id: `aiq_${Date.now()}_8`, type: 'single_choice', title: 'Are you willing to relocate?', description: 'Let us know your relocation preferences.', options: [
-      { id: `aio_${Date.now()}_d`, text: 'Yes, I am willing to relocate', isCorrect: true },
-      { id: `aio_${Date.now()}_e`, text: 'No, I prefer remote only', isCorrect: false },
-    ] },
-    { id: `aiq_${Date.now()}_9`, type: 'audio', title: 'Describe a time you handled conflict at work', description: 'How did you approach the situation and what was the result?', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
-    { id: `aiq_${Date.now()}_10`, type: 'video', title: 'Where do you see yourself in three years?', description: 'Share your career goals and how this role fits into them.', retakesAllowed: 1, thinkingTime: '30s', answerTime: '2min' },
+  const requested: Array<[QuestionType, number]> = [
+    ['video', counts.video],
+    ['audio', counts.audio],
+    ['text', counts.text],
+    ['single_choice', counts.singleChoice],
   ];
-  return bank.slice(0, Math.max(1, Math.min(total, 10)));
+
+  const results: Question[] = [];
+  const uidRef = { current: 0 };
+  for (const [type, count] of requested) {
+    const pool = AI_QUESTION_BANK[type];
+    if (!pool.length) continue;
+    for (let i = 0; i < count; i++) {
+      // Cycle through the pool if more of a type is requested than we have
+      // canned drafts for, so counts are always honoured exactly.
+      const template = pool[i % pool.length];
+      const isFirstVideo = type === 'video' && i === 0;
+      results.push({
+        ...template,
+        id: `aiq_${Date.now()}_${uidRef.current++}`,
+        title: isFirstVideo ? `Tell us about your experience as a ${jobTitle}` : template.title,
+        description: isFirstVideo && focus ? `Focus: ${focus}` : template.description,
+        options: template.options
+          ? buildOptions(template.options, optionsPerChoice, uidRef)
+          : undefined,
+      });
+    }
+  }
+  return results;
 }
 
 export async function publishJob(jobId: string): Promise<{
@@ -514,11 +583,17 @@ import type {
   QuestionScoring,
 } from '@/lib/validation/job';
 
-const customStore = new Map<string, Record<string, unknown>>();
+const customStore = new PersistentMap<Record<string, unknown>>('xi_mock_customisation');
 
 function getCustom(jobId: string): Record<string, unknown> {
   if (!customStore.has(jobId)) customStore.set(jobId, {});
   return customStore.get(jobId)!;
+}
+
+/** Setters mutate the object `getCustom` returns in place, then call this to
+ *  write the change back through the store so it actually persists. */
+function setCustom(jobId: string, data: Record<string, unknown>) {
+  customStore.set(jobId, data);
 }
 
 export async function getBranding(jobId: string): Promise<BrandingInput> {
@@ -539,6 +614,7 @@ export async function saveBranding(jobId: string, input: BrandingInput): Promise
   await delay(400);
   const data = getCustom(jobId);
   data.branding = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -549,7 +625,7 @@ export async function getWelcomePage(jobId: string): Promise<WelcomePageInput> {
     headline: '',
     subtitle: '',
     estimatedTime: 15,
-    introVideoEnabled: false,
+    introVideoEnabled: true,
     introVideoUrl: '',
     introNoteEnabled: false,
     introNoteTitle: '',
@@ -561,6 +637,7 @@ export async function saveWelcomePage(jobId: string, input: WelcomePageInput): P
   await delay(400);
   const data = getCustom(jobId);
   data.welcomePage = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -586,6 +663,7 @@ export async function saveFormSettings(jobId: string, input: FormSettingsInput):
   await delay(400);
   const data = getCustom(jobId);
   data.formSettings = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -605,6 +683,7 @@ export async function saveThankYouPage(jobId: string, input: ThankYouPageInput):
   await delay(400);
   const data = getCustom(jobId);
   data.thankYouPage = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -623,6 +702,7 @@ export async function saveSocialPreview(jobId: string, input: SocialPreviewInput
   await delay(400);
   const data = getCustom(jobId);
   data.socialPreview = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -641,6 +721,7 @@ export async function saveInterviewExperience(jobId: string, input: InterviewExp
   await delay(400);
   const data = getCustom(jobId);
   data.interviewExperience = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -669,6 +750,7 @@ export async function saveNotifications(jobId: string, input: NotificationsInput
   await delay(400);
   const data = getCustom(jobId);
   data.notifications = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -688,6 +770,7 @@ export async function saveAiEvaluation(jobId: string, input: AiEvaluationInput):
   await delay(400);
   const data = getCustom(jobId);
   data.aiEvaluation = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -721,6 +804,7 @@ export async function saveStages(jobId: string, input: StagesInput): Promise<Sta
     }
   }
   data.stages = input;
+  setCustom(jobId, data);
   return input;
 }
 
@@ -740,6 +824,7 @@ export async function saveScoringLabels(jobId: string, input: ScoringLabelsInput
   await delay(400);
   const data = getCustom(jobId);
   data.scoringLabels = input;
+  setCustom(jobId, data);
   return input;
 }
 

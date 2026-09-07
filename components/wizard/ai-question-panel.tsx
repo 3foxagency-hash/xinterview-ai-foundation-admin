@@ -36,6 +36,10 @@ interface AiQuestionPanelProps {
 }
 
 type Counts = Record<QuestionType, number>;
+/** Raw text per field while the user is typing — kept separate from the
+ *  clamped numeric Counts so the input can be genuinely empty mid-edit
+ *  instead of snapping to "0" and blocking further keystrokes. */
+type CountInputs = Record<QuestionType, string>;
 
 export function AiQuestionPanel({
   open,
@@ -57,6 +61,18 @@ export function AiQuestionPanel({
     }
     return initial;
   });
+  const [countInputs, setCountInputs] = React.useState<CountInputs>(
+    () => ({
+      video: String(counts.video),
+      audio: String(counts.audio),
+      text: String(counts.text),
+      single_choice: String(counts.single_choice),
+    })
+  );
+  const [totalInput, setTotalInput] = React.useState(() =>
+    String(availableTypes.reduce((sum, t) => sum + counts[t], 0))
+  );
+  const [optionsPerChoice, setOptionsPerChoice] = React.useState(3);
   const [focus, setFocus] = React.useState('');
   const [generating, setGenerating] = React.useState(false);
   const [generated, setGenerated] = React.useState<Question[] | null>(null);
@@ -89,13 +105,70 @@ export function AiQuestionPanel({
     onOpenChange(next);
   };
 
-  const handleCountChange = (type: QuestionType, rawValue: number) => {
-    const v = Math.max(0, Math.min(maxTotal, rawValue));
+  // Text field updates freely as the user types — including empty and
+  // transiently-out-of-range values — so backspacing/retyping behaves like
+  // a normal input. Clamping only happens on blur (handleCountBlur below).
+  const handleCountInputChange = (type: QuestionType, raw: string) => {
+    if (raw !== '' && !/^\d+$/.test(raw)) return;
+    setCountInputs((prev) => ({ ...prev, [type]: raw }));
+    if (raw === '') return;
+    const parsed = Number(raw);
+    setCounts((prev) => ({ ...prev, [type]: parsed }));
+  };
+
+  const handleCountBlur = (type: QuestionType) => {
     const otherTotal = availableTypes
       .filter((t) => t !== type)
       .reduce((sum, t) => sum + counts[t], 0);
-    if (otherTotal + v > maxTotal) return;
-    setCounts((prev) => ({ ...prev, [type]: v }));
+    const parsed = countInputs[type] === '' ? 0 : Number(countInputs[type]);
+    const clamped = Math.max(0, Math.min(maxTotal - otherTotal, parsed));
+    const next = { ...counts, [type]: clamped };
+    setCounts(next);
+    setCountInputs((prev) => ({ ...prev, [type]: String(clamped) }));
+    setTotalInput(String(availableTypes.reduce((sum, t) => sum + next[t], 0)));
+  };
+
+  // "How many questions" edits the total directly; the per-type mix is
+  // redistributed proportionally to match (evenly split if every type is
+  // currently at 0, so a fresh total has somewhere to go).
+  const handleTotalInputChange = (raw: string) => {
+    if (raw !== '' && !/^\d+$/.test(raw)) return;
+    setTotalInput(raw);
+  };
+
+  const handleTotalBlur = () => {
+    const requested = totalInput === '' ? 0 : Number(totalInput);
+    const clamped = Math.max(0, Math.min(maxTotal, requested));
+    const currentTotal = availableTypes.reduce((sum, t) => sum + counts[t], 0);
+
+    const next = { ...counts };
+    if (clamped === 0) {
+      availableTypes.forEach((t) => { next[t] = 0; });
+    } else if (currentTotal === 0) {
+      // Nothing to scale from — split as evenly as possible, remainder to the first type.
+      const base = Math.floor(clamped / availableTypes.length);
+      const remainder = clamped % availableTypes.length;
+      availableTypes.forEach((t, i) => { next[t] = base + (i < remainder ? 1 : 0); });
+    } else {
+      // Scale each type's share of the current mix to the new total, then
+      // patch any rounding drift onto the largest type so it sums exactly.
+      let running = 0;
+      availableTypes.forEach((t, i) => {
+        const isLast = i === availableTypes.length - 1;
+        const share = isLast ? clamped - running : Math.round((counts[t] / currentTotal) * clamped);
+        next[t] = Math.max(0, share);
+        running += next[t];
+      });
+    }
+
+    setCounts(next);
+    setCountInputs({
+      video: String(next.video),
+      audio: String(next.audio),
+      text: String(next.text),
+      single_choice: String(next.single_choice),
+    });
+    setTotalInput(String(availableTypes.reduce((sum, t) => sum + next[t], 0)));
   };
 
   const handleGenerate = async () => {
@@ -113,11 +186,12 @@ export function AiQuestionPanel({
         },
         jobTitle,
         jobId ?? undefined,
-        focus || undefined
+        focus || undefined,
+        optionsPerChoice
       );
       setGenerated(questions);
       setSelected(new Set(questions.map((q) => q.id)));
-      track('questions_ai_generated', { count: questions.length, mix: { ...counts } });
+      track('questions_ai_generated', { count: questions.length, mix: { ...counts }, optionsPerChoice });
     } catch {
       setError(true);
     } finally {
@@ -209,20 +283,28 @@ export function AiQuestionPanel({
 
               {/* How many questions */}
               <div>
-                <Label className="mb-2 block text-body-sm font-medium text-heading">
-                  How many questions
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-body-sm font-medium text-heading">
+                    How many questions
+                  </Label>
+                  <span className={cn('text-body-sm font-semibold tabular-nums', countsValid ? 'text-heading' : 'text-error')}>
+                    {total}/{maxTotal}
+                  </span>
+                </div>
                 <Input
-                  type="number"
-                  min={1}
-                  max={maxTotal}
-                  value={total}
-                  readOnly
-                  className="h-10 w-24"
+                  type="text"
+                  inputMode="numeric"
+                  value={totalInput}
+                  onChange={(e) => handleTotalInputChange(e.target.value)}
+                  onBlur={handleTotalBlur}
+                  className="mt-2 h-10 w-24"
                 />
                 <p className="mt-1.5 text-caption text-muted">
-                  Up to {maxTotal} questions per generation.
+                  Changing this redistributes the mix below proportionally.
                 </p>
+                {!countsValid && total === 0 && (
+                  <p className="mt-1.5 text-body-sm text-error">Select at least one question.</p>
+                )}
               </div>
 
               {/* Mix by type */}
@@ -230,38 +312,67 @@ export function AiQuestionPanel({
                 <Label className="mb-2 block text-body-sm font-medium text-heading">
                   Mix by type
                 </Label>
-                <div className="space-y-3">
-                  {availableTypes.map((type) => {
+                <div className="overflow-hidden rounded-lg border border-border">
+                  {availableTypes.map((type, i) => {
                     const cfg = QUESTION_TYPE_CONFIG[type];
                     return (
-                      <div key={type} className="flex items-center gap-3">
-                        <div className={cn('flex items-center gap-1.5', cfg.colorClass)}>
-                          <cfg.icon size={14} />
-                          <span className="text-body-sm text-bodyText">{cfg.label}</span>
+                      <div
+                        key={type}
+                        className={cn(
+                          'flex items-center justify-between gap-3 bg-surface px-3 py-2.5',
+                          i > 0 && 'border-t border-border'
+                        )}
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-md', cfg.tileClass, cfg.colorClass)}>
+                            <cfg.icon size={14} strokeWidth={1.5} />
+                          </div>
+                          <span className="text-body-sm font-medium text-heading">{cfg.label}</span>
                         </div>
                         <Input
-                          type="number"
-                          min={0}
-                          max={maxTotal}
-                          value={counts[type]}
-                          onChange={(e) => handleCountChange(type, Number(e.target.value))}
-                          className="h-9 w-20"
+                          type="text"
+                          inputMode="numeric"
+                          aria-label={`Number of ${cfg.label.toLowerCase()} questions`}
+                          value={countInputs[type]}
+                          onChange={(e) => handleCountInputChange(type, e.target.value)}
+                          onBlur={() => handleCountBlur(type)}
+                          className="h-9 w-16 text-center"
                         />
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-3 flex items-center gap-2">
-                  <span className={cn('text-body-sm', countsValid ? 'text-muted' : 'text-error')}>
-                    Total: {total}/{maxTotal}
-                  </span>
-                  {!countsValid && total === 0 && (
-                    <span className="text-body-sm text-error">
-                      Select at least one question.
-                    </span>
-                  )}
-                </div>
               </div>
+
+              {/* Options per single-choice question — only relevant once at least one is requested */}
+              {counts.single_choice > 0 && (
+                <div>
+                  <Label className="mb-2 block text-body-sm font-medium text-heading">
+                    Answer options per single-choice question
+                  </Label>
+                  <div className="flex items-center gap-1 rounded-lg border border-border bg-surface p-1">
+                    {[2, 3, 4].map((n) => (
+                      <button
+                        key={n}
+                        type="button"
+                        onClick={() => setOptionsPerChoice(n)}
+                        aria-pressed={optionsPerChoice === n}
+                        className={cn(
+                          'flex h-8 flex-1 items-center justify-center rounded-md text-body-sm font-medium transition-colors',
+                          optionsPerChoice === n
+                            ? 'bg-active-menu-bg text-primary'
+                            : 'text-muted hover:text-bodyText'
+                        )}
+                      >
+                        {n} options
+                      </button>
+                    ))}
+                  </div>
+                  <p className="mt-1.5 text-caption text-muted">
+                    Applies to every single-choice question in this batch.
+                  </p>
+                </div>
+              )}
 
               {/* Focus */}
               <div>
@@ -353,10 +464,17 @@ export function AiQuestionPanel({
                         />
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
-                            <cfg.icon size={13} className={cn('shrink-0', cfg.colorClass)} />
+                            <div className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded', cfg.tileClass, cfg.colorClass)}>
+                              <cfg.icon size={11} strokeWidth={1.5} />
+                            </div>
                             <span className={cn('text-caption font-medium', cfg.colorClass)}>
                               {cfg.label}
                             </span>
+                            {q.options && (
+                              <span className="text-caption text-muted">
+                                · {q.options.length} options
+                              </span>
+                            )}
                           </div>
                           <input
                             type="text"
@@ -378,6 +496,16 @@ export function AiQuestionPanel({
                           )}
                           {isExpanded && q.description && (
                             <p className="mt-1.5 text-body-sm text-muted">{q.description}</p>
+                          )}
+                          {isExpanded && q.options && (
+                            <ul className="mt-1.5 space-y-1">
+                              {q.options.map((opt) => (
+                                <li key={opt.id} className="flex items-center gap-1.5 text-body-sm text-muted">
+                                  <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-border-strong" />
+                                  {opt.text}
+                                </li>
+                              ))}
+                            </ul>
                           )}
                         </div>
                       </div>

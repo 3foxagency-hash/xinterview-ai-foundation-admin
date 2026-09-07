@@ -98,6 +98,7 @@ export function NotificationsSection({
 
         <div className={cn(disabled && 'pointer-events-none opacity-50')}>
           <SettingsRow
+            layout="stacked"
             label="Notify on completion"
             helper="Send a message when the candidate finishes the interview."
             control={
@@ -110,6 +111,7 @@ export function NotificationsSection({
             }
           />
           <SettingsRow
+            layout="stacked"
             label="Remind if unfinished"
             helper="Send a reminder after a set number of days."
             control={
@@ -139,6 +141,7 @@ export function NotificationsSection({
             }
           />
           <SettingsRow
+            layout="stacked"
             label="Message on rejection"
             helper="Send a message when a candidate is rejected."
             control={

@@ -1,13 +1,29 @@
-import { Video, Mic, Bot, Phone, MessageCircle, MessageSquareText, type LucideIcon } from 'lucide-react';
+import { MdVideocam, MdPerson, MdMic, MdPhone, MdSms } from 'react-icons/md';
+import { SiWhatsapp } from 'react-icons/si';
+import type { IconType } from 'react-icons';
 import type { InterviewFormat } from '@/lib/validation/job';
 
 export type FormatTone = 'settings' | 'jobs' | 'reports' | 'ai' | 'candidates' | 'interviews';
+
+/** Solid/filled icon set (Material Design + Simple Icons for brand logos). */
+export type FormatIcon = IconType;
+
+/** Tile background + icon color for each format's tone, shared by the format
+ *  picker cards and the compact format banner shown on later wizard steps. */
+export const TONE_TILE: Record<FormatTone, string> = {
+  settings: 'bg-settings-wash text-settings-ink',
+  jobs: 'bg-jobs-wash text-jobs-ink',
+  reports: 'bg-reports-wash text-reports-ink',
+  ai: 'bg-ai-wash text-ai-ink',
+  candidates: 'bg-candidates-wash text-candidates-ink',
+  interviews: 'bg-interviews-wash text-interviews-ink',
+};
 
 export type FormatConfig = {
   id: InterviewFormat;
   name: string;
   description: string;
-  icon: LucideIcon;
+  icon: FormatIcon;
   tone: FormatTone;
   recommended?: boolean;
   locked?: boolean;
@@ -22,7 +38,7 @@ export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
     id: 'ai_video',
     name: 'AI Video Interview',
     description: 'Candidates record video responses on their own time.',
-    icon: Video,
+    icon: MdVideocam,
     tone: 'settings',
     recommended: true,
   },
@@ -30,7 +46,7 @@ export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
     id: 'ai_avatar',
     name: 'AI Avatar Interview',
     description: 'A realistic AI avatar conducts a live interview in real time.',
-    icon: Bot,
+    icon: MdPerson,
     tone: 'jobs',
     isLive: true,
   },
@@ -38,14 +54,14 @@ export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
     id: 'ai_voice',
     name: 'AI Voice Interview',
     description: 'AI interviews candidates through a natural voice conversation.',
-    icon: Mic,
+    icon: MdMic,
     tone: 'reports',
   },
   {
     id: 'ai_phone',
     name: 'AI Phone Screening',
     description: 'AI calls and screens candidates automatically, at scale.',
-    icon: Phone,
+    icon: MdPhone,
     tone: 'ai',
     locked: true,
     lockReason: 'AI calls and screens candidates automatically, at scale.',
@@ -56,7 +72,7 @@ export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
     id: 'ai_whatsapp',
     name: 'AI WhatsApp Interview',
     description: 'AI interviews candidates through an interactive WhatsApp conversation.',
-    icon: MessageCircle,
+    icon: SiWhatsapp,
     tone: 'candidates',
     locked: true,
     lockReason: 'AI interviews candidates through an interactive WhatsApp conversation.',
@@ -66,7 +82,7 @@ export const INTERVIEW_FORMAT_CONFIG: FormatConfig[] = [
     id: 'ai_sms',
     name: 'AI SMS Interview',
     description: 'AI screens candidates through automated text conversations.',
-    icon: MessageSquareText,
+    icon: MdSms,
     tone: 'interviews',
     locked: true,
     lockReason: 'AI screens candidates through automated text conversations.',

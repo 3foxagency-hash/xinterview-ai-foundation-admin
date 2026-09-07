@@ -11,6 +11,8 @@ export type QuestionTypeConfig = {
   colorClass: string;
   /** Tailwind bg-* class for dots and chips. */
   dotClass: string;
+  /** Tailwind bg-* wash class for the small icon tile shown in question rows. */
+  tileClass: string;
 };
 
 export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
@@ -20,6 +22,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
     icon: Video,
     colorClass: 'text-primary',
     dotClass: 'bg-primary',
+    tileClass: 'bg-active-menu-bg',
   },
   audio: {
     id: 'audio',
@@ -27,6 +30,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
     icon: Mic,
     colorClass: 'text-info',
     dotClass: 'bg-info',
+    tileClass: 'bg-info-wash',
   },
   text: {
     id: 'text',
@@ -34,6 +38,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
     icon: Type,
     colorClass: 'text-success',
     dotClass: 'bg-success',
+    tileClass: 'bg-success-wash',
   },
   single_choice: {
     id: 'single_choice',
@@ -41,21 +46,17 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
     icon: ListChecks,
     colorClass: 'text-warning',
     dotClass: 'bg-warning',
+    tileClass: 'bg-warning-wash',
   },
 };
 
 export const ALL_QUESTION_TYPES: QuestionType[] = ['video', 'audio', 'text', 'single_choice'];
 
-/** Which question types can be added for a given interview format. */
-export function getAvailableQuestionTypes(format: InterviewFormat): QuestionType[] {
-  switch (format) {
-    case 'ai_video':
-      return ['video', 'text', 'single_choice'];
-    case 'ai_voice':
-      return ['audio', 'text', 'single_choice'];
-    default:
-      return ['text', 'single_choice'];
-  }
+/** Which question types can be added for a given interview format. All four
+ *  types are offered everywhere — candidates can mix video, audio, text and
+ *  single-choice responses regardless of the interview's primary format. */
+export function getAvailableQuestionTypes(_format: InterviewFormat): QuestionType[] {
+  return ALL_QUESTION_TYPES;
 }
 
 export const THINKING_TIME_OPTIONS = [

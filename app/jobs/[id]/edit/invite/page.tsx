@@ -164,8 +164,8 @@ export default function InvitePage() {
 
   if (loading || !jobId) {
     return (
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_300px]">
-        <div className="hidden h-64 animate-pulse rounded-lg border border-border bg-card-hover md:block" />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_300px]">
+        <div className="hidden h-64 animate-pulse rounded-lg border border-border bg-card-hover lg:block" />
         <div className="space-y-4">
           <div className="h-40 animate-pulse rounded-lg border border-border bg-card-hover" />
           <div className="h-40 animate-pulse rounded-lg border border-border bg-card-hover" />
@@ -178,13 +178,13 @@ export default function InvitePage() {
   return (
     <div className="space-y-6 pb-24 md:pb-20">
       {/* Mobile / tablet horizontal switcher */}
-      <div className="md:hidden">
+      <div className="lg:hidden">
         <InviteNav activeSection={activeSection} indicators={indicators} onNavigate={handleNavigate} variant="compact" />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-[220px_1fr] xl:grid-cols-[220px_1fr_300px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_300px]">
         {/* Column 1 — nav (desktop) */}
-        <div className="hidden md:block">
+        <div className="hidden lg:block">
           <div className="sticky top-4">
             <InviteNav activeSection={activeSection} indicators={indicators} onNavigate={handleNavigate} />
           </div>

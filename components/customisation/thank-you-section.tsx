@@ -52,7 +52,6 @@ export function ThankYouSection({
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Thank you page"
         description="What candidates see after completing their interview."
       >
         <div className="border-b border-border p-4">
@@ -85,6 +84,7 @@ export function ThankYouSection({
         </div>
 
         <SettingsRow
+          layout="stacked"
           label="Redirect"
           helper="Send candidates to a URL after they finish."
           control={
@@ -98,6 +98,7 @@ export function ThankYouSection({
         {data.redirectEnabled && (
           <>
             <SettingsRow
+              layout="stacked"
               label="Redirect URL"
               control={
                 <Input
@@ -116,6 +117,7 @@ export function ThankYouSection({
               </div>
             )}
             <SettingsRow
+              layout="stacked"
               label="Delay"
               helper="Seconds before redirecting."
               control={

@@ -40,10 +40,10 @@ export function ExperienceSection({
   return (
     <div className="space-y-6">
       <SettingsSection
-        title="Interview experience"
         description="Control what candidates experience during the interview and how integrity is enforced."
       >
         <SettingsRow
+          layout="stacked"
           label="Tab switch detection"
           helper="Candidates are flagged if they switch away from the interview tab."
           control={
@@ -58,6 +58,7 @@ export function ExperienceSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Disable copy and paste"
           helper="Prevents candidates from pasting text into their responses."
           control={
@@ -72,6 +73,7 @@ export function ExperienceSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Enforce full screen"
           helper="Requires candidates to remain in full-screen mode for the duration of the interview."
           control={

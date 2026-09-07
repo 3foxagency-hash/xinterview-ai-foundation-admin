@@ -156,11 +156,12 @@ export function BrandingSection({
         description="Your logo appears on the candidate landing page and throughout the interview."
       >
         <SettingsRow
+          layout="stacked"
           label="Company logo"
           helper="Recommended: PNG, JPG or SVG. Max size 2MB."
           control={
-            <div className="flex items-center gap-3">
-              <div className="relative flex h-16 w-28 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-card-hover">
+            <div className="flex flex-col gap-3">
+              <div className="relative flex h-16 w-full items-center justify-center overflow-hidden rounded-lg border border-border bg-card-hover">
                 {data.logoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={data.logoUrl} alt="Logo preview" className="h-full w-full object-contain" />
@@ -178,8 +179,8 @@ export function BrandingSection({
                   </div>
                 )}
               </div>
-              <div className="flex flex-col gap-2">
-                <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-md border border-border-strong bg-surface px-4 text-button text-heading transition-colors hover:bg-card-hover">
+              <div className="flex items-center gap-2">
+                <label className="inline-flex h-9 flex-1 cursor-pointer items-center justify-center gap-2 rounded-md border border-border-strong bg-surface px-3 text-button text-heading transition-colors hover:bg-card-hover">
                   <Upload size={14} />
                   Change logo
                   <input type="file" accept="image/png,image/jpeg,image/svg+xml" onChange={handleLogoUpload} className="hidden" />
@@ -189,7 +190,7 @@ export function BrandingSection({
                     type="button"
                     onClick={handleLogoDelete}
                     aria-label="Delete logo"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md text-error transition-colors hover:bg-error-banner-bg"
+                    className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-error transition-colors hover:bg-error-banner-bg"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -199,6 +200,7 @@ export function BrandingSection({
           }
         />
         <SettingsRow
+          layout="stacked"
           label="Company title"
           helper="Shown beside your logo on candidate-facing pages."
           control={
@@ -234,23 +236,22 @@ export function BrandingSection({
         description="Your brand colour, used on buttons and accents throughout the candidate experience."
       >
         <SettingsRow
+          layout="stacked"
           label="Brand colour"
           helper="This is your customer-facing brand colour, not the admin interface colour."
           control={
             <div className="flex items-center gap-2">
-              <div className="relative">
-                <input
-                  type="color"
-                  value={data.primaryColour}
-                  onChange={(e) => handleColourChange(e.target.value)}
-                  aria-label="Colour picker"
-                  className="h-10 w-10 cursor-pointer rounded-md border border-border bg-surface"
-                />
-              </div>
+              <input
+                type="color"
+                value={data.primaryColour}
+                onChange={(e) => handleColourChange(e.target.value)}
+                aria-label="Colour picker"
+                className="h-10 w-10 shrink-0 cursor-pointer rounded-md border border-border bg-surface"
+              />
               <Input
                 value={data.primaryColour}
                 onChange={(e) => handleColourChange(e.target.value)}
-                className="h-10 w-28 font-mono"
+                className="h-10 min-w-0 flex-1 font-mono"
                 aria-label="Hex colour value"
               />
             </div>
@@ -288,6 +289,7 @@ export function BrandingSection({
         description="The typeface used throughout the candidate experience."
       >
         <SettingsRow
+          layout="stacked"
           label="Candidate font"
           helper="Each option is shown in its own typeface."
           control={
@@ -338,7 +340,7 @@ export function BrandingSection({
       )}
 
       {/* Reset to default */}
-      <div className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3">
+      <div className="flex flex-col gap-3 rounded-lg border border-border bg-surface px-4 py-3">
         <div>
           <p className="text-body-sm font-medium text-heading">Reset branding</p>
           <p className="text-body-sm text-muted">Restore the default logo, colour and font.</p>
@@ -356,14 +358,14 @@ export function BrandingSection({
                 } as Partial<BrandingInput>);
                 setShowResetConfirm(false);
               }}
-              className="rounded-md bg-error px-3 py-1.5 text-body-sm text-error-foreground transition-colors hover:bg-error-active"
+              className="flex-1 rounded-md bg-error px-3 py-1.5 text-body-sm text-error-foreground transition-colors hover:bg-error-active"
             >
               Confirm reset
             </button>
             <button
               type="button"
               onClick={() => setShowResetConfirm(false)}
-              className="rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
+              className="flex-1 rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
             >
               Cancel
             </button>
@@ -372,7 +374,7 @@ export function BrandingSection({
           <button
             type="button"
             onClick={() => setShowResetConfirm(true)}
-            className="rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
+            className="w-full rounded-md border border-border-strong px-3 py-1.5 text-body-sm text-heading transition-colors hover:bg-card-hover"
           >
             Reset to default
           </button>

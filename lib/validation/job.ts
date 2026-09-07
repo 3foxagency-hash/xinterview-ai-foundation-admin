@@ -155,7 +155,7 @@ export const welcomePageSchema = z.object({
   headline: z.string().min(1, 'Headline is required').max(50, 'Headline must be 50 characters or fewer'),
   subtitle: z.string().max(150, 'Subtitle must be 150 characters or fewer').default(''),
   estimatedTime: z.number().min(1, 'Must be at least 1 minute').max(120, 'Must be 120 minutes or fewer'),
-  introVideoEnabled: z.boolean().default(false),
+  introVideoEnabled: z.boolean().default(true),
   introVideoUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
   introNoteEnabled: z.boolean().default(false),
   introNoteTitle: z.string().max(100).default(''),
