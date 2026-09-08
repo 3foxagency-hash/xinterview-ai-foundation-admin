@@ -1,5 +1,9 @@
 # MSW mocking — auth + user-management
 
+**For sample request/response payloads per endpoint, see
+`docs/mocked-api-reference.md`.** This document covers the toggle, status per
+endpoint, seeded data, and reconciliation decisions.
+
 **Status:** Implemented. **Scope:** the two backend contract docs —
 `backend-docs/auth-api.md` and `backend-docs/usermanagement-api.md`. Jobs,
 candidates and reports are **not** covered here; they still run on the
