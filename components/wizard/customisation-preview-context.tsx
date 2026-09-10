@@ -212,9 +212,13 @@ export function buildPreviewConfig(
     showIntroVideo: welcome?.introVideoEnabled ?? defaultConfig.showIntroVideo,
     showJobDescription: defaultConfig.showJobDescription,
     showLogo: !!branding?.logoUrl || defaultConfig.showLogo,
-    introVideo: welcome?.introVideoEnabled
+    // Mirrors showIntroVideo's own fallback above: while `welcome` hasn't
+    // loaded yet (null), both must default to the same "video showing" as
+    // defaultConfig — otherwise showIntroVideo defaults true but introVideo
+    // defaults null, and resolveLayoutMode requires both to show a video.
+    introVideo: (welcome?.introVideoEnabled ?? defaultConfig.showIntroVideo)
       ? {
-          url: welcome.introVideoUrl || defaultConfig.introVideo?.url || '',
+          url: welcome?.introVideoUrl || defaultConfig.introVideo?.url || '',
           durationLabel: defaultConfig.introVideo?.durationLabel ?? '1:24',
           presenterName: defaultConfig.introVideo?.presenterName ?? '',
           presenterTitle: defaultConfig.introVideo?.presenterTitle ?? '',
