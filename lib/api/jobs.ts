@@ -604,7 +604,7 @@ export async function getBranding(jobId: string): Promise<BrandingInput> {
     logoUrl: '',
     primaryColour: '#5B4FE9',
     secondaryColour: '#1F242E',
-    theme: 'light',
+    theme: 'auto',
     font: 'inter',
     modernInterface: false,
   };
@@ -671,8 +671,8 @@ export async function getThankYouPage(jobId: string): Promise<ThankYouPageInput>
   await delay(300);
   const data = getCustom(jobId);
   return (data.thankYouPage as ThankYouPageInput) ?? {
-    title: 'Interview Complete',
-    completionMessage: 'Thank you for completing your interview. We\'ll be in touch soon.',
+    title: 'Thank you for completing your interview. We\'ll be in touch soon.',
+    completionMessage: '',
     redirectEnabled: false,
     redirectUrl: '',
     redirectDelay: 5,

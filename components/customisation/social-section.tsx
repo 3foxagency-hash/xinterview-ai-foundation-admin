@@ -47,6 +47,7 @@ export function SocialSection({
   return (
     <div className="space-y-6">
       <SettingsSection
+        bordered={false}
         description="Control how your interview link appears when shared on social media or in chat apps."
       >
         <SettingsRow

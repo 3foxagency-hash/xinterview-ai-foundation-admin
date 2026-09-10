@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Monitor, Smartphone, Sun, Moon, ExternalLink, Eye } from 'lucide-react';
+import { Monitor, Smartphone, ExternalLink, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useCustomisationPreview,
@@ -15,7 +15,6 @@ import { track } from '@/lib/utils/analytics';
 const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
   { value: 'landing', label: 'Landing page' },
   { value: 'form', label: 'Start form' },
-  { value: 'interview', label: 'Interview' },
   { value: 'thank-you', label: 'Thank you' },
 ];
 
@@ -131,14 +130,17 @@ function EvaluationSummaryPanel() {
 }
 
 function EmailPreviewPanel() {
-  const { state, previewTheme } = useCustomisationPreview();
+  const { state } = useCustomisationPreview();
   const notifications = state.notifications;
   const branding = state.branding;
 
-  const bgColor = previewTheme === 'dark' ? '#1a1a1a' : '#ffffff';
-  const textColor = previewTheme === 'dark' ? '#ededed' : '#171717';
-  const mutedColor = previewTheme === 'dark' ? '#a1a1a1' : '#525252';
-  const borderColor = previewTheme === 'dark' ? '#2e2e2e' : '#e5e5e5';
+  // Most email clients render in light mode by default regardless of the
+  // candidate's own interview theme preference, so this mock stays fixed
+  // light rather than following it.
+  const bgColor = '#ffffff';
+  const textColor = '#171717';
+  const mutedColor = '#525252';
+  const borderColor = '#e5e5e5';
 
   if (!notifications) {
     return (
@@ -431,18 +433,16 @@ export function CustomisationPreviewPanel() {
     setPreviewScreen,
     previewDevice,
     setPreviewDevice,
-    previewTheme,
-    setPreviewTheme,
     jobTitle,
   } = useCustomisationPreview();
 
   const config = React.useMemo(
-    () => buildPreviewConfig(state, jobTitle, previewTheme),
-    [state, jobTitle, previewTheme]
+    () => buildPreviewConfig(state, jobTitle),
+    [state, jobTitle]
   );
   const session = React.useMemo(
-    () => buildPreviewSession(state, jobTitle, previewTheme),
-    [state, jobTitle, previewTheme]
+    () => buildPreviewSession(state, jobTitle),
+    [state, jobTitle]
   );
 
   const isEvaluation = activeSection === 'evaluation';
@@ -451,6 +451,24 @@ export function CustomisationPreviewPanel() {
 
   const handleOpenNewTab = () => {
     track('preview_opened_new_tab', { section: activeSection });
+    // /preview/customisation normally receives its state via postMessage
+    // from this panel's own iframe — an independently opened tab has no
+    // such parent to message it, so seed the same data through
+    // localStorage instead (not sessionStorage: window.open with
+    // noopener/noreferrer puts the new tab in an unrelated top-level
+    // browsing context, and sessionStorage is scoped per browsing context
+    // rather than per-origin, so it wouldn't carry over — localStorage is
+    // origin-scoped and does). The frame page falls back to reading this
+    // on mount when nothing posts to it.
+    try {
+      localStorage.setItem(
+        'xinterview-customisation-preview-snapshot',
+        JSON.stringify({ screen: previewScreen, config, session })
+      );
+    } catch {
+      // ignore — the new tab just falls back to its own defaults
+    }
+    window.open('/preview/customisation', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -496,37 +514,6 @@ export function CustomisationPreviewPanel() {
                 )}
               >
                 <Smartphone size={14} />
-              </button>
-            </div>
-            {/* Theme toggle */}
-            <div className="inline-flex items-center rounded-md border border-border bg-card-hover p-0.5">
-              <button
-                type="button"
-                onClick={() => setPreviewTheme('light')}
-                aria-pressed={previewTheme === 'light'}
-                aria-label="Light preview"
-                className={cn(
-                  'rounded px-2 py-1 transition-colors',
-                  previewTheme === 'light'
-                    ? 'bg-surface text-heading shadow-sm'
-                    : 'text-muted hover:text-heading'
-                )}
-              >
-                <Sun size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTheme('dark')}
-                aria-pressed={previewTheme === 'dark'}
-                aria-label="Dark preview"
-                className={cn(
-                  'rounded px-2 py-1 transition-colors',
-                  previewTheme === 'dark'
-                    ? 'bg-surface text-heading shadow-sm'
-                    : 'text-muted hover:text-heading'
-                )}
-              >
-                <Moon size={14} />
               </button>
             </div>
             {/* Open in new tab */}
@@ -576,11 +563,6 @@ export function CustomisationPreviewPanel() {
         ) : (
           <DesktopFrame payload={{ screen: previewScreen, config, session }} />
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="shrink-0 border-t border-border px-4 py-2">
-        <p className="text-caption text-muted">Preview only — buttons are inactive.</p>
       </div>
     </aside>
   );

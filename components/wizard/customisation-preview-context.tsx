@@ -17,9 +17,8 @@ import { interviewConfig as defaultConfig } from '@/config/interview.mock';
 import { interviewSession as defaultSession } from '@/config/interview-session';
 import { track } from '@/lib/utils/analytics';
 
-export type PreviewScreen = 'landing' | 'form' | 'interview' | 'thank-you';
+export type PreviewScreen = 'landing' | 'form' | 'thank-you';
 export type PreviewDevice = 'desktop' | 'mobile';
-export type PreviewTheme = 'light' | 'dark';
 
 export type SectionState = 'untouched' | 'complete' | 'error';
 
@@ -46,8 +45,6 @@ export interface CustomisationPreviewContextValue {
   setPreviewScreen: (screen: PreviewScreen) => void;
   previewDevice: PreviewDevice;
   setPreviewDevice: (device: PreviewDevice) => void;
-  previewTheme: PreviewTheme;
-  setPreviewTheme: (theme: PreviewTheme) => void;
   sectionStates: Record<string, SectionState>;
   setSectionState: (section: string, state: SectionState) => void;
   blockingSections: string[];
@@ -71,7 +68,7 @@ const SECTION_TO_SCREEN: Record<string, PreviewScreen> = {
   branding: 'landing',
   welcome: 'landing',
   form: 'form',
-  experience: 'interview',
+  experience: 'form',
   evaluation: 'landing',
   notifications: 'landing',
   'thank-you': 'thank-you',
@@ -102,7 +99,6 @@ export function CustomisationPreviewProvider({
   const [activeSection, setActiveSectionInternal] = React.useState('branding');
   const [previewScreen, setPreviewScreen] = React.useState<PreviewScreen>('landing');
   const [previewDevice, setPreviewDeviceInternal] = React.useState<PreviewDevice>('desktop');
-  const [previewTheme, setPreviewThemeInternal] = React.useState<PreviewTheme>('light');
   const [sectionStates, setSectionStates] = React.useState<Record<string, SectionState>>({});
   const [blockingSections, setBlockingSections] = React.useState<string[]>([]);
 
@@ -139,10 +135,6 @@ export function CustomisationPreviewProvider({
     track('preview_device_changed', { device });
   }, []);
 
-  const setPreviewTheme = React.useCallback((theme: PreviewTheme) => {
-    setPreviewThemeInternal(theme);
-  }, []);
-
   const value = React.useMemo<CustomisationPreviewContextValue>(
     () => ({
       state,
@@ -153,8 +145,6 @@ export function CustomisationPreviewProvider({
       setPreviewScreen,
       previewDevice,
       setPreviewDevice,
-      previewTheme,
-      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
@@ -169,8 +159,6 @@ export function CustomisationPreviewProvider({
       previewScreen,
       previewDevice,
       setPreviewDevice,
-      previewTheme,
-      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
@@ -189,8 +177,7 @@ function mapFieldRequirement(req: string): { enabled: boolean; required: boolean
 
 export function buildPreviewConfig(
   state: CustomisationPreviewState,
-  jobTitle: string,
-  previewTheme: PreviewTheme
+  jobTitle: string
 ): InterviewConfig {
   const branding = state.branding;
   const welcome = state.welcome;
@@ -215,7 +202,11 @@ export function buildPreviewConfig(
     },
     job: {
       ...defaultConfig.job,
-      title: jobTitle || defaultConfig.job.title,
+      // The welcome page's "Headline" field doubles as the job title shown
+      // on the landing page preview — it's editable text closest to what a
+      // candidate reads as the role name, so a change there should be
+      // reflected immediately rather than needing a separate title field.
+      title: welcome?.headline || jobTitle || defaultConfig.job.title,
       estimatedMinutes: welcome?.estimatedTime ?? defaultConfig.job.estimatedMinutes,
     },
     showIntroVideo: welcome?.introVideoEnabled ?? defaultConfig.showIntroVideo,
@@ -259,20 +250,12 @@ export function buildPreviewConfig(
     state: 'active',
   };
 
-  // Override themeMode for preview theme toggle
-  if (previewTheme === 'dark') {
-    config.company.themeMode = 'dark';
-  } else if (previewTheme === 'light') {
-    config.company.themeMode = 'light';
-  }
-
   return config;
 }
 
 export function buildPreviewSession(
   state: CustomisationPreviewState,
-  jobTitle: string,
-  previewTheme: PreviewTheme
+  jobTitle: string
 ): InterviewSession {
   const branding = state.branding;
   const experience = state.experience;
@@ -284,8 +267,6 @@ export function buildPreviewSession(
       : branding.theme
     : 'system';
 
-  const resolvedTheme: 'light' | 'dark' = previewTheme;
-
   return {
     ...defaultSession,
     integrity: {
@@ -294,14 +275,18 @@ export function buildPreviewSession(
       disableRightClick: experience?.disableCopyPaste ?? false,
     },
     completion: {
-      customMessage: thankYou?.completionMessage || defaultSession.completion.customMessage,
+      // The completion screen has one editable message slot above "What
+      // happens next" — the "Title" field drives it (not "Completion
+      // message"), since that's the sentence candidates actually read
+      // there ("Thank you for completing your interview...").
+      customMessage: thankYou?.title || defaultSession.completion.customMessage,
       redirectUrl: thankYou?.redirectEnabled ? thankYou.redirectUrl || null : null,
       redirectDelaySeconds: thankYou?.redirectDelay ?? 5,
     },
     company: {
       name: branding?.companyTitle || defaultSession.company.name,
       brandColor: branding?.primaryColour || defaultSession.company.brandColor,
-      themeMode: resolvedTheme === 'dark' ? 'dark' : themeMode,
+      themeMode,
       allowCandidateToggle: true,
     },
   };

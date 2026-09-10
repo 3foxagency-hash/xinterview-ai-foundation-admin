@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeft, Palette, FileText, ListChecks, Shield, ClipboardCheck, Mail, CircleCheck as CheckCircle, Share2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, Circle, Lightbulb } from 'lucide-react';
+import { ArrowLeft, Palette, FileText, ListChecks, Shield, ClipboardCheck, Mail, CircleCheck as CheckCircle, Share2, CircleCheck as CheckCircle2, CircleAlert as AlertCircle, ChevronRight, Lightbulb } from 'lucide-react';
 import { useCustomisationPreview, type SectionState } from '@/components/wizard/customisation-preview-context';
 
 type SubNavItem = {
@@ -37,7 +37,7 @@ function getCurrentSection(pathname: string): string | null {
 function StateIcon({ state }: { state: SectionState }) {
   if (state === 'complete') return <CheckCircle2 size={14} className="shrink-0 text-success" />;
   if (state === 'error') return <AlertCircle size={14} className="shrink-0 text-error" />;
-  return <Circle size={14} className="shrink-0 text-muted/40" />;
+  return <ChevronRight size={16} className="shrink-0 text-muted/40" />;
 }
 
 function SubNavItemRow({

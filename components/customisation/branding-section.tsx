@@ -152,6 +152,7 @@ export function BrandingSection({
     <div className="space-y-6">
       {/* Logo */}
       <SettingsSection
+        bordered={false}
         title="Logo"
         description="Your logo appears on the candidate landing page and throughout the interview."
       >
@@ -232,6 +233,7 @@ export function BrandingSection({
 
       {/* Primary colour */}
       <SettingsSection
+        bordered={false}
         title="Primary colour"
         description="Your brand colour, used on buttons and accents throughout the candidate experience."
       >
@@ -285,6 +287,7 @@ export function BrandingSection({
 
       {/* Font */}
       <SettingsSection
+        bordered={false}
         title="Font"
         description="The typeface used throughout the candidate experience."
       >

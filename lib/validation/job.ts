@@ -144,7 +144,7 @@ export const brandingSchema = z.object({
   primaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#5B4FE9'),
   /** Used for headings and accents beside the primary button colour. */
   secondaryColour: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Enter a valid hex colour').default('#1F242E'),
-  theme: z.enum(['light', 'dark', 'auto']).default('light'),
+  theme: z.enum(['light', 'dark', 'auto']).default('auto'),
   font: z.enum(['inter', 'roboto', 'opendyslexic', 'lato', 'poppins', 'sourcesans']).default('inter'),
   modernInterface: z.boolean().default(false),
 });
@@ -184,7 +184,7 @@ export type FormSettingsInput = z.infer<typeof formSettingsSchema>;
 
 // ─── Customisation — Thank you page ───
 export const thankYouPageSchema = z.object({
-  title: z.string().max(50, 'Title must be 50 characters or fewer').default('Interview Complete'),
+  title: z.string().max(200, 'Title must be 200 characters or fewer').default('Thank you for completing your interview. We\'ll be in touch soon.'),
   completionMessage: z.string().default(''),
   redirectEnabled: z.boolean().default(false),
   redirectUrl: z.string().url('Enter a valid URL').optional().or(z.literal('')),
