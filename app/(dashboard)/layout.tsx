@@ -23,12 +23,18 @@ export default function DashboardLayout({
 }) {
   const sidebar = useSidebar();
   const pathname = usePathname();
-  const { setMobileOpen } = sidebar;
+  const { setMobileOpen, setExpanded } = sidebar;
 
   // Close mobile drawer on navigation — only depend on stable callback, not the whole object
   React.useEffect(() => {
     setMobileOpen(false);
   }, [pathname, setMobileOpen]);
+
+  // Auto-collapse the desktop sidebar when landing on a job workflow page
+  const isWorkflowPage = /^\/jobs\/[^/]+$/.test(pathname ?? '');
+  React.useEffect(() => {
+    if (isWorkflowPage) setExpanded(false);
+  }, [isWorkflowPage, setExpanded]);
 
   const showRail = sidebar.mobileReady && !sidebar.isMobile;
   const showMobileButton = sidebar.mobileReady && sidebar.isMobile;
