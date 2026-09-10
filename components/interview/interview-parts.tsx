@@ -5,7 +5,7 @@
    only the surrounding chrome and the available actions differ. */
 
 import * as React from 'react';
-import { AlignLeft, Check, ChevronDown, ChevronLeft, ChevronRight, Clock3, ListChecks, Maximize2, Mic, Pause, Phone, Play, ShieldAlert, Sparkles, Star, Video, Volume2, VolumeX, X } from 'lucide-react';
+import { AlignLeft, Check, ChevronLeft, ChevronRight, Clock3, ListChecks, Maximize2, Mic, Pause, Phone, Play, ShieldAlert, Sparkles, Star, Video, Volume2, VolumeX, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -381,12 +381,10 @@ export function AnswerModal({ question, onClose }: { question: InterviewQuestion
 }
 
 export function QuestionRail({ questionIndex, onQuestionChange, questions = interviewQuestions }: { questionIndex: number; onQuestionChange: (index: number) => void; questions?: InterviewQuestion[] }) {
-  const [expanded, setExpanded] = React.useState(false);
   const [answerOpen, setAnswerOpen] = React.useState<InterviewQuestion | null>(null);
   const active = questions[questionIndex];
   const activeIsRecording = active.type === 'phone_recording';
-  const rest = questions.filter((_, index) => index !== questionIndex);
-  const visible = expanded ? rest : rest.slice(questionIndex, questionIndex + 3);
+  const visible = questions.filter((_, index) => index !== questionIndex);
 
   return <aside className="hidden min-h-0 min-w-0 flex-col gap-3 overflow-y-auto overscroll-contain border-l border-border bg-surface p-4 xl:flex">
     {/* The question being watched is an open panel, not another card in the
@@ -420,7 +418,6 @@ export function QuestionRail({ questionIndex, onQuestionChange, questions = inte
       </button>;
     })}
 
-    <Button variant="secondary" className="w-full justify-between" onClick={() => setExpanded((value) => !value)} aria-expanded={expanded}>{expanded ? 'Show fewer questions' : `View all questions (${questions.length})`}<ChevronDown className={cn('h-4 w-4 transition-transform', expanded && 'rotate-180')} aria-hidden="true" /></Button>
     <AnswerModal question={answerOpen} onClose={() => setAnswerOpen(null)} />
 
   </aside>;
