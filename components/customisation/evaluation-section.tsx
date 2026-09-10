@@ -373,6 +373,7 @@ export function EvaluationSection({
     <div className="space-y-6">
       {/* General settings */}
       <SettingsSection
+        bordered={false}
         description="Configure how the AI scores candidate responses."
       >
         <SettingsRow
@@ -441,6 +442,7 @@ export function EvaluationSection({
 
       {/* Evaluation factors */}
       <SettingsSection
+        bordered={false}
         title="Evaluation factors"
         description="Up to 4 factors. Each has a weight and a 1–5 rubric."
       >
@@ -563,6 +565,7 @@ export function EvaluationSection({
       {/* Question scoring */}
       {questions.length > 0 && (
         <SettingsSection
+          bordered={false}
           title="Question scoring"
           description="Link each question to at least one evaluation factor, or exclude it from scoring."
         >

@@ -132,6 +132,7 @@ export function ScoringSection({
     <div className="space-y-6">
       {/* Band preview */}
       <SettingsSection
+        bordered={false}
         title="Scoring labels"
         description="Define the score bands candidates receive. Between 2 and 5 bands."
       >

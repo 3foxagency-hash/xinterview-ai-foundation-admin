@@ -1,6 +1,25 @@
 import type { ApiError } from './auth';
+import { getMe } from './auth';
+import { apiFetch } from './client';
+import {
+  UM_PATHS,
+  type MemberRole,
+  type TeamRosterResponse,
+  type TeamMemberWire,
+  type CreditRecord,
+  type Subscription,
+  type BillingAddress,
+  type TrustedOrigin,
+} from './user-management-contract';
 
-export type Role = 'Owner' | 'Admin' | 'Member';
+const COMPANY_ID = 64;
+
+/**
+ * 'Owner' is a client-only synthetic role — the API has no such role, only
+ * the wire codes 'MA'/'EX'. Whoever's email matches the signed-in user's
+ * admin_companies (company creator) is labeled 'Owner' here.
+ */
+export type Role = 'Owner' | MemberRole;
 export type MemberStatus = 'active' | 'pending';
 
 export type TeamMember = {
@@ -13,6 +32,41 @@ export type TeamMember = {
   invitedAt: string | null;
   initials: string;
 };
+
+function initialsOf(firstName: string, lastName: string): string {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
+async function mapRosterToMembers(roster: TeamRosterResponse): Promise<TeamMember[]> {
+  const me = await getMe();
+  const ownerEmail = me.admin_companies ? me.email : null;
+
+  const fromWire = (m: TeamMemberWire, status: MemberStatus): TeamMember => ({
+    id: String(m.id),
+    name: `${m.first_name} ${m.last_name}`.trim(),
+    email: m.email,
+    role: m.email === ownerEmail ? 'Owner' : m.role,
+    status,
+    joinedAt: m.last_login,
+    invitedAt: null,
+    initials: initialsOf(m.first_name, m.last_name),
+  });
+
+  return [
+    ...roster.managers.map((m) => fromWire(m, 'active')),
+    ...roster.executives.map((m) => fromWire(m, 'active')),
+    ...roster.invitees.map((i) => ({
+      id: String(i.id),
+      name: i.email,
+      email: i.email,
+      role: i.role,
+      status: 'pending' as const,
+      joinedAt: null,
+      invitedAt: i.invited_at,
+      initials: i.email.slice(0, 2).toUpperCase(),
+    })),
+  ];
+}
 
 export type Organization = {
   id: string;
@@ -38,112 +92,6 @@ function delay(ms = 800) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
 }
 
-let simulateSeatLimit = false;
-export function _setSimulateSeatLimit(on: boolean) {
-  simulateSeatLimit = on;
-}
-
-const CURRENT_USER: CurrentUser = {
-  id: 'usr_owner',
-  name: 'Sarah Chen',
-  email: 'sarah.chen@xinterview.ai',
-  role: 'Owner',
-  isOwner: true,
-};
-
-const BASE_MEMBERS: TeamMember[] = [
-  {
-    id: 'usr_owner',
-    name: 'Sarah Chen',
-    email: 'sarah.chen@xinterview.ai',
-    role: 'Owner',
-    status: 'active',
-    joinedAt: '2024-01-15',
-    invitedAt: null,
-    initials: 'SC',
-  },
-  {
-    id: 'usr_admin_1',
-    name: 'Marcus Reid',
-    email: 'marcus.reid@xinterview.ai',
-    role: 'Admin',
-    status: 'active',
-    joinedAt: '2024-02-03',
-    invitedAt: null,
-    initials: 'MR',
-  },
-  {
-    id: 'usr_admin_2',
-    name: 'Priya Nair',
-    email: 'priya.nair@xinterview.ai',
-    role: 'Admin',
-    status: 'active',
-    joinedAt: '2024-03-12',
-    invitedAt: null,
-    initials: 'PN',
-  },
-  {
-    id: 'usr_mem_1',
-    name: 'James Okafor',
-    email: 'james.okafor@xinterview.ai',
-    role: 'Member',
-    status: 'active',
-    joinedAt: '2024-04-20',
-    invitedAt: null,
-    initials: 'JO',
-  },
-  {
-    id: 'usr_mem_2',
-    name: 'Elena Volkova',
-    email: 'elena.volkova@xinterview.ai',
-    role: 'Member',
-    status: 'active',
-    joinedAt: '2024-05-08',
-    invitedAt: null,
-    initials: 'EV',
-  },
-  {
-    id: 'usr_mem_3',
-    name: 'David Kim',
-    email: 'david.kim@xinterview.ai',
-    role: 'Member',
-    status: 'active',
-    joinedAt: '2024-06-02',
-    invitedAt: null,
-    initials: 'DK',
-  },
-  {
-    id: 'usr_mem_4',
-    name: 'Aisha Bakr',
-    email: 'aisha.bakr@xinterview.ai',
-    role: 'Member',
-    status: 'active',
-    joinedAt: '2024-07-10',
-    invitedAt: null,
-    initials: 'AB',
-  },
-  {
-    id: 'inv_pending_1',
-    name: 'Tom Walker',
-    email: 'tom.walker@external.com',
-    role: 'Member',
-    status: 'pending',
-    joinedAt: null,
-    invitedAt: '2024-08-01',
-    initials: 'TW',
-  },
-  {
-    id: 'inv_pending_2',
-    name: 'Lina Garcia',
-    email: 'lina.garcia@external.com',
-    role: 'Admin',
-    status: 'pending',
-    joinedAt: null,
-    invitedAt: '2024-08-03',
-    initials: 'LG',
-  },
-];
-
 const ORG: Organization = {
   id: 'org_1',
   name: 'XInterview',
@@ -157,7 +105,6 @@ const ORG: Organization = {
 };
 
 let orgStore: Organization = { ...ORG };
-let memberStore: TeamMember[] = [...BASE_MEMBERS];
 
 function err(code: string, message: string): ApiError {
   return { code, message } as ApiError;
@@ -192,105 +139,70 @@ export async function uploadLogo(file: File): Promise<{ logoUrl: string }> {
   return { logoUrl };
 }
 
+/**
+ * Answers "is the signed-in person the workspace owner", for role-gating the
+ * team/general settings UI. Derives isOwner/role from the real session
+ * (getMe()) rather than a hardcoded constant — kept as its own type/function
+ * rather than merged with auth-contract's CurrentUser or profile.ts's
+ * UserProfile: three shapes for three call sites is the accepted final state.
+ */
 export async function getCurrentUser(): Promise<CurrentUser> {
-  await delay(300);
-  return { ...CURRENT_USER };
+  const me = await getMe();
+  const isOwner = me.admin_companies !== null;
+  return {
+    id: String(me.id),
+    name: `${me.first_name} ${me.last_name}`.trim(),
+    email: me.email,
+    role: isOwner ? 'Owner' : 'MA',
+    isOwner,
+  };
 }
 
 export async function getTeamRoster(): Promise<{ members: TeamMember[]; seatLimit: number }> {
-  await delay();
-  if (simulateSeatLimit) {
-    const filler: TeamMember[] = Array.from({ length: 6 }, (_, i) => ({
-      id: `usr_fill_${i}`,
-      name: `Filler Member ${i + 1}`,
-      email: `filler${i + 1}@xinterview.ai`,
-      role: 'Member' as Role,
-      status: 'active' as MemberStatus,
-      joinedAt: '2024-07-01',
-      invitedAt: null,
-      initials: `F${i + 1}`,
-    }));
-    memberStore = [...BASE_MEMBERS, ...filler];
-  } else {
-    memberStore = [...BASE_MEMBERS];
-  }
-  return { members: memberStore, seatLimit: orgStore.seatLimit };
+  const roster = await apiFetch<TeamRosterResponse>(UM_PATHS.members(COMPANY_ID));
+  const members = await mapRosterToMembers(roster);
+  return { members, seatLimit: orgStore.seatLimit };
 }
 
-export async function inviteMember(
-  email: string,
-  role: 'Admin' | 'Member'
-): Promise<TeamMember> {
-  await delay();
-  const existing = memberStore.find((m) => m.email.toLowerCase() === email.toLowerCase());
-  if (existing && existing.status === 'active') {
-    throw err('already_member', 'already_member');
-  }
-  if (existing && existing.status === 'pending') {
-    throw err('already_invited', 'already_invited');
-  }
-  const seatsUsed = memberStore.length;
-  if (seatsUsed >= orgStore.seatLimit) {
-    throw err('seat_limit_reached', 'seat_limit_reached');
-  }
-  const [localPart] = email.split('@');
-  const name = localPart.charAt(0).toUpperCase() + localPart.slice(1).split('.')[0];
-  const initials = name.slice(0, 2).toUpperCase();
-  const newMember: TeamMember = {
-    id: `inv_${Math.random().toString(36).slice(2, 10)}`,
-    name,
-    email,
-    role,
-    status: 'pending',
-    joinedAt: null,
-    invitedAt: new Date().toISOString().slice(0, 10),
-    initials,
-  };
-  memberStore = [...memberStore, newMember];
-  return newMember;
-}
-
-export async function resendInvite(inviteId: string): Promise<{ sent: boolean }> {
-  await delay();
-  const invite = memberStore.find((m) => m.id === inviteId);
-  if (!invite || invite.status !== 'pending') {
-    throw err('resend_failed', 'resend_failed');
-  }
+/** Invites a member. The API returns only {message}; re-fetch the roster to see the new invitee. */
+export async function inviteMember(email: string, role: MemberRole): Promise<{ sent: boolean }> {
+  await apiFetch<{ message: string }>(UM_PATHS.members(COMPANY_ID), {
+    method: 'POST',
+    body: { email, role },
+  });
   return { sent: true };
 }
 
-export async function cancelInvite(inviteId: string): Promise<{ success: boolean }> {
+/** No resend endpoint in either doc — kept fully local, always fails. */
+export async function resendInvite(_inviteId: string): Promise<{ sent: boolean }> {
   await delay();
-  const invite = memberStore.find((m) => m.id === inviteId);
-  if (!invite || invite.status !== 'pending') {
-    throw err('cancel_invite_failed', 'cancel_invite_failed');
-  }
-  memberStore = memberStore.filter((m) => m.id !== inviteId);
+  throw err('resend_failed', 'resend_failed');
+}
+
+/** DELETE .../members/{id}/ also removes a pending invitee when the id belongs to one. */
+export async function cancelInvite(inviteId: string): Promise<{ success: boolean }> {
+  await apiFetch(UM_PATHS.member(COMPANY_ID, inviteId), { method: 'DELETE' });
   return { success: true };
 }
 
 export async function changeMemberRole(
   memberId: string,
-  role: 'Admin' | 'Member'
+  role: MemberRole
 ): Promise<{ success: boolean }> {
-  await delay();
-  const member = memberStore.find((m) => m.id === memberId);
-  if (!member) {
-    throw err('role_change_failed', 'role_change_failed');
-  }
-  memberStore = memberStore.map((m) =>
-    m.id === memberId ? { ...m, role } : m
-  );
+  await apiFetch(UM_PATHS.member(COMPANY_ID, memberId), { method: 'PUT', body: { role } });
   return { success: true };
 }
 
 export async function removeMember(memberId: string): Promise<{ success: boolean }> {
-  await delay();
-  const member = memberStore.find((m) => m.id === memberId);
-  if (!member || member.role === 'Owner') {
+  const roster = await apiFetch<TeamRosterResponse>(UM_PATHS.members(COMPANY_ID));
+  const members = await mapRosterToMembers(roster);
+  const member = members.find((m) => m.id === memberId);
+  // 'Owner' is a client-only synthetic role the server doesn't know about —
+  // this guard must stay client-side, it cannot move server-side.
+  if (member?.role === 'Owner') {
     throw err('removal_failed', 'removal_failed');
   }
-  memberStore = memberStore.filter((m) => m.id !== memberId);
+  await apiFetch(UM_PATHS.member(COMPANY_ID, memberId), { method: 'DELETE' });
   return { success: true };
 }
 
@@ -410,57 +322,78 @@ export const SUBSCRIPTION_PLANS: SubscriptionPlan[] = [
   },
 ];
 
+/** Raw credit-record list — GET .../credit-records/. Used internally by getCurrentPlan(). */
+export async function getCreditRecords(): Promise<CreditRecord[]> {
+  return apiFetch<CreditRecord[]>(UM_PATHS.creditRecords(COMPANY_ID));
+}
+
+/** Wired, not yet surfaced in the UI. */
+export async function enableFreeCredits(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(UM_PATHS.enableFreeCredits(COMPANY_ID), { method: 'POST' });
+}
+
 export async function getCurrentPlan(): Promise<CurrentPlan> {
-  await delay(500);
+  const [subscription, credits] = await Promise.all([
+    apiFetch<Subscription>(UM_PATHS.subscription(COMPANY_ID)),
+    getCreditRecords(),
+  ]);
+
   return {
-    name: 'Trial',
+    name: subscription.plan.title,
     tagline: 'A simple start for everyone',
-    activeUntil: 'Aug 1, 2027',
-    activeUntilIso: '2027-08-01',
-    isTrial: true,
-    planId: null,
-    creditBreakdown: [
-      { id: 'questions', label: 'AI question generation', used: 0, limit: 400 },
-      { id: 'evaluation', label: 'AI candidate evaluation', used: 0, limit: 400 },
-      { id: 'descriptions', label: 'AI job descriptions', used: 0, limit: 200 },
-    ],
+    activeUntil: new Date(subscription.expiration_date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }),
+    activeUntilIso: subscription.expiration_date,
+    isTrial: subscription.status === 'trial',
+    planId: subscription.status === 'trial' ? null : String(subscription.plan.id),
+    creditBreakdown: credits.map((c, i) => ({
+      id: `credit_${i}`,
+      label: c.is_sub_credit ? 'Subscription credits' : 'Bonus credits',
+      used: c.used_credit,
+      limit: c.max_allowed,
+    })),
+    // No doc equivalent for this per-resource usage rollup — stays local/fabricated.
     usage: [
       {
         id: 'jobs',
         label: 'Jobs',
-        used: 2,
-        limit: 20,
+        used: Number(subscription.total_jobs_created),
+        limit: subscription.plan.max_jobs ?? 999,
         unit: 'Jobs',
-        note: '18 jobs remaining until your plan requires an update.',
+        note: `Upcoming renewal date: ${new Date(subscription.renewal_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.`,
       },
       {
         id: 'teams',
         label: 'Teams',
-        used: 1,
-        limit: 8,
+        used: Number(subscription.total_team_members),
+        limit: subscription.plan.max_team_members,
         unit: 'Members',
-        note: '7 team members remaining until your plan requires an update.',
+        note: `${Math.max(subscription.plan.max_team_members - Number(subscription.total_team_members), 0)} team members remaining until your plan requires an update.`,
       },
       {
         id: 'credits',
         label: 'AI credits',
-        used: 0,
-        limit: 1000,
+        used: credits.reduce((sum, c) => sum + c.used_credit, 0),
+        limit: credits.reduce((sum, c) => sum + c.max_allowed, 0),
         unit: 'Credits',
-        note: 'Upcoming renewal date: Aug 31, 2026.',
+        note: `Upcoming renewal date: ${new Date(subscription.renewal_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}.`,
       },
       {
         id: 'responses',
         label: 'Responses',
-        used: 1,
-        limit: 196,
+        used: Number(subscription.total_candidate_interviewed),
+        limit: subscription.plan.max_candidates,
         unit: 'Candidates',
-        note: '195 responses remaining until your plan requires an update.',
+        note: `${Math.max(subscription.plan.max_candidates - Number(subscription.total_candidate_interviewed), 0)} responses remaining until your plan requires an update.`,
       },
     ],
   };
 }
 
+/** No "browse available plans" endpoint in either doc — kept fully local. */
 export async function getSubscriptionPlans(): Promise<SubscriptionPlan[]> {
   await delay(500);
   return SUBSCRIPTION_PLANS.map((p) => ({ ...p }));
@@ -840,13 +773,37 @@ export async function deleteApiKey(id: string): Promise<{ success: boolean }> {
   return { success: true };
 }
 
+/** smtp/smtpConnected come from the real endpoint; customDomain/brandingRemoved/zapierActive stay local — no doc coverage. */
 export async function getIntegrations(): Promise<IntegrationState> {
-  await delay(400);
-  return { ...integrationStore };
+  await delay(200);
+  const smtp = await apiFetch<{
+    smtp_host: string;
+    smtp_port: number;
+    smtp_username: string;
+    from_email: string;
+    from_name: string;
+    use_tls: boolean;
+  } | null>(UM_PATHS.smtpSettings(COMPANY_ID)).catch(() => null);
+
+  return {
+    ...integrationStore,
+    smtpConnected: smtp !== null,
+    smtp: smtp
+      ? {
+          provider: 'smtp',
+          host: smtp.smtp_host,
+          port: String(smtp.smtp_port),
+          username: smtp.smtp_username,
+          password: '',
+          fromEmail: smtp.from_email,
+          fromName: smtp.from_name,
+          useTls: smtp.use_tls,
+        }
+      : null,
+  };
 }
 
 export async function saveSmtpConfig(config: SmtpConfig): Promise<IntegrationState> {
-  await delay();
   if (config.provider === 'smtp') {
     if (!config.host.trim()) throw err('smtp_host_required', 'smtp_host_required');
     if (!config.port.trim()) throw err('smtp_port_required', 'smtp_port_required');
@@ -854,24 +811,47 @@ export async function saveSmtpConfig(config: SmtpConfig): Promise<IntegrationSta
     if (!config.password.trim()) throw err('smtp_password_required', 'smtp_password_required');
   }
   if (!config.fromEmail.trim()) throw err('smtp_from_required', 'smtp_from_required');
-  integrationStore = { ...integrationStore, smtp: config, smtpConnected: true };
-  return { ...integrationStore };
+
+  // The wire shape has no `provider` field — both variants map onto the same
+  // flat smtp_* body; `provider` stays a client-only field that only drives
+  // which inputs the form shows.
+  await apiFetch(UM_PATHS.smtpSettings(COMPANY_ID), {
+    method: 'POST',
+    body: {
+      smtp_host: config.host,
+      smtp_port: Number(config.port),
+      smtp_username: config.username,
+      smtp_password: config.password,
+      from_email: config.fromEmail,
+      from_name: config.fromName,
+      use_tls: config.useTls,
+      use_ssl: false,
+    },
+  });
+  integrationStore = { ...integrationStore, smtpConnected: true };
+  return getIntegrations();
 }
 
 export async function sendSmtpTestEmail(to: string): Promise<{ sent: boolean }> {
-  await delay(1000);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to.trim())) {
     throw err('smtp_test_failed', 'smtp_test_failed');
   }
+  await apiFetch(UM_PATHS.smtpVerify(COMPANY_ID), { method: 'POST', body: { email: to } });
   return { sent: true };
 }
 
+/** No disconnect/DELETE endpoint in either doc (only GET/POST/verify exist) — kept local. */
 export async function disconnectSmtp(): Promise<IntegrationState> {
   await delay();
   integrationStore = { ...integrationStore, smtp: null, smtpConnected: false };
   return { ...integrationStore };
 }
 
+/**
+ * No clean doc equivalent: the doc's "trusted origins" (CORS allow-list +
+ * TXT verification, see getTrustedOrigins() below) is a different concept
+ * from this careers-page subdomain/apex setting — kept fully local.
+ */
 export async function saveCustomDomain(
   subdomain: string,
   domain: string
@@ -920,16 +900,80 @@ export function _resetIntegrationsStore() {
   };
 }
 
+/**
+ * The success response has no numeric discount field, only a human message
+ * ("Coupon applied — 20% off the first year.") — discountPct is derived
+ * client-side from the known seeded codes so the function's external return
+ * type stays unchanged. Revisit if the backend ever adds a structured field.
+ */
 export async function applyCoupon(code: string): Promise<{ discountPct: number }> {
-  await delay();
   const normalised = code.trim().toUpperCase();
   if (!normalised) throw err('coupon_invalid', 'coupon_invalid');
-  if (normalised !== 'LAUNCH20') throw err('coupon_invalid', 'coupon_invalid');
-  return { discountPct: 20 };
+  await apiFetch<{ message: string; coupon: string }>(UM_PATHS.coupons(COMPANY_ID), {
+    method: 'POST',
+    body: { coupon_code: normalised },
+    statusCodeMap: { 404: 'coupon_invalid' },
+  });
+  const KNOWN_DISCOUNTS: Record<string, number> = { LAUNCH20: 20, WELCOME10: 10 };
+  return { discountPct: KNOWN_DISCOUNTS[normalised] ?? 0 };
+}
+
+// ─── Billing addresses — wired, not yet surfaced in any UI ───
+
+export async function getAddresses(): Promise<BillingAddress[]> {
+  return apiFetch<BillingAddress[]>(UM_PATHS.addresses(COMPANY_ID));
+}
+
+export async function addAddress(
+  body: Omit<BillingAddress, 'id'>
+): Promise<BillingAddress> {
+  return apiFetch<BillingAddress>(UM_PATHS.addresses(COMPANY_ID), { method: 'POST', body });
+}
+
+export async function updateAddress(
+  addressId: number,
+  body: Omit<BillingAddress, 'id'>
+): Promise<BillingAddress> {
+  return apiFetch<BillingAddress>(UM_PATHS.address(COMPANY_ID, addressId), {
+    method: 'PUT',
+    body,
+  });
+}
+
+export async function deleteAddress(addressId: number): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(UM_PATHS.address(COMPANY_ID, addressId), {
+    method: 'DELETE',
+  });
+}
+
+// ─── Trusted origins — wired, not yet surfaced in any UI ───
+//
+// Different concept from saveCustomDomain/removeCustomDomain above: this is a
+// CORS-style allowed-origin list for the careers-page embed, verified via a
+// TXT DNS record, per backend-docs/usermanagement-api.md.
+
+export async function getTrustedOrigins(): Promise<TrustedOrigin> {
+  const result = await apiFetch<{ details: TrustedOrigin }>(UM_PATHS.trustedOrigins(COMPANY_ID));
+  return result.details;
+}
+
+export async function addTrustedOrigin(domain: string): Promise<TrustedOrigin> {
+  const result = await apiFetch<{ details: TrustedOrigin }>(UM_PATHS.trustedOrigins(COMPANY_ID), {
+    method: 'POST',
+    body: { domain, company: COMPANY_ID },
+  });
+  return result.details;
+}
+
+export async function removeTrustedOrigin(): Promise<{ success: boolean }> {
+  await apiFetch(UM_PATHS.trustedOrigins(COMPANY_ID), { method: 'DELETE' });
+  return { success: true };
+}
+
+export async function verifyDomainTxt(): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(UM_PATHS.domainCheckTxt(COMPANY_ID), { method: 'POST' });
 }
 
 export function _resetSettingsStore() {
   orgStore = { ...ORG };
-  memberStore = [...BASE_MEMBERS];
-  simulateSeatLimit = false;
 }

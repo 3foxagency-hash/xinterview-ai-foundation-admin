@@ -40,6 +40,7 @@ export function ExperienceSection({
   return (
     <div className="space-y-6">
       <SettingsSection
+        bordered={false}
         description="Control what candidates experience during the interview and how integrity is enforced."
       >
         <SettingsRow

@@ -41,7 +41,7 @@ export function WelcomeSection({
 
   return (
     <div className="space-y-6">
-      <SettingsSection description="The first thing candidates see when they open your interview link.">
+      <SettingsSection bordered={false} description="The first thing candidates see when they open your interview link.">
         <SettingsRow
           layout="stacked"
           label="Headline"

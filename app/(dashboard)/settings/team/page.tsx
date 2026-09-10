@@ -69,15 +69,17 @@ export default function TeamPage() {
   const usagePct = seatLimit > 0 ? Math.min((seatsUsed / seatLimit) * 100, 100) : 0;
   const usageColor = seatsFull ? 'bg-error' : usagePct >= 80 ? 'bg-warning' : 'bg-primary';
 
-  const canManage = currentUser?.role === 'Owner' || currentUser?.role === 'Admin';
+  const canManage = currentUser?.role === 'Owner' || currentUser?.role === 'MA';
   const isOwner = currentUser?.isOwner ?? false;
   const companyName = 'XInterview';
 
   // ── Invite ──
-  const handleInvite = async (email: string, role: 'Admin' | 'Member') => {
+  const handleInvite = async (email: string, role: 'MA' | 'EX') => {
     try {
-      const newMember = await inviteMember(email, role);
-      setMembers((m) => [...m, newMember]);
+      await inviteMember(email, role);
+      const roster = await getTeamRoster();
+      setMembers(roster.members);
+      setSeatLimit(roster.seatLimit);
       toast.success(`Invite sent to ${email}`);
       track('team_member_invited', { email, role });
     } catch (e) {
@@ -114,7 +116,7 @@ export default function TeamPage() {
     }
   };
 
-  const handleRoleChange = async (newRole: 'Admin' | 'Member') => {
+  const handleRoleChange = async (newRole: 'MA' | 'EX') => {
     if (!changeRoleTarget) return;
     const memberId = changeRoleTarget.id;
     try {

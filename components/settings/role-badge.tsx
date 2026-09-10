@@ -8,8 +8,14 @@ interface RoleBadgeProps {
 
 const roleStyles: Record<Role, string> = {
   Owner: 'border-primary/30 bg-active-menu-bg text-primary',
-  Admin: 'border-border bg-muted-bg text-heading',
-  Member: 'border-border bg-muted-bg text-bodyText',
+  MA: 'border-border bg-muted-bg text-heading',
+  EX: 'border-border bg-muted-bg text-bodyText',
+};
+
+const roleLabels: Record<Role, string> = {
+  Owner: 'Owner',
+  MA: 'Manager',
+  EX: 'Executive',
 };
 
 export function RoleBadge({ role, className }: RoleBadgeProps) {
@@ -21,7 +27,7 @@ export function RoleBadge({ role, className }: RoleBadgeProps) {
         className
       )}
     >
-      {role}
+      {roleLabels[role]}
     </span>
   );
 }

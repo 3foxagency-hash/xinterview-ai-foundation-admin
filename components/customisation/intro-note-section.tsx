@@ -44,6 +44,7 @@ export function IntroNoteSection({
   return (
     <div className="space-y-6">
       <SettingsSection
+        bordered={false}
         title="Introduction note"
         description="Shown before the candidate starts. They must acknowledge it to continue."
       >

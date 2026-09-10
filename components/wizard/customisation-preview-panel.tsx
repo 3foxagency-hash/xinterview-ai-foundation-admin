@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Monitor, Smartphone, Sun, Moon, ExternalLink, Eye } from 'lucide-react';
+import { Monitor, Smartphone, ExternalLink, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   useCustomisationPreview,
@@ -15,7 +15,6 @@ import { track } from '@/lib/utils/analytics';
 const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
   { value: 'landing', label: 'Landing page' },
   { value: 'form', label: 'Start form' },
-  { value: 'interview', label: 'Interview' },
   { value: 'thank-you', label: 'Thank you' },
 ];
 
@@ -131,14 +130,17 @@ function EvaluationSummaryPanel() {
 }
 
 function EmailPreviewPanel() {
-  const { state, previewTheme } = useCustomisationPreview();
+  const { state } = useCustomisationPreview();
   const notifications = state.notifications;
   const branding = state.branding;
 
-  const bgColor = previewTheme === 'dark' ? '#1a1a1a' : '#ffffff';
-  const textColor = previewTheme === 'dark' ? '#ededed' : '#171717';
-  const mutedColor = previewTheme === 'dark' ? '#a1a1a1' : '#525252';
-  const borderColor = previewTheme === 'dark' ? '#2e2e2e' : '#e5e5e5';
+  // Most email clients render in light mode by default regardless of the
+  // candidate's own interview theme preference, so this mock stays fixed
+  // light rather than following it.
+  const bgColor = '#ffffff';
+  const textColor = '#171717';
+  const mutedColor = '#525252';
+  const borderColor = '#e5e5e5';
 
   if (!notifications) {
     return (
@@ -281,6 +283,15 @@ const PHONE_HEIGHT = 812;
 /** Extra room around the phone chassis (border + a little breathing room)
  *  so the scale-to-fit math doesn't shave the bezel off against the panel edge. */
 const PHONE_CHROME_PADDING = 24;
+/** The interview CSS's mobile topbar (logo + language switcher + help +
+ *  theme toggle) doesn't reflow below a genuine phone's own width — tested
+ *  down to PHONE_WIDTH itself (375px, already this preview's baseline)
+ *  without overflowing, but a smaller "narrow phone" floor like 320px
+ *  still isn't enough room for all of it on one row. So width never
+ *  shrinks at all: this preview only ever simulates one phone size, and
+ *  a panel too short for it scrolls (via the outer container's overflow)
+ *  rather than rendering an unrealistically narrow, overflowing layout. */
+const PHONE_CHASSIS_BORDER = 6;
 
 interface PreviewFramePayload {
   screen: PreviewScreen;
@@ -336,18 +347,22 @@ function usePreviewFrameSync(payload: PreviewFramePayload) {
 
 function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
   const containerRef = React.useRef<HTMLDivElement>(null);
-  const [scale, setScale] = React.useState(1);
+  // Height scales independently of width so the phone's on-screen width
+  // never shrinks — see PHONE_CHASSIS_BORDER's doc above for why. A value
+  // under 1 makes the chassis visually shorter than PHONE_HEIGHT while
+  // staying PHONE_WIDTH wide (its content still lays out for a full-height
+  // phone and scrolls internally, exactly like a real short viewport).
+  const [heightScale, setHeightScale] = React.useState(1);
   const iframeRef = usePreviewFrameSync(payload);
 
   React.useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
     const compute = () => {
-      const { width, height } = el.getBoundingClientRect();
-      const availableW = width - PHONE_CHROME_PADDING;
+      const { height } = el.getBoundingClientRect();
       const availableH = height - PHONE_CHROME_PADDING;
-      const next = Math.min(1, availableW / PHONE_WIDTH, availableH / PHONE_HEIGHT);
-      setScale(next > 0 ? next : 1);
+      const next = Math.min(1, availableH / PHONE_HEIGHT);
+      setHeightScale(next > 0 ? next : 1);
     };
     compute();
     const observer = new ResizeObserver(compute);
@@ -355,11 +370,11 @@ function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
     return () => observer.disconnect();
   }, []);
 
-  const scaledWidth = PHONE_WIDTH * scale;
-  const scaledHeight = PHONE_HEIGHT * scale;
+  const scaledWidth = PHONE_WIDTH;
+  const scaledHeight = PHONE_HEIGHT * heightScale;
 
   return (
-    <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-hidden">
+    <div ref={containerRef} className="flex h-full w-full items-center justify-center overflow-auto">
       {/* Phone chassis, sized directly at its final on-screen pixels rather
           than rendered at a fixed 375×812 and shrunk with `transform:
           scale()`. A CSS transform on an iframe's ancestor doesn't reliably
@@ -367,27 +382,27 @@ function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
           — clicks still hit-test correctly, but scrolling inside the frame
           stops responding. Sizing the iframe (and the notch/buttons around
           it) to the real scaled dimensions means there's no transform in
-          the way, so native scroll just works; the trade-off is the
-          candidate CSS sees e.g. a 260px-wide viewport instead of exactly
-          375px, which still sits comfortably inside the same mobile
-          breakpoint. */}
+          the way, so native scroll just works. Width stays fixed at
+          PHONE_WIDTH regardless of panel size (see PHONE_CHASSIS_BORDER's
+          doc) — only height shrinks to fit a shorter panel, same as a
+          real phone simply having less visible vertical space. */}
       <div
         className="relative shrink-0 select-none overflow-hidden rounded-[2.5rem] border-[6px] border-border-strong bg-surface shadow-lg"
         style={{ width: scaledWidth, height: scaledHeight }}
       >
         <div
           className="absolute -left-[3px] rounded-l-sm bg-border-strong"
-          style={{ top: 96 * scale, height: 64 * scale, width: 3 }}
+          style={{ top: 96 * heightScale, height: 64 * heightScale, width: 3 }}
           aria-hidden
         />
         <div
           className="absolute -right-[3px] rounded-r-sm bg-border-strong"
-          style={{ top: 128 * scale, height: 96 * scale, width: 3 }}
+          style={{ top: 128 * heightScale, height: 96 * heightScale, width: 3 }}
           aria-hidden
         />
         <div
           className="absolute left-1/2 top-0 z-10 -translate-x-1/2 rounded-b-2xl bg-border-strong"
-          style={{ height: 24 * scale, width: 128 * scale }}
+          style={{ height: 24 * heightScale, width: 128 }}
           aria-hidden
         />
         {/* Padding-top clears the notch so real page content (a logo, a nav
@@ -397,7 +412,7 @@ function MobileFrame({ payload }: { payload: PreviewFramePayload }) {
           src="/preview/customisation"
           title="Mobile preview"
           className="h-full w-full border-0"
-          style={{ paddingTop: 32 * scale }}
+          style={{ paddingTop: 32 * heightScale }}
         />
       </div>
     </div>
@@ -431,18 +446,16 @@ export function CustomisationPreviewPanel() {
     setPreviewScreen,
     previewDevice,
     setPreviewDevice,
-    previewTheme,
-    setPreviewTheme,
     jobTitle,
   } = useCustomisationPreview();
 
   const config = React.useMemo(
-    () => buildPreviewConfig(state, jobTitle, previewTheme),
-    [state, jobTitle, previewTheme]
+    () => buildPreviewConfig(state, jobTitle),
+    [state, jobTitle]
   );
   const session = React.useMemo(
-    () => buildPreviewSession(state, jobTitle, previewTheme),
-    [state, jobTitle, previewTheme]
+    () => buildPreviewSession(state, jobTitle),
+    [state, jobTitle]
   );
 
   const isEvaluation = activeSection === 'evaluation';
@@ -451,6 +464,24 @@ export function CustomisationPreviewPanel() {
 
   const handleOpenNewTab = () => {
     track('preview_opened_new_tab', { section: activeSection });
+    // /preview/customisation normally receives its state via postMessage
+    // from this panel's own iframe — an independently opened tab has no
+    // such parent to message it, so seed the same data through
+    // localStorage instead (not sessionStorage: window.open with
+    // noopener/noreferrer puts the new tab in an unrelated top-level
+    // browsing context, and sessionStorage is scoped per browsing context
+    // rather than per-origin, so it wouldn't carry over — localStorage is
+    // origin-scoped and does). The frame page falls back to reading this
+    // on mount when nothing posts to it.
+    try {
+      localStorage.setItem(
+        'xinterview-customisation-preview-snapshot',
+        JSON.stringify({ screen: previewScreen, config, session })
+      );
+    } catch {
+      // ignore — the new tab just falls back to its own defaults
+    }
+    window.open('/preview/customisation', '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -496,37 +527,6 @@ export function CustomisationPreviewPanel() {
                 )}
               >
                 <Smartphone size={14} />
-              </button>
-            </div>
-            {/* Theme toggle */}
-            <div className="inline-flex items-center rounded-md border border-border bg-card-hover p-0.5">
-              <button
-                type="button"
-                onClick={() => setPreviewTheme('light')}
-                aria-pressed={previewTheme === 'light'}
-                aria-label="Light preview"
-                className={cn(
-                  'rounded px-2 py-1 transition-colors',
-                  previewTheme === 'light'
-                    ? 'bg-surface text-heading shadow-sm'
-                    : 'text-muted hover:text-heading'
-                )}
-              >
-                <Sun size={14} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPreviewTheme('dark')}
-                aria-pressed={previewTheme === 'dark'}
-                aria-label="Dark preview"
-                className={cn(
-                  'rounded px-2 py-1 transition-colors',
-                  previewTheme === 'dark'
-                    ? 'bg-surface text-heading shadow-sm'
-                    : 'text-muted hover:text-heading'
-                )}
-              >
-                <Moon size={14} />
               </button>
             </div>
             {/* Open in new tab */}
@@ -576,11 +576,6 @@ export function CustomisationPreviewPanel() {
         ) : (
           <DesktopFrame payload={{ screen: previewScreen, config, session }} />
         )}
-      </div>
-
-      {/* Footer */}
-      <div className="shrink-0 border-t border-border px-4 py-2">
-        <p className="text-caption text-muted">Preview only — buttons are inactive.</p>
       </div>
     </aside>
   );

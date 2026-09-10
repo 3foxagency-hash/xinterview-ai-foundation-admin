@@ -15,7 +15,7 @@ import {
   SuccessPanel,
 } from '@/components/auth';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validation/auth';
-import { resetPassword as resetApi, type ApiError } from '@/lib/api/auth';
+import { resetPassword as resetApi, getPendingResetToken, type ApiError } from '@/lib/api/auth';
 import { getAuthErrorMessage } from '@/lib/errors/auth-messages';
 import { formatCountdown } from '@/lib/utils/format';
 
@@ -63,8 +63,13 @@ export default function ResetPasswordPage() {
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setAuthError(null);
+    const token = getPendingResetToken();
+    if (!token) {
+      setInvalidLink(true);
+      return;
+    }
     try {
-      await resetApi('mock-token', data.password);
+      await resetApi(token, data.password);
       setSuccess(true);
     } catch (err) {
       const code = (err as ApiError).code;

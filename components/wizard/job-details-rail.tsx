@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CircleAlert as AlertCircle, Check, Info, Lightbulb, type LucideIcon } from 'lucide-react';
+import { CircleAlert as AlertCircle, Info, Lightbulb, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Tooltip,
@@ -51,7 +51,6 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
         <nav className="space-y-2" aria-label="Job details sections">
           {sections.map((section) => {
             const isActive = activeSection === section.id;
-            const isComplete = section.status === 'complete';
             const Icon = section.icon;
             return (
               <button
@@ -71,18 +70,13 @@ export function JobDetailsRail({ sections, activeSection, onSectionClick }: JobD
                     'relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
                     section.status === 'error'
                       ? 'bg-error-wash text-error-ink'
-                      : isActive || isComplete
+                      : isActive
                         ? 'bg-active-menu-bg text-primary'
                         : 'bg-card-hover text-muted'
                   )}
                   aria-hidden
                 >
                   <Icon size={18} strokeWidth={1.5} />
-                  {isComplete && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-success text-success-foreground">
-                      <Check size={10} strokeWidth={3} />
-                    </span>
-                  )}
                   {section.status === 'error' && (
                     <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-error text-error-foreground">
                       <AlertCircle size={10} strokeWidth={3} />

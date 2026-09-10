@@ -110,6 +110,7 @@ export function FormSection({
   return (
     <div className="space-y-6">
       <SettingsSection
+        bordered={false}
         description="Choose what information to collect from candidates."
       >
         {FIELDS.map((field) => (

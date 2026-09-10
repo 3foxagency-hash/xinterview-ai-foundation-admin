@@ -52,6 +52,7 @@ export function ThankYouSection({
   return (
     <div className="space-y-6">
       <SettingsSection
+        bordered={false}
         description="What candidates see after completing their interview."
       >
         <div className="border-b border-border p-4">
@@ -65,12 +66,12 @@ export function ThankYouSection({
             id="thank-you-title"
             value={data.title ?? ''}
             onChange={(e) => update({ title: e.target.value } as Partial<ThankYouPageInput>)}
-            maxLength={50}
-            placeholder="Interview Complete"
+            maxLength={200}
+            placeholder="Thank you for completing your interview. We'll be in touch soon."
           />
-          <CharCount value={data.title ?? ''} max={50} />
+          <CharCount value={data.title ?? ''} max={200} />
           <p className="mt-1.5 text-body-sm text-muted">
-            The heading candidates see on the completion screen.
+            The message candidates see above &ldquo;What happens next&rdquo; on the completion screen.
           </p>
         </div>
 
@@ -79,7 +80,7 @@ export function ThankYouSection({
           <RichTextEditor
             value={data.completionMessage}
             onChange={(val) => update({ completionMessage: val } as Partial<ThankYouPageInput>)}
-            placeholder="Thank candidates for their time…"
+            placeholder="Internal notes — not shown to candidates yet."
           />
         </div>
 

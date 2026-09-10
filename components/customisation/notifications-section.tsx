@@ -70,6 +70,7 @@ export function NotificationsSection({
 
     return (
       <SettingsSection
+        bordered={false}
         title={label}
         description={
           channel === 'email'

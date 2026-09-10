@@ -30,11 +30,11 @@ export const organizationSchema = z.object({
 
 export const inviteMemberSchema = z.object({
   email: emailSchema,
-  role: z.enum(['Admin', 'Member']).default('Member'),
+  role: z.enum(['MA', 'EX']).default('EX'),
 });
 
 export const changeRoleSchema = z.object({
-  role: z.enum(['Admin', 'Member']),
+  role: z.enum(['MA', 'EX']),
 });
 
 export const deleteCompanySchema = z.object({
