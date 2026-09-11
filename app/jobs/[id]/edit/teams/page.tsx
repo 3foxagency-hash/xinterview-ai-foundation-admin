@@ -425,16 +425,12 @@ export default function TeamsPage() {
                 <div className="overflow-hidden rounded-lg border border-border">
                   {/* Column headers — grid matches TeamMemberRow's column template exactly,
                       so labels sit directly above the values they describe. */}
-                  <div className="hidden border-b border-border bg-card-hover px-4 py-2.5 sm:grid sm:grid-cols-[1fr_92px_110px_170px_64px] sm:items-center sm:gap-5">
+                  <div className="hidden border-b border-border bg-card-hover px-4 py-2.5 sm:grid sm:grid-cols-[1fr_130px_170px_64px] sm:items-center sm:gap-5">
                     <span className="text-caption font-medium uppercase tracking-wide text-muted">
                       Member
                     </span>
                     <span className="flex items-center gap-1 text-caption font-medium uppercase tracking-wide text-muted">
                       Company role
-                      <Info size={11} />
-                    </span>
-                    <span className="flex items-center gap-1 text-caption font-medium uppercase tracking-wide text-muted">
-                      Access
                       <Info size={11} />
                     </span>
                     <span className="text-caption font-medium uppercase tracking-wide text-muted">
