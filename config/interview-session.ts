@@ -41,6 +41,9 @@ export interface IntegrityConfig {
 
 export interface CompletionConfig {
   customMessage: string | null;
+  /** Shown under the "Instructions" heading on the completion screen, in
+   *  place of the old fixed "what happens next" bullet list. */
+  instructions: string | null;
   redirectUrl: string | null;
   redirectDelaySeconds: number;
 }
@@ -190,6 +193,8 @@ export const interviewSession: InterviewSession = {
   completion: {
     customMessage:
       'We appreciate the time you took to share your story with us. Our team will review your responses carefully and reach out within the next few days.',
+    instructions:
+      'The hiring team will review your responses and follow up by email within the next few business days. No further action is needed from you right now.',
     redirectUrl: null,
     redirectDelaySeconds: 5,
   },

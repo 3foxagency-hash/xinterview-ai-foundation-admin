@@ -72,7 +72,7 @@ export function ThankYouSection({
           />
           <CharCount value={data.title ?? ''} max={200} />
           <p className="mt-1.5 text-body-sm text-muted">
-            The message candidates see above &ldquo;What happens next&rdquo; on the completion screen.
+            The message candidates see above &ldquo;Instructions&rdquo; on the completion screen.
           </p>
         </div>
 
@@ -81,7 +81,7 @@ export function ThankYouSection({
           <RichTextEditor
             value={data.completionMessage}
             onChange={(val) => update({ completionMessage: val } as Partial<ThankYouPageInput>)}
-            placeholder="Internal notes — not shown to candidates yet."
+            placeholder="Shown under &quot;Instructions&quot; on the completion screen."
           />
         </div>
 

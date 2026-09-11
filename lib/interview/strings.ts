@@ -514,10 +514,9 @@ export const strings = {
   completeSubmitted: 'Your responses have been submitted to the hiring team.',
   completeQuestionsAnswered: (n: number) => `${n} questions answered`,
   completeSubmittedDate: (date: string) => `Submitted ${date}`,
-  completeNextSteps: 'WHAT HAPPENS NEXT',
-  completeStepReview: 'The hiring team will review your responses',
-  completeStepEmail: 'You\'ll receive an email about next steps',
-  completeStepShared: 'Your responses are shared only with the hiring team',
+  completeInstructionsLabel: 'INSTRUCTIONS',
+  completeInstructionsFallback:
+    'The hiring team will review your responses and follow up by email within the next few business days.',
   completeCloseTab: 'You can close this tab now.',
   completeQuestionsLink: 'Questions about your application?',
   completeRedirectIn: (seconds: number, company: string) =>

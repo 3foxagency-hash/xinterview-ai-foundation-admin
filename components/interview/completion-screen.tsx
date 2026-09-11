@@ -109,23 +109,15 @@ export function CompletionScreen({ session, state, themeOverride }: CompletionSc
                   </p>
                 )}
                 <span className="iv-next-steps-label">
-                  {strings.completeNextSteps}
+                  {strings.completeInstructionsLabel}
                 </span>
                 <div className="iv-next-steps-underline" aria-hidden="true" />
-                <ul className="iv-next-steps-list">
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepReview}
-                  </li>
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepEmail}
-                  </li>
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepShared}
-                  </li>
-                </ul>
+                <p
+                  className="iv-next-steps-message"
+                  dangerouslySetInnerHTML={{
+                    __html: session.completion.instructions || strings.completeInstructionsFallback,
+                  }}
+                />
               </div>
 
               <p className="iv-complete-close">{strings.completeCloseTab}</p>

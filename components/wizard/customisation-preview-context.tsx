@@ -296,11 +296,14 @@ export function buildPreviewSession(
       disableRightClick: experience?.disableCopyPaste ?? false,
     },
     completion: {
-      // The completion screen has one editable message slot above "What
-      // happens next" — the "Title" field drives it (not "Completion
+      // The completion screen has one editable message slot above
+      // "Instructions" — the "Title" field drives it (not "Completion
       // message"), since that's the sentence candidates actually read
       // there ("Thank you for completing your interview...").
       customMessage: thankYou?.title || defaultSession.completion.customMessage,
+      // "Instructions" replaces the old fixed "what happens next" bullet
+      // list — its paragraph comes from the "Completion message" field.
+      instructions: thankYou?.completionMessage || defaultSession.completion.instructions,
       redirectUrl: thankYou?.redirectEnabled ? thankYou.redirectUrl || null : null,
       redirectDelaySeconds: thankYou?.redirectDelay ?? 5,
     },
