@@ -4,6 +4,7 @@ import * as React from 'react';
 import { GripVertical, Lock, Plus, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { useCustomisationSave } from '@/components/wizard/use-customisation-save';
 import { CustomisationSaveBar } from '@/components/wizard/customisation-save-bar';
 import { useRegisterSave } from '@/components/wizard/customisation-save-registry';
@@ -36,7 +37,7 @@ export function StagesSection({
   const [dragId, setDragId] = React.useState<string | null>(null);
   const [overId, setOverId] = React.useState<string | null>(null);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   const stages = data.stages;
   const setStages = (next: Stage[]) => update({ stages: next } as Partial<StagesInput>);

@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Lock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -100,7 +101,7 @@ export function FormSection({
   useRegisterSave('form', save);
   usePreviewSync('form', data);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={7} />;
 
   const setField = (key: keyof FormSettingsInput, value: FieldRequirement) => {
     update({ [key]: value } as Partial<FormSettingsInput>);

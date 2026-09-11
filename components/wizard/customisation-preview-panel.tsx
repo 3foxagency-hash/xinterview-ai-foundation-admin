@@ -18,16 +18,27 @@ const SCREEN_LABELS: { value: PreviewScreen; label: string }[] = [
   { value: 'thank-you', label: 'Thank you' },
 ];
 
+function PreviewPanelSkeleton() {
+  return (
+    <div className="h-full space-y-4 overflow-hidden p-5" aria-hidden>
+      <div className="h-5 w-40 animate-pulse rounded-md bg-border" />
+      <div className="h-3 w-64 animate-pulse rounded-md bg-border" />
+      <div className="mt-2 h-8 w-full animate-pulse rounded-md bg-border" />
+      <div className="space-y-2">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-12 w-full animate-pulse rounded-md bg-border" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function EvaluationSummaryPanel() {
   const { state, setActiveSection } = useCustomisationPreview();
   const evaluation = state.evaluation;
 
   if (!evaluation) {
-    return (
-      <div className="flex h-full items-center justify-center p-8 text-center">
-        <p className="text-body-sm text-muted">Loading evaluation settings…</p>
-      </div>
-    );
+    return <PreviewPanelSkeleton />;
   }
 
   const totalWeight = evaluation.factors.reduce((sum, f) => sum + f.weight, 0);
@@ -143,11 +154,7 @@ function EmailPreviewPanel() {
   const borderColor = '#e5e5e5';
 
   if (!notifications) {
-    return (
-      <div className="flex h-full items-center justify-center p-8 text-center">
-        <p className="text-body-sm text-muted">Loading notification settings…</p>
-      </div>
-    );
+    return <PreviewPanelSkeleton />;
   }
 
   const email = notifications.email;

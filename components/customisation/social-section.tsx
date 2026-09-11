@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Upload } from 'lucide-react';
 import { CharCount } from '@/components/customisation/char-count';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Input } from '@/components/ui/input';
@@ -40,7 +41,7 @@ export function SocialSection({
   useRegisterSave('social', save);
   usePreviewSync('social', data);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   const domain = 'xinterview.ai';
 

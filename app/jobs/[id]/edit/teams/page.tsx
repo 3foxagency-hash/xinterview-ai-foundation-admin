@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Search, Plus, Lock, Info, Users } from 'lucide-react';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
+import { TeamsSkeleton } from '@/components/wizard/teams-skeleton';
 import { TeamRail } from '@/components/wizard/team-rail';
 import { TeamRoleBadge } from '@/components/wizard/team-role-badge';
 import { TeamMemberRow } from '@/components/wizard/team-member-row';
@@ -41,7 +42,7 @@ export default function TeamsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
-  const { job, setSaveState, registerRetry } = useWizard();
+  const { job, loading: wizardLoading, setSaveState, registerRetry } = useWizard();
 
   const [team, setTeam] = React.useState<JobTeamMember[]>([]);
   const [allMembers, setAllMembers] = React.useState<CompanyMember[]>([]);
@@ -255,6 +256,10 @@ export default function TeamsPage() {
 
   const totalPeople = team.length;
 
+  if (loading || wizardLoading) {
+    return <TeamsSkeleton />;
+  }
+
   return (
     <div className="space-y-5 pb-24 md:pb-20">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
@@ -273,10 +278,7 @@ export default function TeamsPage() {
         {/* Main column */}
         <div className="space-y-4">
           {/* Job owner */}
-          {loading ? (
-            <div className="h-24 animate-pulse rounded-lg border border-border bg-card-hover" />
-          ) : (
-            owner && (
+          {owner && (
               <div className="rounded-lg border border-border bg-surface p-4">
                 <h2 className="mb-3 text-body-sm font-semibold uppercase tracking-wide text-muted">
                   Job owner
@@ -328,7 +330,6 @@ export default function TeamsPage() {
                   </div>
                 </div>
               </div>
-            )
           )}
 
           {/* Team members */}
@@ -377,7 +378,7 @@ export default function TeamsPage() {
               </div>
             </div>
 
-            {notificationsLocked && !loading && members.length > 0 && (
+            {notificationsLocked && members.length > 0 && (
               <div className="mx-4 mt-4 flex items-start gap-2 rounded-md border border-warning-border bg-warning-wash px-3 py-2.5">
                 <Lock size={14} className="mt-0.5 shrink-0 text-warning-ink" />
                 <p className="text-caption text-warning-ink">
@@ -401,16 +402,7 @@ export default function TeamsPage() {
                 />
               )}
 
-              {loading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-14 animate-pulse rounded-lg border border-border bg-card-hover"
-                    />
-                  ))}
-                </div>
-              ) : members.length === 0 ? (
+              {members.length === 0 ? (
                 <div className="flex flex-col items-center py-10 text-center">
                   <p className="max-w-sm text-body text-muted">
                     No one else is on this job yet. Only you will see candidate answers and get
@@ -470,7 +462,7 @@ export default function TeamsPage() {
             </div>
 
             {/* Footer disclaimer */}
-            {!loading && members.length > 0 && (
+            {members.length > 0 && (
               <div className="flex items-center gap-2 border-t border-border px-4 py-3">
                 <Users size={14} className="shrink-0 text-muted" />
                 <p className="text-body-sm text-muted">
@@ -482,7 +474,7 @@ export default function TeamsPage() {
           </div>
 
           {/* Soft warning — never blocks */}
-          {!loading && members.length === 0 && (
+          {members.length === 0 && (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-warning-border bg-warning-wash px-4 py-3">
               <span className="text-body-sm text-warning-ink">
                 Only you will be notified when candidates finish this interview.

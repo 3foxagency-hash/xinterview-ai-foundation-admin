@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Upload, Trash2, Check, TriangleAlert as AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CharCount } from '@/components/customisation/char-count';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Input } from '@/components/ui/input';
@@ -99,7 +100,7 @@ export function BrandingSection({
   }, [primaryColour]);
 
   if (loading || !data) {
-    return <div className="py-8 text-center text-muted">Loading…</div>;
+    return <CustomisationSectionSkeleton rows={5} />;
   }
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

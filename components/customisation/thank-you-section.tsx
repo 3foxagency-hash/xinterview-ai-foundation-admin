@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { CharCount } from '@/components/customisation/char-count';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -47,7 +48,7 @@ export function ThankYouSection({
   useRegisterSave('thank-you', save);
   usePreviewSync('thankYou', data);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   return (
     <div className="space-y-6">

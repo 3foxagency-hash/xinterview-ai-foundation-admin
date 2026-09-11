@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Plus, Sparkles, MoveVertical as MoreVertical, FileText, Save, Trash2, Layers } from 'lucide-react';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
+import { QuestionsSkeleton } from '@/components/wizard/questions-skeleton';
 import { QuestionsRail } from '@/components/wizard/questions-rail';
 import { QuestionRow } from '@/components/wizard/question-row';
 import { QuestionEditorDrawer } from '@/components/wizard/question-editor-drawer';
@@ -49,7 +50,7 @@ export default function QuestionsPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const jobId = params?.id ?? null;
-  const { job, refreshQuestionCount, setSaveState, registerRetry } = useWizard();
+  const { job, loading: wizardLoading, refreshQuestionCount, setSaveState, registerRetry } = useWizard();
 
   const [questions, setQuestions] = React.useState<Question[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -342,6 +343,10 @@ export default function QuestionsPage() {
   const canContinue = questions.length > 0;
   const hasTemplates = templates.length > 0;
 
+  if (wizardLoading || loading) {
+    return <QuestionsSkeleton />;
+  }
+
   return (
     <div className="space-y-5 pb-20 md:pb-16">
       {/* Live region for screen reader announcements */}
@@ -471,16 +476,7 @@ export default function QuestionsPage() {
 
             {/* Question list or empty state */}
             <div className="p-4">
-              {loading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <div
-                      key={i}
-                      className="h-14 animate-pulse rounded-lg border border-border bg-card-hover"
-                    />
-                  ))}
-                </div>
-              ) : questions.length === 0 ? (
+              {questions.length === 0 ? (
                 <div className="flex flex-col items-center py-12 text-center">
                   <p className="max-w-md text-body text-muted">
                     Start from scratch, let AI draft a set, or reuse a template your team saved.
@@ -671,7 +667,7 @@ export default function QuestionsPage() {
       />
 
       {/* Continue disabled reason */}
-      {!canContinue && !loading && (
+      {!canContinue && (
         <div className="fixed bottom-16 left-1/2 -translate-x-1/2 text-body-sm text-muted">
           Add at least one question to continue.
         </div>

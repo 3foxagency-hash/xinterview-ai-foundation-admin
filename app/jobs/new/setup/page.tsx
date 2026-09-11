@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { JobFormatSelection } from '@/components/wizard/job-format-selection';
 import { JobDetailsForm } from '@/components/wizard/job-details-form';
+import { JobDetailsSkeleton } from '@/components/wizard/job-details-skeleton';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { createJob, updateJob, generateJobDescription } from '@/lib/api/jobs';
 import { track } from '@/lib/utils/analytics';
@@ -16,6 +17,7 @@ export default function SetupPage() {
     setJob,
     jobId,
     job,
+    loading: wizardLoading,
     markDirty,
     clearDirty,
     patchJob,
@@ -202,6 +204,12 @@ export default function SetupPage() {
         onContinue={handleFormatContinue}
       />
     );
+  }
+
+  // Editing an existing job: wait for its data before rendering the form,
+  // so fields don't flash empty and then populate.
+  if (jobId && wizardLoading) {
+    return <JobDetailsSkeleton />;
   }
 
   return (

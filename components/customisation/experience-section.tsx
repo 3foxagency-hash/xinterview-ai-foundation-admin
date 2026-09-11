@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -35,7 +36,7 @@ export function ExperienceSection({
   useRegisterSave('experience', save);
   usePreviewSync('experience', data);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   return (
     <div className="space-y-6">
