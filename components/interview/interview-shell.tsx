@@ -16,6 +16,9 @@ interface InterviewShellProps {
   showProgressLine?: boolean;
   progressPercent?: number;
   practiceMode?: boolean;
+  /** Forwarded to InterviewThemeProvider's resolvedOverride — see that
+   *  prop's own doc. Only the admin preview passes this. */
+  themeOverride?: 'light' | 'dark';
 }
 
 export function InterviewShell({
@@ -24,6 +27,7 @@ export function InterviewShell({
   showProgressLine = true,
   progressPercent = 0,
   practiceMode = false,
+  themeOverride,
 }: InterviewShellProps) {
   const landingConfig = React.useMemo(
     () => ({
@@ -49,6 +53,7 @@ export function InterviewShell({
         brandColor={session.company.brandColor}
         themeMode={session.company.themeMode}
         allowCandidateToggle={session.company.allowCandidateToggle}
+        resolvedOverride={themeOverride}
       >
         <AmbientLight />
         <TopBar config={landingConfig} />

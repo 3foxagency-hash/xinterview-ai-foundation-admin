@@ -14,6 +14,14 @@ interface InterviewThemeProviderProps {
   brandColor: string;
   themeMode: ThemeMode;
   allowCandidateToggle: boolean;
+  /** Skips the no-flash script/localStorage handoff and sets the starting
+   *  resolved theme directly. That handoff only works across a real
+   *  server-rendered page load — a caller that re-renders this provider
+   *  client-side with new props (e.g. the admin customisation preview,
+   *  which drives it via postMessage inside an iframe) has no such page
+   *  load to hook into, so it can pass this instead. Real candidate
+   *  sessions never pass it, so their behavior is unchanged. */
+  resolvedOverride?: ResolvedTheme;
   children: React.ReactNode;
 }
 
@@ -77,18 +85,30 @@ export function InterviewThemeProvider({
   brandColor,
   themeMode,
   allowCandidateToggle,
+  resolvedOverride,
   children,
 }: InterviewThemeProviderProps) {
-  const [resolved, setResolved] = React.useState<ResolvedTheme>('light');
+  const [resolved, setResolved] = React.useState<ResolvedTheme>(resolvedOverride ?? 'light');
 
-  // Read the pre-applied theme from the no-flash script.
+  // Read the pre-applied theme from the no-flash script. Skipped when a
+  // caller passes resolvedOverride directly — see the prop's own doc. Note
+  // resolvedOverride only ever affects the INITIAL value here; a caller
+  // that changes it later (our preview's Light/Dark buttons) must remount
+  // this provider (e.g. via `key`) to have the new value take effect,
+  // since a live candidate toggle click needs to keep working independent
+  // of whatever the override said at mount time.
   React.useEffect(() => {
+    if (resolvedOverride) return;
     const current = document.documentElement.getAttribute(
       'data-interview-theme',
     ) as ResolvedTheme | null;
     if (current === 'light' || current === 'dark') {
       setResolved(current);
     }
+    // Deliberately mount-only: resolvedOverride is only meant to seed the
+    // initial value (see the prop's own doc) — reacting to later changes
+    // here would fight the candidate's own toggle() calls.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Follow system changes when in system mode and no stored preference.

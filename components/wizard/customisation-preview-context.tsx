@@ -19,6 +19,7 @@ import { track } from '@/lib/utils/analytics';
 
 export type PreviewScreen = 'landing' | 'form' | 'thank-you';
 export type PreviewDevice = 'desktop' | 'mobile';
+export type PreviewTheme = 'light' | 'dark';
 
 export type SectionState = 'untouched' | 'complete' | 'error';
 
@@ -45,6 +46,8 @@ export interface CustomisationPreviewContextValue {
   setPreviewScreen: (screen: PreviewScreen) => void;
   previewDevice: PreviewDevice;
   setPreviewDevice: (device: PreviewDevice) => void;
+  previewTheme: PreviewTheme;
+  setPreviewTheme: (theme: PreviewTheme) => void;
   sectionStates: Record<string, SectionState>;
   setSectionState: (section: string, state: SectionState) => void;
   blockingSections: string[];
@@ -99,6 +102,7 @@ export function CustomisationPreviewProvider({
   const [activeSection, setActiveSectionInternal] = React.useState('branding');
   const [previewScreen, setPreviewScreen] = React.useState<PreviewScreen>('landing');
   const [previewDevice, setPreviewDeviceInternal] = React.useState<PreviewDevice>('desktop');
+  const [previewTheme, setPreviewThemeInternal] = React.useState<PreviewTheme>('light');
   const [sectionStates, setSectionStates] = React.useState<Record<string, SectionState>>({});
   const [blockingSections, setBlockingSections] = React.useState<string[]>([]);
 
@@ -135,6 +139,11 @@ export function CustomisationPreviewProvider({
     track('preview_device_changed', { device });
   }, []);
 
+  const setPreviewTheme = React.useCallback((theme: PreviewTheme) => {
+    setPreviewThemeInternal(theme);
+    track('preview_theme_changed', { theme });
+  }, []);
+
   const value = React.useMemo<CustomisationPreviewContextValue>(
     () => ({
       state,
@@ -145,6 +154,8 @@ export function CustomisationPreviewProvider({
       setPreviewScreen,
       previewDevice,
       setPreviewDevice,
+      previewTheme,
+      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
@@ -159,6 +170,8 @@ export function CustomisationPreviewProvider({
       previewScreen,
       previewDevice,
       setPreviewDevice,
+      previewTheme,
+      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
