@@ -57,6 +57,7 @@ export default function QuestionsPage() {
   const [editorOpen, setEditorOpen] = React.useState(false);
   const [editorMode, setEditorMode] = React.useState<'add' | 'edit'>('add');
   const [editingQuestion, setEditingQuestion] = React.useState<Question | undefined>(undefined);
+  const [addType, setAddType] = React.useState<QuestionType>('video');
   const [aiPanelOpen, setAiPanelOpen] = React.useState(false);
   const [templatePickerOpen, setTemplatePickerOpen] = React.useState(false);
   const [saveTemplateOpen, setSaveTemplateOpen] = React.useState(false);
@@ -146,6 +147,7 @@ export default function QuestionsPage() {
     if (!availableTypes.includes(type)) return;
     setEditorMode('add');
     setEditingQuestion(undefined);
+    setAddType(type);
     setEditorOpen(true);
     track('question_added', { type });
   };
@@ -419,7 +421,7 @@ export default function QuestionsPage() {
                       const cfg = QUESTION_TYPE_CONFIG[type];
                       const Icon = cfg.icon;
                       return (
-                        <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                        <DropdownMenuItem key={type} onClick={() => handleAdd(type)} className="gap-2">
                           <Icon size={14} className={cfg.colorClass} />
                           {cfg.label}
                         </DropdownMenuItem>
@@ -496,7 +498,7 @@ export default function QuestionsPage() {
                           const cfg = QUESTION_TYPE_CONFIG[type];
                           const Icon = cfg.icon;
                           return (
-                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)} className="gap-2">
                               <Icon size={14} className={cfg.colorClass} />
                               {cfg.label}
                             </DropdownMenuItem>
@@ -590,7 +592,7 @@ export default function QuestionsPage() {
                           const cfg = QUESTION_TYPE_CONFIG[type];
                           const Icon = cfg.icon;
                           return (
-                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)}>
+                            <DropdownMenuItem key={type} onClick={() => handleAdd(type)} className="gap-2">
                               <Icon size={14} className={cfg.colorClass} />
                               {cfg.label}
                             </DropdownMenuItem>
@@ -680,6 +682,7 @@ export default function QuestionsPage() {
         mode={editorMode}
         format={format}
         initialQuestion={editingQuestion}
+        initialType={addType}
         onSave={handleSaveQuestion}
       />
 

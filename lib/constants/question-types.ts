@@ -6,6 +6,8 @@ export type QuestionType = 'video' | 'audio' | 'text' | 'single_choice';
 export type QuestionTypeConfig = {
   id: QuestionType;
   label: string;
+  /** One-line description shown under the label in the type picker. */
+  description: string;
   icon: LucideIcon;
   /** Tailwind text-* class resolved from a semantic token. */
   colorClass: string;
@@ -19,6 +21,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
   video: {
     id: 'video',
     label: 'Video',
+    description: 'Candidate will record a video response',
     icon: Video,
     colorClass: 'text-primary',
     dotClass: 'bg-primary',
@@ -27,6 +30,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
   audio: {
     id: 'audio',
     label: 'Audio',
+    description: 'Candidate will record an audio response',
     icon: Mic,
     colorClass: 'text-info',
     dotClass: 'bg-info',
@@ -35,6 +39,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
   text: {
     id: 'text',
     label: 'Text',
+    description: 'Candidate will type a written response',
     icon: Type,
     colorClass: 'text-success',
     dotClass: 'bg-success',
@@ -43,6 +48,7 @@ export const QUESTION_TYPE_CONFIG: Record<QuestionType, QuestionTypeConfig> = {
   single_choice: {
     id: 'single_choice',
     label: 'Single choice',
+    description: 'Candidate will pick one option',
     icon: ListChecks,
     colorClass: 'text-warning',
     dotClass: 'bg-warning',

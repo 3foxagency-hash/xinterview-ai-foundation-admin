@@ -70,12 +70,6 @@ function formatAnswerLabel(value: string | undefined): string | null {
   return value;
 }
 
-function formatRetriesLabel(value: number | undefined): string | null {
-  if (value === undefined || value === 0) return null;
-  if (value === 1) return '1 retry';
-  return `${value} retries`;
-}
-
 export function QuestionRow({
   question,
   index,
@@ -127,8 +121,6 @@ export function QuestionRow({
   if (thinkLabel) chips.push(thinkLabel);
   const answerLabel = formatAnswerLabel(question.answerTime);
   if (answerLabel) chips.push(answerLabel);
-  const retriesLabel = formatRetriesLabel(question.retakesAllowed);
-  if (retriesLabel) chips.push(retriesLabel);
 
   const title = question.title.trim() || 'Untitled question';
 
