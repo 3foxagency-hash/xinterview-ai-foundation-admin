@@ -70,7 +70,11 @@ export function useOptionalCustomisationPreview(): CustomisationPreviewContextVa
 const SECTION_TO_SCREEN: Record<string, PreviewScreen> = {
   branding: 'landing',
   welcome: 'landing',
-  form: 'form',
+  // The apply form ("Tell us who you are") lives on the landing page
+  // itself in the real candidate flow — the "Start form" preview screen
+  // is actually the pre-interview integrity disclosure, unrelated to what
+  // candidates fill in here.
+  form: 'landing',
   experience: 'form',
   evaluation: 'landing',
   notifications: 'landing',
