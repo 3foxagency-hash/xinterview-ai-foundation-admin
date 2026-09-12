@@ -88,6 +88,8 @@ This PRD supports these compliance goals; it does not by itself grant any certif
 
 **A naming note worth resolving early:** the screen where a user creates or joins a company is currently labelled "Set up your workspace" in its on-screen copy, and its underlying code is even named around the word "workspace." But what it actually creates is a **Company** — the same kind of record that owns billing, the team roster, and everything else under company-wide Settings elsewhere in the product. Confusingly, a completely different "Workspace" already exists later in the product, inside the dashboard, referring to a smaller hiring-campaign unit that lives inside a company. These are two different things sharing one word, and the word is currently attached to the wrong one on this screen. This PRD refers to what's created here as a **Company** throughout, and flags the copy/naming mismatch as something Product and Design should deliberately resolve (see Section 15) rather than something we should just carry forward by habit.
 
+**How Company and Workspace relate, decided:** completing Company Setup creates both a Company and a Workspace together, in one step, and the Workspace takes the same name as the Company. The user isn't shown a separate step or asked to name the workspace themselves — from their point of view, they're only setting up one thing. This gives every company a default workspace to operate in from the moment it's created, rather than leaving "does a workspace exist yet" as an open question elsewhere in the product. It doesn't by itself decide whether a company can ever have more than one workspace, or whether jobs/candidates/reports should be scoped by workspace — those remain open questions in their respective modules (Dashboard, Candidates, Reports, Create Job) — but it does establish the baseline fact that a workspace always exists, named after its company, from day one. See [README.md](README.md#settings-vs-workspace-settings-in-detail) for how this fits with what Workspace Settings actually is today versus what it's meant to become.
+
 ## 5. Global Requirements
 
 ### 5.1 Security Requirements
@@ -222,11 +224,12 @@ These apply across all screens:
 - Only verified users who don't yet belong to a company reach this screen.
 - If the user arrived through a company invite, they're offered a clear choice between joining that company or creating a new one instead of seeing the standard form right away.
 - Submitting the form creates the company and makes the creator its owner; choosing to join an existing company assigns the role specified in the invite.
+- Creating a new company also creates a workspace with the same name as the company, automatically and in the same step — the user isn't asked to name it separately or told a second thing was created. A user who joins an existing company via invite doesn't trigger a new workspace; they join the company (and its existing workspace) as-is.
 - Either path ends with the user landing on their dashboard.
 
 **Validation Rules:** Company name, size, and type are required; website is optional but must be a properly formatted web address if provided.
 
-**Acceptance Criteria:** The company is created (or the invite accepted) and the user becomes an owner or member accordingly; the event is logged.
+**Acceptance Criteria:** The company is created (or the invite accepted) and the user becomes an owner or member accordingly; when a new company is created, a workspace bearing the same name is created along with it; the event is logged.
 
 **Worth a deliberate decision:** the underlying system supports marking a company as either a Corporate business or an Agency, but this screen currently doesn't give the user any way to choose — it silently assumes Corporate every time. Product and Design should decide whether this choice should be shown to the user or dropped altogether, rather than leaving it as a silent assumption (see Section 15).
 
@@ -352,13 +355,13 @@ These are things the current implementation doesn't fully live up to, relative t
 9. **The mechanism meant to quietly keep a user's session alive in the background isn't actually being used anywhere yet.** As things stand, once a user's initial sign-in expires, nothing renews it automatically. This needs to be properly built as part of this rebuild.
 10. **How long a passcode stays valid, how often someone can ask for a new one, and how many times they can try — are currently just fixed numbers built into the app**, not something the backend actually controls or can adjust. If the backend's real policy is ever different, the countdowns and limits shown to the user would be wrong. These should come from the backend instead.
 11. **The "Remember me" checkbox on Login doesn't currently do anything.** Every login is treated the same regardless of whether it's checked — the exact same problem called out in the old project's version of this document, which was never actually fixed. This should either be properly implemented this time, or removed so it stops misleading people.
-12. **The Company Setup screen is described to the user as setting up a "workspace," but what it actually creates is a Company** — the very thing that owns billing and the team roster elsewhere in the product. Confusingly, an entirely separate "Workspace" concept already exists later in the dashboard, referring to something smaller and different. This naming clash should be resolved deliberately rather than left as is (see Section 15).
+12. **The Company Setup screen is described to the user as setting up a "workspace," but what it actually creates is a Company** — the very thing that owns billing and the team roster elsewhere in the product. This is now decided rather than open: completing this screen creates both a Company and a Workspace of the same name, in one step, without showing the user two separate things. What's still unresolved is only the on-screen wording — whether the screen's copy should say "workspace" (since a workspace genuinely is created) or "company" (to match how the rest of the product refers to it) — see Section 15.
 13. **The Company Setup screen offers no way to choose between a Corporate or Agency company type**, even though the system underneath supports that distinction — it's simply always assumed to be Corporate. Worth a clear decision on whether this should be user-facing.
 14. **A way of looking up a company by its invite link currently only exists in our own test/mock setup and doesn't yet exist on the real backend.** This needs a real decision and implementation before invite-based company joining can work in production.
 
 ## 14. Open Questions
 
-- Should the "workspace" language on the Company Setup screen be changed to "company" to match how the rest of the product refers to it, or should the other part of the product be the one to change instead? Either way, the current mismatch shouldn't ship as-is.
+- Now that Company Setup is confirmed to create both a Company and a same-named Workspace, should its on-screen copy say "workspace," say "company," or mention both? Either way, the current mismatch shouldn't ship as-is.
 - Should Corporate vs. Agency be shown as a real choice on the Company Setup screen, or dropped entirely if it isn't meant to be something the user picks?
 - Should "Remember me" be built to actually do something, or removed from the Login screen?
 - Is the "last seen" check still needed for anything, or can it be retired if nothing uses it?
@@ -370,7 +373,7 @@ These are things the current implementation doesn't fully live up to, relative t
 
 ## 15. Out of Scope
 
-Not included in this version: social login, SAML/SSO, MFA, passwordless login, phone/SMS verification, multi-company onboarding, risk-based/adaptive authentication, and the separate dashboard-level "Workspace" concept (which would need its own PRD).
+Not included in this version: social login, SAML/SSO, MFA, passwordless login, phone/SMS verification, multi-company onboarding, risk-based/adaptive authentication, and the deeper dashboard-level "Workspace" concept — what a workspace actually contains, how a user switches between workspaces, and whether a company can ever have more than one (which would need its own PRD). This PRD only covers the fact that a workspace is created, named after the company, at the moment the company itself is created.
 
 ## 16. Analytics Events
 
