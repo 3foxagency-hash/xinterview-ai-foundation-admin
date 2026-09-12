@@ -389,7 +389,7 @@ export default function QuestionsPage() {
               </div>
             )}
             <span className="text-body-sm font-semibold text-heading">
-              {formatConfig?.name ?? 'Interview format'}
+              Questions
             </span>
             <span className="text-body-sm text-muted">
               — {formatConfig?.description ?? 'Candidates record their answers.'}
