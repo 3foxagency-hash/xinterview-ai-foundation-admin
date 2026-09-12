@@ -386,7 +386,7 @@ export default function OverviewPage() {
             <p className="mt-1 text-body-lg text-muted">Manage your job openings and track candidate progress.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <Button onClick={() => toast('Create new job opened')}><Plus className="h-4 w-4" aria-hidden="true" />Create new job</Button>
+            <Button onClick={() => router.push('/create-job')}><Plus className="h-4 w-4" aria-hidden="true" />Create new job</Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild><Button variant="secondary"><Calendar className="h-4 w-4 text-muted" aria-hidden="true" />{dateRange}<ChevronDown className="h-4 w-4 text-muted" aria-hidden="true" /></Button></DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -466,7 +466,7 @@ export default function OverviewPage() {
                 <Button variant="secondary" className="mt-5" onClick={() => { setSearch(''); setStatus('all'); }}>Clear filters</Button>
               </div>
             ) : (
-              <EmptyState archived={tab === 'archived'} onCreate={() => toast('Create new job opened')} />
+              <EmptyState archived={tab === 'archived'} onCreate={() => router.push('/create-job')} />
             )
           ) : (
             <div className={cn(view === 'grid' ? 'grid gap-3 xl:grid-cols-2' : 'space-y-3')}>
@@ -488,7 +488,7 @@ export default function OverviewPage() {
           />
         )}
       </div>
-      <Button className="fixed bottom-6 right-6 z-sticky h-12 w-12 rounded-full p-0 shadow-lg sm:hidden" aria-label="Create new job" onClick={() => toast('Create new job opened')}><Plus className="h-5 w-5" aria-hidden="true" /></Button>
+      <Button className="fixed bottom-6 right-6 z-sticky h-12 w-12 rounded-full p-0 shadow-lg sm:hidden" aria-label="Create new job" onClick={() => router.push('/create-job')}><Plus className="h-5 w-5" aria-hidden="true" /></Button>
       <Dialog open={Boolean(dialog)} onOpenChange={(open) => !open && setDialog(null)}><DialogContent><DialogHeader><DialogTitle>{copy?.title}</DialogTitle><DialogDescription>{copy?.description}</DialogDescription></DialogHeader><DialogFooter><Button variant="secondary" onClick={() => setDialog(null)}>Cancel</Button><Button variant={copy?.destructive ? 'destructive' : 'default'} onClick={confirmAction}>{copy?.confirm}</Button></DialogFooter></DialogContent></Dialog>
     </div>
   );

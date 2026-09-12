@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { GripVertical, Plus, X, AlertCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -64,7 +65,7 @@ export function ScoringSection({
   const [dragId, setDragId] = React.useState<string | null>(null);
   const [overId, setOverId] = React.useState<string | null>(null);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   const overlapError = findOverlap(data.bands);
   const sortedBands = [...data.bands].sort((a, b) => a.min - b.min);

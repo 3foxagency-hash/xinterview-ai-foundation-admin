@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useWizard } from '@/components/wizard/wizard-context';
 import { StepFooter } from '@/components/wizard/step-footer';
+import { InviteSkeleton } from '@/components/wizard/invite-skeleton';
 import { InviteNav, type InviteSectionId, type NavIndicator } from '@/components/wizard/invite-nav';
 import { InviteSummaryRail } from '@/components/wizard/invite-summary-rail';
 import { ShareLinkCard } from '@/components/wizard/share-link-card';
@@ -163,16 +164,7 @@ export default function InvitePage() {
   };
 
   if (loading || !jobId) {
-    return (
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_300px]">
-        <div className="hidden h-64 animate-pulse rounded-lg border border-border bg-card-hover lg:block" />
-        <div className="space-y-4">
-          <div className="h-40 animate-pulse rounded-lg border border-border bg-card-hover" />
-          <div className="h-40 animate-pulse rounded-lg border border-border bg-card-hover" />
-        </div>
-        <div className="hidden h-64 animate-pulse rounded-lg border border-border bg-card-hover xl:block" />
-      </div>
-    );
+    return <InviteSkeleton />;
   }
 
   return (

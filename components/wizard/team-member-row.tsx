@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Trash2, MoveVertical as MoreVertical, LogOut, Info } from 'lucide-react';
+import { Trash2, MoveVertical as MoreVertical, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
@@ -46,7 +46,7 @@ export function TeamMemberRow({
 
   return (
     <div className="border-b border-border px-4 py-3 last:border-0">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_92px_110px_170px_64px] sm:items-center sm:gap-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_130px_170px_64px] sm:items-center sm:gap-5">
         {/* Identity */}
         <div className="flex min-w-0 items-center gap-3">
           <Checkbox
@@ -73,28 +73,12 @@ export function TeamMemberRow({
           <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="cursor-default">
+                <span className="inline-flex cursor-default">
                   <TeamRoleBadge role={member.role} />
                 </span>
               </TooltipTrigger>
               <TooltipContent side="top">
                 Their role at the company, not on this job.
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-
-          {/* Access */}
-          <TooltipProvider delayDuration={200}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="flex cursor-default items-center gap-1 text-body-sm text-bodyText">
-                  Full access
-                  <Info size={12} className="text-muted" />
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="max-w-xs">
-                Everyone on a job has the same access today. Per-job permission levels are
-                coming.
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

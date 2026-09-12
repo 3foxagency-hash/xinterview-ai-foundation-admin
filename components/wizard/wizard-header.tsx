@@ -126,17 +126,23 @@ function StepPill({
 export function WizardHeader() {
   const router = useRouter();
   const pathname = usePathname();
-  const { job, jobId, saveState, retrySave, isDirty, questionCount, chromeMode } = useWizard();
+  const { job, jobId, saveState, retrySave, questionCount, chromeMode } = useWizard();
   const [confirmExit, setConfirmExit] = React.useState(false);
   const currentStepNumber = getStepNumberFromPath(pathname ?? '');
 
   const isDraft = job?.status === 'draft';
 
+  // Step 1 (format selection + job details) has nothing worth losing yet —
+  // no questions, team, or customisation added — so Close exits straight
+  // away. From step 2 (Questions) onward, the wizard always confirms,
+  // regardless of per-step dirty tracking, since a lot can be in flight
+  // (an open question editor, unsaved invites, etc.) that isDirty doesn't
+  // capture on every step.
   const handleExit = () => {
-    if (isDirty) {
-      setConfirmExit(true);
-    } else {
+    if (currentStepNumber === 1) {
       router.push('/jobs');
+    } else {
+      setConfirmExit(true);
     }
   };
 
@@ -279,10 +285,10 @@ export function WizardHeader() {
         >
           <div className="mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-xl">
             <h2 id="exit-confirm-title" className="text-h2 text-heading">
-              Leave without saving?
+              Leave this job setup?
             </h2>
             <p className="mt-2 text-body text-bodyText">
-              Your changes to this step haven&apos;t been saved yet.
+              You&apos;ll lose any progress that hasn&apos;t been saved yet.
             </p>
             <div className="mt-6 flex justify-end gap-3">
               <button

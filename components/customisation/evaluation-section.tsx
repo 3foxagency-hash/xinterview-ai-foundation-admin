@@ -4,6 +4,7 @@ import * as React from 'react';
 import { Sparkles, ChevronDown, ChevronUp, Plus, X, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AIMarker } from '@/components/ui/ai-marker';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -252,7 +253,7 @@ export function EvaluationSection({
     }
   }, []);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={5} />;
 
   const totalWeight = data.factors.reduce((sum, f) => sum + f.weight, 0);
   const remaining = 100 - totalWeight;

@@ -17,9 +17,12 @@ export type EndState = 'complete' | 'already_completed' | 'expired' | 'invalid';
 interface CompletionScreenProps {
   session: InterviewSession;
   state: EndState;
+  /** Forwarded to InterviewThemeProvider's resolvedOverride — see that
+   *  prop's own doc. Only the admin preview passes this. */
+  themeOverride?: 'light' | 'dark';
 }
 
-export function CompletionScreen({ session, state }: CompletionScreenProps) {
+export function CompletionScreen({ session, state, themeOverride }: CompletionScreenProps) {
   const [redirectCountdown, setRedirectCountdown] = React.useState(
     session.completion.redirectDelaySeconds,
   );
@@ -71,6 +74,7 @@ export function CompletionScreen({ session, state }: CompletionScreenProps) {
         brandColor={session.company.brandColor}
         themeMode={session.company.themeMode}
         allowCandidateToggle={session.company.allowCandidateToggle}
+        resolvedOverride={themeOverride}
       >
         <AmbientLight />
         <TopBar config={landingConfig} />
@@ -105,23 +109,15 @@ export function CompletionScreen({ session, state }: CompletionScreenProps) {
                   </p>
                 )}
                 <span className="iv-next-steps-label">
-                  {strings.completeNextSteps}
+                  {strings.completeInstructionsLabel}
                 </span>
                 <div className="iv-next-steps-underline" aria-hidden="true" />
-                <ul className="iv-next-steps-list">
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepReview}
-                  </li>
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepEmail}
-                  </li>
-                  <li>
-                    <span className="iv-next-steps-dot" aria-hidden="true" />
-                    {strings.completeStepShared}
-                  </li>
-                </ul>
+                <p
+                  className="iv-next-steps-message"
+                  dangerouslySetInnerHTML={{
+                    __html: session.completion.instructions || strings.completeInstructionsFallback,
+                  }}
+                />
               </div>
 
               <p className="iv-complete-close">{strings.completeCloseTab}</p>

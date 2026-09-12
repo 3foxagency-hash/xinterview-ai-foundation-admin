@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { CharCount } from '@/components/customisation/char-count';
+import { CustomisationSectionSkeleton } from '@/components/customisation/customisation-section-skeleton';
 import { SettingsSection } from '@/components/settings/settings-section';
 import { SettingsRow } from '@/components/settings/settings-row';
 import { Switch } from '@/components/ui/switch';
@@ -47,7 +48,7 @@ export function ThankYouSection({
   useRegisterSave('thank-you', save);
   usePreviewSync('thankYou', data);
 
-  if (loading || !data) return <div className="py-8 text-center text-muted">Loading…</div>;
+  if (loading || !data) return <CustomisationSectionSkeleton rows={4} />;
 
   return (
     <div className="space-y-6">
@@ -71,7 +72,7 @@ export function ThankYouSection({
           />
           <CharCount value={data.title ?? ''} max={200} />
           <p className="mt-1.5 text-body-sm text-muted">
-            The message candidates see above &ldquo;What happens next&rdquo; on the completion screen.
+            The message candidates see above &ldquo;Instructions&rdquo; on the completion screen.
           </p>
         </div>
 
@@ -80,7 +81,7 @@ export function ThankYouSection({
           <RichTextEditor
             value={data.completionMessage}
             onChange={(val) => update({ completionMessage: val } as Partial<ThankYouPageInput>)}
-            placeholder="Internal notes — not shown to candidates yet."
+            placeholder="Shown under &quot;Instructions&quot; on the completion screen."
           />
         </div>
 

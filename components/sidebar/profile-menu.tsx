@@ -2,7 +2,9 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
+import { logout } from '@/lib/api/auth';
 import {
   ChevronsUpDown,
   CircleCheck,
@@ -43,6 +45,7 @@ const themeLabel: Record<ThemeMode, string> = {
 };
 
 export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
+  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   React.useEffect(() => setMounted(true), []);
@@ -121,8 +124,8 @@ export function ProfileMenu({ user, expanded }: ProfileMenuProps) {
 
   const handleLogout = React.useCallback(() => {
     setOpen(false);
-    triggerRef.current?.focus();
-  }, []);
+    logout().then(() => router.push('/login'));
+  }, [router]);
 
   const openMenu = React.useCallback(() => {
     setOpen(true);

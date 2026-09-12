@@ -19,6 +19,7 @@ import { track } from '@/lib/utils/analytics';
 
 export type PreviewScreen = 'landing' | 'form' | 'thank-you';
 export type PreviewDevice = 'desktop' | 'mobile';
+export type PreviewTheme = 'light' | 'dark';
 
 export type SectionState = 'untouched' | 'complete' | 'error';
 
@@ -45,6 +46,8 @@ export interface CustomisationPreviewContextValue {
   setPreviewScreen: (screen: PreviewScreen) => void;
   previewDevice: PreviewDevice;
   setPreviewDevice: (device: PreviewDevice) => void;
+  previewTheme: PreviewTheme;
+  setPreviewTheme: (theme: PreviewTheme) => void;
   sectionStates: Record<string, SectionState>;
   setSectionState: (section: string, state: SectionState) => void;
   blockingSections: string[];
@@ -67,7 +70,11 @@ export function useOptionalCustomisationPreview(): CustomisationPreviewContextVa
 const SECTION_TO_SCREEN: Record<string, PreviewScreen> = {
   branding: 'landing',
   welcome: 'landing',
-  form: 'form',
+  // The apply form ("Tell us who you are") lives on the landing page
+  // itself in the real candidate flow — the "Start form" preview screen
+  // is actually the pre-interview integrity disclosure, unrelated to what
+  // candidates fill in here.
+  form: 'landing',
   experience: 'form',
   evaluation: 'landing',
   notifications: 'landing',
@@ -99,6 +106,7 @@ export function CustomisationPreviewProvider({
   const [activeSection, setActiveSectionInternal] = React.useState('branding');
   const [previewScreen, setPreviewScreen] = React.useState<PreviewScreen>('landing');
   const [previewDevice, setPreviewDeviceInternal] = React.useState<PreviewDevice>('desktop');
+  const [previewTheme, setPreviewThemeInternal] = React.useState<PreviewTheme>('light');
   const [sectionStates, setSectionStates] = React.useState<Record<string, SectionState>>({});
   const [blockingSections, setBlockingSections] = React.useState<string[]>([]);
 
@@ -135,6 +143,11 @@ export function CustomisationPreviewProvider({
     track('preview_device_changed', { device });
   }, []);
 
+  const setPreviewTheme = React.useCallback((theme: PreviewTheme) => {
+    setPreviewThemeInternal(theme);
+    track('preview_theme_changed', { theme });
+  }, []);
+
   const value = React.useMemo<CustomisationPreviewContextValue>(
     () => ({
       state,
@@ -145,6 +158,8 @@ export function CustomisationPreviewProvider({
       setPreviewScreen,
       previewDevice,
       setPreviewDevice,
+      previewTheme,
+      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
@@ -159,6 +174,8 @@ export function CustomisationPreviewProvider({
       previewScreen,
       previewDevice,
       setPreviewDevice,
+      previewTheme,
+      setPreviewTheme,
       sectionStates,
       setSectionState,
       blockingSections,
@@ -279,11 +296,14 @@ export function buildPreviewSession(
       disableRightClick: experience?.disableCopyPaste ?? false,
     },
     completion: {
-      // The completion screen has one editable message slot above "What
-      // happens next" — the "Title" field drives it (not "Completion
+      // The completion screen has one editable message slot above
+      // "Instructions" — the "Title" field drives it (not "Completion
       // message"), since that's the sentence candidates actually read
       // there ("Thank you for completing your interview...").
       customMessage: thankYou?.title || defaultSession.completion.customMessage,
+      // "Instructions" replaces the old fixed "what happens next" bullet
+      // list — its paragraph comes from the "Completion message" field.
+      instructions: thankYou?.completionMessage || defaultSession.completion.instructions,
       redirectUrl: thankYou?.redirectEnabled ? thankYou.redirectUrl || null : null,
       redirectDelaySeconds: thankYou?.redirectDelay ?? 5,
     },

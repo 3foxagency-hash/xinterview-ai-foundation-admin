@@ -12,18 +12,25 @@ import { MonitoringDisclosure } from '@/components/interview/monitoring-disclosu
 import { CompletionScreen } from '@/components/interview/completion-screen';
 
 type PreviewScreen = 'landing' | 'form' | 'thank-you';
+type PreviewTheme = 'light' | 'dark';
 
 interface FrameMessage {
   source: 'xinterview-customisation-preview';
   screen: PreviewScreen;
   config: InterviewConfig;
   session: InterviewSession;
+  /** Only takes effect when the job's own branding theme is "Auto"
+   *  (themeMode 'system') — forces which side of the toggle the preview
+   *  starts on, the same way a candidate's OS light/dark setting would.
+   *  It never overrides an explicit light/dark branding choice. */
+  themeOverride: PreviewTheme;
 }
 
 interface FrameSnapshot {
   screen: PreviewScreen;
   config: InterviewConfig;
   session: InterviewSession;
+  themeOverride: PreviewTheme;
 }
 
 function isFrameMessage(data: unknown): data is FrameMessage {
@@ -74,6 +81,7 @@ export default function CustomisationPreviewFrame() {
   const [screen, setScreen] = React.useState<PreviewScreen>(snapshot?.screen ?? 'landing');
   const [config, setConfig] = React.useState<InterviewConfig>(snapshot?.config ?? defaultConfig);
   const [session, setSession] = React.useState<InterviewSession>(snapshot?.session ?? defaultSession);
+  const [themeOverride, setThemeOverride] = React.useState<PreviewTheme>(snapshot?.themeOverride ?? 'light');
 
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -82,6 +90,7 @@ export default function CustomisationPreviewFrame() {
       setScreen(event.data.screen);
       setConfig(event.data.config);
       setSession(event.data.session);
+      setThemeOverride(event.data.themeOverride);
     };
     window.addEventListener('message', handleMessage);
     // Tell the parent we're ready to receive state — it may have rendered
@@ -90,8 +99,27 @@ export default function CustomisationPreviewFrame() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  // Only takes effect when the job's theme is "Auto" (themeMode 'system') —
+  // InterviewThemeProvider ignores resolvedOverride otherwise, exactly like
+  // a real session where an explicit light/dark branding choice always
+  // wins. InterviewThemeProvider only reads resolvedOverride once, at
+  // mount, so keying each screen by the requested override forces a real
+  // remount whenever the admin's own toolbar changes it, so that click
+  // actually takes effect (a live candidate toggle click inside the
+  // preview would still work independently between remounts).
+  const resolvedOverride = config.company.themeMode === 'system' ? themeOverride : undefined;
+  const themeKey = String(resolvedOverride);
+
   if (screen === 'landing') {
-    return <InterviewPage token="preview" configOverride={config} disableDevControls />;
+    return (
+      <InterviewPage
+        key={themeKey}
+        token="preview"
+        configOverride={config}
+        disableDevControls
+        themeOverride={resolvedOverride}
+      />
+    );
   }
 
   if (screen === 'form') {
@@ -100,7 +128,7 @@ export default function CustomisationPreviewFrame() {
 
     if (!hasIntegrity) {
       return (
-        <InterviewShell session={session} showProgressLine={false}>
+        <InterviewShell key={themeKey} session={session} showProgressLine={false} themeOverride={resolvedOverride}>
           <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-3 p-10 text-center">
             <ShieldOff size={28} className="text-muted" strokeWidth={1.5} />
             <p className="text-body font-medium text-heading">This screen is off</p>
@@ -114,7 +142,7 @@ export default function CustomisationPreviewFrame() {
     }
 
     return (
-      <InterviewShell session={session} showProgressLine={false}>
+      <InterviewShell key={themeKey} session={session} showProgressLine={false} themeOverride={resolvedOverride}>
         <div className="iv-disclosure-wrap">
           <MonitoringDisclosure integrity={integrity} totalQuestions={session.questions.length} onAcknowledge={() => {}} />
         </div>
@@ -122,5 +150,5 @@ export default function CustomisationPreviewFrame() {
     );
   }
 
-  return <CompletionScreen session={session} state="complete" />;
+  return <CompletionScreen key={themeKey} session={session} state="complete" themeOverride={resolvedOverride} />;
 }

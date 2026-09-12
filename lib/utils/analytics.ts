@@ -89,6 +89,7 @@ export type AnalyticsEvent =
   | 'notification_toggled'
   | 'notification_plan_blocked'
   | 'preview_device_changed'
+  | 'preview_theme_changed'
   | 'preview_opened_new_tab'
   | 'customization_saved';
 

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, X, Trash2 } from 'lucide-react';
+import { Plus, X, Trash2, Lightbulb, Info, Clock, Timer, RotateCcw, Pencil } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Sheet,
@@ -43,12 +43,46 @@ function genOptId() {
 const TITLE_MAX = 180;
 const DESC_MAX = 200;
 
+/** Icon + single line of muted copy on a soft background, used under an
+ *  input to nudge the user without the weight of a full tip card. */
+function TipRow({ icon: Icon, tone, children }: { icon: React.ElementType; tone: 'primary' | 'muted'; children: React.ReactNode }) {
+  return (
+    <div
+      className={cn(
+        'mt-2 flex items-center gap-2 rounded-md px-3 py-2',
+        tone === 'primary' ? 'bg-active-menu-bg' : 'bg-card-hover'
+      )}
+    >
+      <Icon size={14} className={cn('shrink-0', tone === 'primary' ? 'text-primary' : 'text-muted')} />
+      <p className="text-caption text-muted">{children}</p>
+    </div>
+  );
+}
+
+/** Small circular icon accent placed beside a Select trigger. */
+function FieldIcon({ icon: Icon, tone }: { icon: React.ElementType; tone: 'muted' | 'success' | 'warning' }) {
+  const toneClass =
+    tone === 'success'
+      ? 'bg-success-wash text-success'
+      : tone === 'warning'
+        ? 'bg-warning-wash text-warning'
+        : 'bg-card-hover text-muted';
+  return (
+    <div className={cn('flex h-9 w-9 shrink-0 items-center justify-center rounded-full', toneClass)}>
+      <Icon size={15} />
+    </div>
+  );
+}
+
 interface QuestionEditorDrawerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   mode: 'add' | 'edit';
   format: InterviewFormat;
   initialQuestion?: Question;
+  /** Question type to preselect in add mode — the type the user picked
+   *  from the "Add question" menu before this drawer opened. */
+  initialType?: QuestionType;
   onSave: (question: Question) => void;
 }
 
@@ -58,10 +92,11 @@ export function QuestionEditorDrawer({
   mode,
   format,
   initialQuestion,
+  initialType,
   onSave,
 }: QuestionEditorDrawerProps) {
   const availableTypes = getAvailableQuestionTypes(format);
-  const defaultType = availableTypes[0];
+  const defaultType = initialType ?? availableTypes[0];
 
   const [question, setQuestion] = React.useState<Question>(() =>
     initialQuestion ?? blankQuestion(defaultType)
@@ -105,9 +140,13 @@ export function QuestionEditorDrawer({
       if (!newQ.answerTime) newQ.answerTime = '2min';
     }
     if (type === 'text') {
-      delete newQ.retakesAllowed;
+      if (newQ.retakesAllowed === undefined) newQ.retakesAllowed = 1;
       if (!newQ.answerTime) newQ.answerTime = '5min';
       if (!newQ.charLimit) newQ.charLimit = 500;
+    }
+    if (type === 'single_choice') {
+      delete newQ.retakesAllowed;
+      if (!newQ.answerTime) newQ.answerTime = '2min';
     }
     setQuestion(newQ);
     setHasEdits(true);
@@ -134,7 +173,8 @@ export function QuestionEditorDrawer({
   };
 
   const isSingleChoice = question.type === 'single_choice';
-  const hasMinOptions = !isSingleChoice || (question.options?.length ?? 0) >= 2;
+  const filledOptionCount = question.options?.filter((o) => o.text.trim().length > 0).length ?? 0;
+  const hasMinOptions = !isSingleChoice || filledOptionCount >= 2;
   const hasCorrect = !isSingleChoice || (question.options?.some((o) => o.isCorrect) ?? false);
   const hasTitle = question.title.trim().length >= 2;
   const canSave = hasTitle && hasMinOptions && hasCorrect;
@@ -142,7 +182,7 @@ export function QuestionEditorDrawer({
   const saveBlockReason = !hasTitle
     ? 'Enter a question title to save'
     : !hasMinOptions
-      ? 'Add at least two options to save'
+      ? 'Fill in at least two options to save'
       : !hasCorrect
         ? 'Mark one option as correct to save'
         : null;
@@ -166,14 +206,21 @@ export function QuestionEditorDrawer({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent side="right">
         <SheetHeader>
-          <SheetTitle>
-            {mode === 'add' ? 'Add question' : 'Edit question'}
-          </SheetTitle>
-          <SheetDescription>
-            {mode === 'add'
-              ? 'Fill in the question and settings. Candidates will answer this in order.'
-              : 'Update the question text and settings.'}
-          </SheetDescription>
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-active-menu-bg text-primary">
+              {mode === 'add' ? <Plus size={18} /> : <Pencil size={16} />}
+            </div>
+            <div>
+              <SheetTitle>
+                {mode === 'add' ? 'Add question' : 'Edit question'}
+              </SheetTitle>
+              <SheetDescription>
+                {mode === 'add'
+                  ? 'Fill in the question and settings. Candidates will answer this in order.'
+                  : 'Update the question text and settings.'}
+              </SheetDescription>
+            </div>
+          </div>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -188,7 +235,7 @@ export function QuestionEditorDrawer({
                 onValueChange={(v) => handleTypeChange(v as QuestionType)}
                 disabled={mode === 'edit'}
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-auto py-2 [&>span]:flex-1 [&>span]:text-left">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -196,10 +243,15 @@ export function QuestionEditorDrawer({
                     const cfg = QUESTION_TYPE_CONFIG[t];
                     const Icon = cfg.icon;
                     return (
-                      <SelectItem key={t} value={t}>
-                        <div className="flex items-center gap-2">
-                          <Icon size={14} className={cfg.colorClass} />
-                          {cfg.label}
+                      <SelectItem key={t} value={t} className="py-2 pl-8">
+                        <div className="flex items-center gap-3">
+                          <div className={cn('flex h-8 w-8 shrink-0 items-center justify-center rounded-md', cfg.tileClass)}>
+                            <Icon size={15} className={cfg.colorClass} />
+                          </div>
+                          <div>
+                            <p className="text-body-sm font-medium text-heading">{cfg.label}</p>
+                            <p className="text-caption text-muted">{cfg.description}</p>
+                          </div>
                         </div>
                       </SelectItem>
                     );
@@ -238,6 +290,9 @@ export function QuestionEditorDrawer({
                   {question.title.length}/{TITLE_MAX}
                 </span>
               </div>
+              <TipRow icon={Lightbulb} tone="primary">
+                Be clear and specific to get better responses.
+              </TipRow>
             </div>
 
             {/* Description */}
@@ -257,6 +312,9 @@ export function QuestionEditorDrawer({
                   {(question.description ?? '').length}/{DESC_MAX}
                 </span>
               </div>
+              <TipRow icon={Info} tone="muted">
+                Use this to provide additional context, evaluation criteria or other instructions.
+              </TipRow>
             </div>
 
             {/* Thinking time — all types */}
@@ -265,35 +323,39 @@ export function QuestionEditorDrawer({
                 <Label className="mb-2 block text-body-sm font-medium text-heading">
                   Thinking time
                 </Label>
-                <Select
-                  value={question.thinkingTime ?? 'none'}
-                  onValueChange={(v) => update({ thinkingTime: v })}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {THINKING_TIME_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-3">
+                  <FieldIcon icon={Clock} tone="muted" />
+                  <Select
+                    value={question.thinkingTime ?? 'none'}
+                    onValueChange={(v) => update({ thinkingTime: v })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {THINKING_TIME_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <p className="mt-1.5 text-caption text-muted">
                   Time the candidate sees the question before answering.
                 </p>
               </div>
 
-              {/* Answer time — video, audio, text */}
-              {(question.type === 'video' || question.type === 'audio' || question.type === 'text') && (
-                <div>
-                  <Label className="mb-2 block text-body-sm font-medium text-heading">
-                    Answer time{' '}
-                    {isSingleChoice ? (
-                      <span className="text-caption font-normal text-muted">(optional)</span>
-                    ) : null}
-                  </Label>
+              {/* Answer time — every type */}
+              <div>
+                <Label className="mb-2 block text-body-sm font-medium text-heading">
+                  Answer time{' '}
+                  {isSingleChoice ? (
+                    <span className="text-caption font-normal text-muted">(optional)</span>
+                  ) : null}
+                </Label>
+                <div className="flex items-center gap-3">
+                  <FieldIcon icon={Timer} tone="success" />
                   <Select
                     value={question.answerTime ?? '2min'}
                     onValueChange={(v) => update({ answerTime: v })}
@@ -310,32 +372,40 @@ export function QuestionEditorDrawer({
                     </SelectContent>
                   </Select>
                 </div>
-              )}
+                <p className="mt-1.5 text-caption text-muted">
+                  Maximum time the candidate can record their answer.
+                </p>
+              </div>
             </div>
 
-            {/* Retakes — video and audio only */}
-            {(question.type === 'video' || question.type === 'audio') && (
-              <div className="sm:max-w-xs">
+            {/* Retakes — video, audio and text */}
+            {(question.type === 'video' || question.type === 'audio' || question.type === 'text') && (
+              <div>
                 <Label className="mb-2 block text-body-sm font-medium text-heading">
                   Retries allowed
                 </Label>
-                <Select
-                  value={String(question.retakesAllowed ?? 1)}
-                  onValueChange={(v) => update({ retakesAllowed: Number(v) })}
-                >
-                  <SelectTrigger className="h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RETAKES_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={String(opt.value)}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-3">
+                  <FieldIcon icon={RotateCcw} tone="warning" />
+                  <Select
+                    value={String(question.retakesAllowed ?? 1)}
+                    onValueChange={(v) => update({ retakesAllowed: Number(v) })}
+                  >
+                    <SelectTrigger className="h-10">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RETAKES_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={String(opt.value)}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <p className="mt-1.5 text-caption text-muted">
-                  How many times a candidate can re-record this answer.
+                  {question.type === 'text'
+                    ? 'How many times a candidate can redo this answer.'
+                    : 'How many times a candidate can re-record this answer.'}
                 </p>
               </div>
             )}
@@ -367,7 +437,8 @@ export function QuestionEditorDrawer({
                         value={opt.text}
                         onChange={(e) => handleOptionChange(opt.id, e.target.value)}
                         placeholder="Option text"
-                        className="h-10 flex-1"
+                        aria-invalid={touched && !opt.text.trim()}
+                        className={cn('h-10 flex-1', touched && !opt.text.trim() && 'border-error')}
                       />
                       {question.options && question.options.length > 2 && (
                         <button
@@ -402,7 +473,7 @@ export function QuestionEditorDrawer({
                 )}
                 {touched && !hasMinOptions && (
                   <p role="alert" className="mt-2 text-body-sm text-error">
-                    Add at least two options.
+                    Fill in at least two options.
                   </p>
                 )}
               </div>
@@ -450,12 +521,14 @@ function blankQuestion(type: QuestionType): Question {
     base.answerTime = '2min';
   }
   if (type === 'text') {
+    base.retakesAllowed = 1;
     base.answerTime = '5min';
     base.charLimit = 500;
     base.thinkingTime = 'none';
   }
   if (type === 'single_choice') {
     base.thinkingTime = '30s';
+    base.answerTime = '2min';
     base.options = [
       { id: genOptId(), text: '', isCorrect: true },
       { id: genOptId(), text: '', isCorrect: false },

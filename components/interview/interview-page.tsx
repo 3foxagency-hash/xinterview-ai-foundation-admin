@@ -64,9 +64,12 @@ interface InterviewPageProps {
    *  those exist for testing the live route and would otherwise let the
    *  preview drift from what the admin form actually says. */
   disableDevControls?: boolean;
+  /** Forwarded to InterviewThemeProvider's resolvedOverride — see that
+   *  prop's own doc. Only the admin preview passes this. */
+  themeOverride?: 'light' | 'dark';
 }
 
-export function InterviewPage({ token, configOverride, disableDevControls }: InterviewPageProps) {
+export function InterviewPage({ token, configOverride, disableDevControls, themeOverride }: InterviewPageProps) {
   const router = useRouter();
   const [config, setConfig] = React.useState<InterviewConfig>(configOverride ?? defaultConfig);
   const [isDev, setIsDev] = React.useState(false);
@@ -122,6 +125,7 @@ export function InterviewPage({ token, configOverride, disableDevControls }: Int
         brandColor={config.company.brandColor}
         themeMode={config.company.themeMode}
         allowCandidateToggle={config.company.allowCandidateToggle}
+        resolvedOverride={themeOverride}
       >
         <AmbientLight />
 
