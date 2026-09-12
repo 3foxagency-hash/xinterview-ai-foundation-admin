@@ -573,13 +573,7 @@
      the main action. Scoped to .bg-primary/.bg-ai/.bg-error so Radix
      controls that render as <button> (switch, checkbox, tab) keep their
      own disabled treatment instead of being forced into a flat fill. */
-  button:disabled.bg-primary,
-  button[disabled].bg-primary,
-  a[aria-disabled="true"].bg-primary,
-  button:disabled.bg-ai,
-  button[disabled].bg-ai,
-  button:disabled.bg-error,
-  button[disabled].bg-error {
+  :is(button:disabled, button[disabled], a[aria-disabled="true"]):is(.bg-primary, .bg-ai, .bg-error) {
     background-color: var(--surface-2) !important;
     color: var(--text-disabled) !important;
     box-shadow: none !important;
